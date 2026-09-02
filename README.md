@@ -1,8 +1,8 @@
 # PAFF
 
-Socle web de **PAFF**, future adaptation numérique d’un jeu de cartes tactique privé.
+Application web privée de **PAFF**, future adaptation numérique d’un jeu de cartes tactique.
 
-Ce premier slice fournit une application React responsive, un routage avec page 404, et un indicateur de connexion alimenté par une fonction Convex. Il ne contient aucune fonctionnalité métier.
+L’application fournit une authentification par identifiant et mot de passe pour cinq joueurs préautorisés. Il n’existe ni inscription publique, ni OAuth, ni récupération automatique du mot de passe.
 
 ## Prérequis
 
@@ -24,6 +24,14 @@ npx convex dev
 ```
 
 La commande propose de créer ou de sélectionner un projet Convex, génère les fichiers de `convex/_generated/` et écrit `.env.local`. Gardez-la active pendant le développement.
+
+Configurer ensuite les clés Convex Auth sur ce déploiement :
+
+```bash
+npx @convex-dev/auth --web-server-url http://localhost:5173
+```
+
+Cette commande enregistre `SITE_URL`, `JWT_PRIVATE_KEY` et `JWKS` dans l’environnement sécurisé du déploiement Convex. Les clés ne sont pas écrites dans le dépôt.
 
 Dans un second terminal, lancer le frontend :
 
@@ -55,8 +63,79 @@ cp .env.example .env.local
 | --- | --- | --- |
 | `CONVEX_DEPLOYMENT` | Identifie le déploiement utilisé par la CLI Convex | `.env.local`, générée par Convex |
 | `VITE_CONVEX_URL` | URL publique interrogée par le client React | `.env.local` et Vercel |
+| `SITE_URL` | Origine autorisée de l’application | environnement Convex, configuré par Convex Auth |
+| `JWT_PRIVATE_KEY` | Signature des sessions | environnement Convex, configuré par Convex Auth |
+| `JWKS` | Vérification des sessions | environnement Convex, configuré par Convex Auth |
+| `PAFF_PROVISIONING_ACCOUNTS` | Lot temporaire des cinq comptes initiaux | environnement Convex, à supprimer après provisionnement |
 
 Les fichiers locaux d’environnement sont ignorés par Git. `.env.example` ne contient que des valeurs d’exemple et peut être versionné.
+
+## Comptes privés
+
+### Format de provisionnement
+
+`PAFF_PROVISIONING_ACCOUNTS` doit contenir un tableau JSON de **cinq** objets au format suivant :
+
+```json
+[
+  {
+    "loginId": "<identifiant>",
+    "password": "<mot-de-passe-d-au-moins-12-caracteres>",
+    "displayName": "<nom affiche>",
+    "role": "player",
+    "active": true
+  }
+]
+```
+
+L’exemple montre la structure d’un objet : il faut en fournir exactement cinq. Les identifiants acceptent 3 à 32 caractères (`a-z`, chiffres, point, tiret et underscore) et sont normalisés en minuscules. Le rôle est `player` ou `admin`.
+
+Ne placez jamais cette valeur dans un fichier versionné ou directement dans une commande. Préparez le JSON dans un gestionnaire de mots de passe, copiez-le, puis utilisez l’entrée standard pour éviter l’historique du shell.
+
+### Développement
+
+Avec le backend de développement actif :
+
+```bash
+pbpaste | npx convex env set PAFF_PROVISIONING_ACCOUNTS
+npx convex run provisioning:provisionAccounts '{}'
+npx convex env remove PAFF_PROVISIONING_ACCOUNTS
+```
+
+Sous un système sans `pbpaste`, définissez temporairement la variable depuis **Convex Dashboard → Settings → Environment Variables**, lancez la fonction interne `provisioning:provisionAccounts`, puis supprimez immédiatement la variable.
+
+Le résultat ne contient que les compteurs `created`, `existing` et `total`. La procédure est idempotente : les comptes existants sont ignorés et aucun mot de passe n’est affiché par le code applicatif.
+
+### Production
+
+Après avoir déployé les fonctions Convex, configurez Convex Auth avec l’URL Vercel définitive :
+
+```bash
+npx @convex-dev/auth --prod --web-server-url https://<domaine-vercel>
+```
+
+Dans le déploiement **Production** du Dashboard Convex, ajoutez temporairement `PAFF_PROVISIONING_ACCOUNTS`, puis exécutez :
+
+```bash
+npx convex run provisioning:provisionAccounts '{}' --prod
+npx convex env remove PAFF_PROVISIONING_ACCOUNTS --prod
+```
+
+Vérifiez que le résultat indique `total: 5`. Une seconde exécution doit indiquer les cinq comptes dans `existing`.
+
+### Désactiver ou réactiver un joueur
+
+La fonction est interne et n’est donc pas appelable par le frontend :
+
+```bash
+npx convex run players:setActive '{"loginId":"<identifiant>","active":false}'
+```
+
+Ajoutez `--prod` pour la production et utilisez `true` pour réactiver le compte. La désactivation bloque immédiatement les fonctions privées côté serveur ; le frontend détruit aussi la session locale dès qu’il détecte ce statut.
+
+### Limite actuelle des mots de passe
+
+Il n’existe pas encore de récupération ou de modification automatique du mot de passe. Un joueur qui l’oublie doit contacter l’administrateur ; la procédure sécurisée de réinitialisation administrative sera ajoutée dans un slice ultérieur. Ne supprimez pas manuellement les tables Convex Auth pour contourner cette limite.
 
 ## Commandes utiles
 
@@ -75,6 +154,7 @@ npm run preview      # aperçu local du build de production
 ```text
 convex/                 fonctions et schéma du backend
 src/app/                composition de l’application et routage
+src/auth/               état de session et intégration Convex Auth
 src/features/           modules fonctionnels isolés
 src/pages/              pages associées aux routes
 src/styles/             styles globaux et fondations visuelles
@@ -92,6 +172,8 @@ npx convex deploy
 ```
 
 La commande fournit l’URL de production à utiliser pour `VITE_CONVEX_URL`.
+
+Configurez ensuite Convex Auth et provisionnez séparément les cinq comptes de production en suivant la procédure ci-dessus.
 
 ### 2. Vercel
 

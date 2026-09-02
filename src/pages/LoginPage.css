@@ -1,0 +1,123 @@
+.login-page {
+  display: grid;
+  min-height: 100svh;
+  padding: 1.5rem;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(142, 63, 52, 0.13), transparent 28rem),
+    repeating-linear-gradient(95deg, transparent 0 7px, rgba(255, 255, 255, 0.009) 8px),
+    var(--coal-950);
+}
+
+.login-panel {
+  width: min(100%, 28rem);
+  padding: clamp(2rem, 7vw, 3.25rem);
+  border: 1px solid rgba(170, 135, 88, 0.32);
+  background: rgba(23, 21, 17, 0.94);
+  box-shadow: 0 1.5rem 5rem rgba(0, 0, 0, 0.32);
+}
+
+.login-panel__wordmark {
+  margin: 0 0 1.5rem;
+  color: var(--bronze-400);
+  font-family: var(--display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+}
+
+.login-panel h1 {
+  margin: 0 0 2.25rem;
+  color: var(--parchment-100);
+  font-family: var(--display);
+  font-size: clamp(2.5rem, 9vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.login-panel form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.login-field {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.login-field label {
+  color: var(--parchment-200);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.login-field input {
+  min-height: 3.25rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line-dark);
+  border-radius: 0;
+  outline: 2px solid transparent;
+  background: rgba(15, 14, 12, 0.82);
+  color: var(--parchment-100);
+  font: inherit;
+  transition: border-color 150ms ease, outline-color 150ms ease;
+}
+
+.login-field input:focus-visible {
+  border-color: var(--bronze-400);
+  outline-color: rgba(170, 135, 88, 0.3);
+  outline-offset: 2px;
+}
+
+.login-field input:disabled {
+  opacity: 0.65;
+}
+
+.login-error {
+  min-height: 1.3rem;
+  margin: -0.2rem 0 0;
+  color: #d98779;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.login-panel button {
+  min-height: 3.25rem;
+  border: 1px solid var(--bronze-500);
+  background: var(--oxblood-500);
+  color: var(--parchment-100);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.login-panel button:hover:not(:disabled) {
+  border-color: var(--bronze-400);
+  background: var(--oxblood-400);
+}
+
+.login-panel button:focus-visible {
+  outline: 2px solid var(--parchment-100);
+  outline-offset: 3px;
+}
+
+.login-panel button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 0.85rem;
+  }
+
+  .login-panel {
+    padding: 2rem 1.5rem;
+  }
+}

@@ -1,8 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ConvexProvider, ConvexReactClient } from 'convex/react'
+import { ConvexAuthProvider } from '@convex-dev/auth/react'
+import { ConvexReactClient } from 'convex/react'
 import { BrowserRouter } from 'react-router-dom'
 import { App } from './app/App'
+import { AuthSessionProvider } from './auth/AuthSessionContext'
 import './styles/global.css'
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL?.trim()
@@ -20,18 +22,22 @@ function createConvexClient() {
 }
 
 const convexClient = createConvexClient()
-const application = (
-  <BrowserRouter>
-    <App convexConfigured={convexClient !== null} />
-  </BrowserRouter>
-)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {convexClient ? (
-      <ConvexProvider client={convexClient}>{application}</ConvexProvider>
+      <ConvexAuthProvider client={convexClient}>
+        <AuthSessionProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </AuthSessionProvider>
+      </ConvexAuthProvider>
     ) : (
-      application
+      <main className="configuration-error">
+        <h1>Configuration requise</h1>
+        <p>La variable VITE_CONVEX_URL doit être configurée.</p>
+      </main>
     )}
   </StrictMode>,
 )

@@ -1,14 +1,34 @@
-import "./HomePage.css";
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuthSession } from '../auth/authSession'
+import './HomePage.css'
 
-type HomePageProps = {
-  convexConfigured: boolean;
-};
+export function HomePage() {
+  const navigate = useNavigate()
+  const { signOut } = useAuthSession()
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
-export function HomePage({ convexConfigured }: HomePageProps) {
-  void convexConfigured;
+  async function handleSignOut() {
+    setIsSigningOut(true)
+    try {
+      await signOut()
+      navigate('/login', { replace: true })
+    } finally {
+      setIsSigningOut(false)
+    }
+  }
 
   return (
     <main className="home-hero" aria-labelledby="home-title">
+      <button
+        className="home-hero__sign-out"
+        type="button"
+        onClick={handleSignOut}
+        disabled={isSigningOut}
+      >
+        {isSigningOut ? 'Déconnexion…' : 'Se déconnecter'}
+      </button>
+
       <div className="home-hero__media" aria-hidden="true">
         <img
           src="/art/paff-battle-home.png"
@@ -28,5 +48,5 @@ export function HomePage({ convexConfigured }: HomePageProps) {
         </p>
       </section>
     </main>
-  );
+  )
 }
