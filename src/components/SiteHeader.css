@@ -13,7 +13,7 @@
 .site-bar__player { color: var(--bronze-400) !important; }
 @media (max-width: 760px) {
   .site-bar { min-height: auto; padding-block: 0.8rem; grid-template-columns: auto 1fr; gap: 0.65rem 1rem; }
-  .site-bar__nav { justify-content: flex-end; }
+  .site-bar__nav { justify-content: flex-end; flex-wrap: wrap; gap: 0.25rem 0.8rem; }
   .site-bar__nav a { padding-block: 0.6rem; }
   .site-bar__session { grid-column: 1 / -1; }
   .site-bar__player { margin-right: auto; }

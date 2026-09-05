@@ -17,6 +17,9 @@ vi.mock('../pages/DecksPage', () => ({
   DecksPage: () => <main><h1>Mes decks</h1></main>,
 }))
 
+vi.mock('../pages/LobbyPage', () => ({ LobbyPage: () => <main><h1>Lobby</h1></main> }))
+vi.mock('../pages/GamePage', () => ({ GamePage: () => <main><h1>Partie</h1></main> }))
+
 const player = {
   loginId: 'joueur.un',
   displayName: 'Joueur Un',
@@ -54,6 +57,15 @@ function StatefulSession({ children }: { children: ReactNode }) {
 }
 
 describe('public and private routing', () => {
+  it.each(['/lobby', '/lobby/game-1'])('protects multiplayer route %s', (path) => {
+    renderApp(path)
+    expect(screen.getByRole('heading', { name: 'Connexion' })).toBeVisible()
+  })
+
+  it.each([['/lobby', 'Lobby'], ['/lobby/game-1', 'Partie']])('opens multiplayer route %s for a player', (path, heading) => {
+    renderApp(path, { status: 'authenticated', player })
+    expect(screen.getByRole('heading', { name: heading })).toBeVisible()
+  })
   it('redirects the root to the public home page', () => {
     renderApp('/')
     expect(screen.getByRole('heading', { name: 'PAFF' })).toBeVisible()
@@ -119,12 +131,14 @@ describe('public navigation and session', () => {
     expect(screen.getByRole('link', { name: 'Cartes' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'Se connecter' })).toBeVisible()
     expect(screen.queryByRole('link', { name: 'Mes decks' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Lobby' })).not.toBeInTheDocument()
   })
 
   it('offers decks and logout to an authenticated player', () => {
     renderApp('/home', { status: 'authenticated', player })
     expect(screen.getByText('Joueur Un')).toBeVisible()
     expect(screen.getByRole('link', { name: 'Mes decks' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Lobby' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'Cartes' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeVisible()
   })

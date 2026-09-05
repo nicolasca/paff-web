@@ -28,7 +28,7 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
         <NavLink to="/home">Accueil</NavLink>
         <NavLink to="/cards">Cartes</NavLink>
         {status === 'authenticated' ? (
-          <NavLink to="/decks">Mes decks</NavLink>
+          <><NavLink to="/decks">Mes decks</NavLink><NavLink to="/lobby">Lobby</NavLink></>
         ) : null}
       </nav>
 

@@ -76,4 +76,43 @@ export default defineSchema({
   })
     .index('by_deck', ['deckId'])
     .index('by_deck_and_card', ['deckId', 'cardId']),
+  games: defineTable({
+    hostUserId: v.id('users'),
+    name: v.string(),
+    phase: v.union(v.literal('waiting'), v.literal('deck_selection'), v.literal('deployment'), v.literal('battle'), v.literal('cancelled')),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    battleStartedAt: v.optional(v.number()),
+  }).index('by_phase', ['phase']),
+  gamePlayers: defineTable({
+    gameId: v.id('games'),
+    userId: v.id('users'),
+    displayName: v.string(),
+    seat: v.number(),
+    active: v.boolean(),
+    deckId: v.optional(v.id('decks')),
+    deckName: v.optional(v.string()),
+    factionName: v.optional(v.string()),
+    deploymentReady: v.boolean(),
+  })
+    .index('by_game', ['gameId'])
+    .index('by_game_and_user', ['gameId', 'userId'])
+    .index('by_user_and_active', ['userId', 'active']),
+  gameCards: defineTable({
+    gamePlayerId: v.id('gamePlayers'),
+    stableId: v.string(),
+    name: v.string(),
+    kind: v.union(v.literal('unit'), v.literal('action')),
+    cost: v.optional(v.number()),
+    life: v.optional(v.number()),
+    attack: v.optional(v.number()),
+    unitType: v.optional(v.string()),
+    abilities: v.array(v.string()),
+    imagePath: v.string(),
+    faction: v.object({ stableId: v.string(), name: v.string(), themeKey: v.string() }),
+    quantity: v.number(),
+    deploymentQuantity: v.number(),
+  })
+    .index('by_player', ['gamePlayerId'])
+    .index('by_player_and_card', ['gamePlayerId', 'stableId']),
 })

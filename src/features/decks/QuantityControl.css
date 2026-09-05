@@ -1,0 +1,8 @@
+.quantity-field { width: 100%; }
+.quantity-control { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.quantity-control button { width: 2.2rem; height: 2.2rem; flex-shrink: 0; padding: 0; border: 1px solid var(--line-dark); border-radius: 0.35rem; background: var(--coal-800); color: var(--parchment-100); cursor: pointer; font: 1.2rem var(--body); }
+.quantity-control button:last-child { background: var(--bronze-400); color: var(--ink); border-color: var(--bronze-400); }
+.quantity-control button:disabled { opacity: 0.35; cursor: not-allowed; }
+.quantity-control input { min-width: 0; width: 100%; height: 2.2rem; padding: 0; border: 0; border-radius: 0.25rem; background: transparent; color: var(--parchment-100); font: 1rem var(--body); text-align: center; appearance: textfield; }
+.quantity-control input::-webkit-inner-spin-button, .quantity-control input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.quantity-field small { display: block; margin-top: 0.5rem; color: #f4a79b; }

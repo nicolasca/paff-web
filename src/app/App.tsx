@@ -7,6 +7,8 @@ import { DecksPage } from '../pages/DecksPage'
 import { HomePage } from '../pages/HomePage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { LobbyPage } from '../pages/LobbyPage'
+import { GamePage } from '../pages/GamePage'
 
 export function App() {
   return (
@@ -50,6 +52,8 @@ export function App() {
         path="/decks/:deckId/edit"
         element={<ProtectedRoute><RouteErrorBoundary><DecksPage mode="edit" /></RouteErrorBoundary></ProtectedRoute>}
       />
+      <Route path="/lobby" element={<ProtectedRoute><RouteErrorBoundary><LobbyPage /></RouteErrorBoundary></ProtectedRoute>} />
+      <Route path="/lobby/:gameId" element={<ProtectedRoute><RouteErrorBoundary><GamePage /></RouteErrorBoundary></ProtectedRoute>} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
