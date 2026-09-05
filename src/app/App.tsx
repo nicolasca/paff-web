@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuthSession } from '../auth/authSession'
+import { RouteErrorBoundary } from '../components/RouteErrorBoundary'
+import { CardsPage } from '../pages/CardsPage'
+import { DecksPage } from '../pages/DecksPage'
 import { HomePage } from '../pages/HomePage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
@@ -8,7 +11,7 @@ import { NotFoundPage } from '../pages/NotFoundPage'
 export function App() {
   return (
     <Routes>
-      <Route path="/" element={<EntryRedirect />} />
+      <Route path="/" element={<Navigate replace to="/home" />} />
       <Route
         path="/login"
         element={
@@ -19,25 +22,37 @@ export function App() {
       />
       <Route
         path="/home"
+        element={<HomePage />}
+      />
+      <Route
+        path="/cards"
+        element={
+          <RouteErrorBoundary>
+            <CardsPage />
+          </RouteErrorBoundary>
+        }
+      />
+      <Route
+        path="/decks"
         element={
           <ProtectedRoute>
-            <HomePage />
+            <RouteErrorBoundary>
+              <DecksPage />
+            </RouteErrorBoundary>
           </ProtectedRoute>
         }
+      />
+      <Route
+        path="/decks/:deckId"
+        element={<ProtectedRoute><RouteErrorBoundary><DecksPage mode="view" /></RouteErrorBoundary></ProtectedRoute>}
+      />
+      <Route
+        path="/decks/:deckId/edit"
+        element={<ProtectedRoute><RouteErrorBoundary><DecksPage mode="edit" /></RouteErrorBoundary></ProtectedRoute>}
       />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
-}
-
-function EntryRedirect() {
-  const { status } = useAuthSession()
-
-  if (status === 'loading') {
-    return <AuthLoading />
-  }
-
-  return <Navigate replace to={status === 'authenticated' ? '/home' : '/login'} />
 }
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {

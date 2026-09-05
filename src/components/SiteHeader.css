@@ -1,0 +1,21 @@
+.site-bar { position: relative; z-index: 10; display: grid; min-height: 4.75rem; padding-inline: clamp(1rem, 4vw, 4rem); border-bottom: 1px solid var(--line-dark); grid-template-columns: auto 1fr auto; gap: clamp(1rem, 4vw, 4rem); align-items: center; background: #101211ed; }
+.site-bar--overlay { position: absolute; inset: 0 0 auto; background: linear-gradient(180deg, #101211e8, #10121166); }
+.site-bar__brand { display: flex; align-items: center; gap: 0.6rem; color: var(--parchment-100); font-family: var(--display); font-size: 1.5rem; font-weight: 700; letter-spacing: 0.12em; text-decoration: none; }
+.site-bar__brand img { display: block; width: 9rem; height: auto; }
+.site-bar__nav, .site-bar__session { display: flex; align-items: center; gap: clamp(0.8rem, 2vw, 1.75rem); }
+.site-bar__nav a, .site-bar__session a, .site-bar__session button, .site-bar__session span { color: var(--parchment-300); font: inherit; font-size: 0.875rem; text-decoration: none; }
+.site-bar__nav a { position: relative; padding-block: 1.65rem; }
+.site-bar__nav a:hover, .site-bar__nav a[aria-current='page'], .site-bar__session a:hover, .site-bar__session button:hover:not(:disabled) { color: var(--parchment-100); }
+.site-bar__nav a[aria-current='page']::after { position: absolute; inset: auto 0 0; height: 2px; background: var(--bronze-400); content: ''; }
+.site-bar__session { justify-content: flex-end; gap: 1rem; }
+.site-bar__session button, .site-bar__session a { padding: 0.55rem 0.8rem; border: 1px solid var(--line-dark); border-radius: 0.4rem; background: #ffffff04; cursor: pointer; }
+.site-bar__session button:disabled { cursor: wait; opacity: 0.6; }
+.site-bar__player { color: var(--bronze-400) !important; }
+@media (max-width: 760px) {
+  .site-bar { min-height: auto; padding-block: 0.8rem; grid-template-columns: auto 1fr; gap: 0.65rem 1rem; }
+  .site-bar__nav { justify-content: flex-end; }
+  .site-bar__nav a { padding-block: 0.6rem; }
+  .site-bar__session { grid-column: 1 / -1; }
+  .site-bar__player { margin-right: auto; }
+  .site-bar__brand img { width: 6rem; }
+}

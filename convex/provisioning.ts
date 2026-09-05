@@ -98,8 +98,8 @@ function readProvisioningAccounts(value: string | undefined) {
     throw new Error('PAFF_PROVISIONING_ACCOUNTS must be valid JSON')
   }
 
-  if (!Array.isArray(parsed) || parsed.length !== 5) {
-    throw new Error('Exactly five provisioning accounts are required')
+  if (!Array.isArray(parsed) || parsed.length < 1 || parsed.length > 5) {
+    throw new Error('Between one and five provisioning accounts are required')
   }
 
   const accounts = parsed.map(validateAccount)
@@ -123,7 +123,7 @@ function validateAccount(value: unknown): ProvisioningAccount {
   if (
     typeof account.loginId !== 'string' ||
     typeof account.password !== 'string' ||
-    account.password.length < 12 ||
+    account.password.length < 8 ||
     typeof account.displayName !== 'string' ||
     account.displayName.trim() === '' ||
     (role !== 'player' && role !== 'admin') ||

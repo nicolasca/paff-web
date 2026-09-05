@@ -1,0 +1,33 @@
+Entité,Faction,Nom carte,Cost,Max in deck,Life,Attack,Type unit,Capacités,Unités,Directus?,
+EP,Sephosi,Lanciers Sephosiens,3,30,3,1,D,-1 dégâts reçus par des unités C,oui,ok,TIR
+EP,Sephosi,Arbalétriers avec Pavois,2,30,1,2,T,-1 dégâts reçus par des unités T,oui,ok,tir sur les 3 en face
+EP,Sephosi,Cavalerie lourde Sephosienne,2,30,2,1,C,+1 dégât si unité attaqué n'est pas D,oui,ok,"sur plus devant, alors sur l'arrière"
+EP,Sephosi,Arbalétriers montés Sephosiens,2,30,1,2,T,,oui,ok,capa pour tirer direct derrière
+EP,Sephosi,Regiment de la Salamandre,4,1,5,3,,,oui,ok,
+EP,Sephosi,Tirs de balistes,2,1,,,,Infligez 1 dégât a chaque unité d'une ligne ennemie,non,ok,
+EP,Sephosi,Sacrifice stratégique,1,3,,,,"Sélectionner une unité de votre front, cette unité gagne le type D jusqu'au début de votre prochain tour.",non,ok,C
+EP,Sephosi,Tir en mouvement,0,3,,,,Vous pouvez déplacer d'1 case adjacente de la même ligne vos unités d'Arbalétriers montés avant de les faire tirer.,non,ok,+1 dégâts lorsqu'elle attaque une nouvelle unité
+PV,Orcs,Guerriers Orcs,3,30,3,2,,,oui,ok,
+PV,Orcs,Orcs de Sang,2,30,1,1,,Peut se déployer pendant la Phase de combat.,oui,ok,
+PV,Orcs,Chevaucheurs de Kelok,2,30,2,1,C,,oui,ok,carte unité en phase de déploiement
+PV,Orcs,Shaman Orc,1,30,1,0,,,oui,ok,autres cartes en phase de carte
+PV,Orcs,Chef Orc et sa bande,4,1,4,4,,,oui,ok,
+PV,Orcs,Raids !,1,3,,,,Vous pouvez déployer des unités pendant la phase de combat.,non,ok,
+PV,Orcs,Invocation de la Waagh,0,3,,,,"Condition: 1 Shaman Orc en jeu. Sélectionner une de vos unité Orcs, cette unité inflige 2 dégâts en plus lors de ce tour.",non,ok,seul des unités en Front peuvent infliger des dégâts au général
+PV,Orcs,Invocation Eclair Vert,1,1,,,,Condition: 1 Shaman Orc en jeu. Infliger directement 2 dégâts au Général.,non,ok,
+EP,Gaeli,Combattants des Vlands,2,30,2,1,,,oui,,
+EP,Gaeli,Esprits des bois,2,30,3,0,D,,oui,,
+EP,Gaeli,Sorl Caleit,2,30,1,2,,,oui,,
+EP,Gaeli,Druide,1,30,1,0,,Annulez 1 dégât par tour sur une unité gaelienne de la même colonne.,oui,,
+EP,Gaeli,Chefs de clan de Gaeli,3,1,3,2,C,,oui,,
+EP,Gaeli,Charge du Gardien,1,1,,,,Condition; au moins 1 Druide en jeu Infligez 2 dégâts à toutes les unités d'une colonne (yc les vôtres).,non,,
+EP,Gaeli,Appel des vents,1,3,,,,Condition; au moins 1 Druide en jeu Les unités de type T ne peuvent pas infliger de dégât jusqu'au début de votre prochain tour.,non,,
+EP,Gaeli,Sacrifice druidique,1,3,,,,Défaussez x Druides en jeu pour récupérer x point de vie à votre générale.,non,,
+PV,Gobelins,Troupe de Gobelins,1,30,1,1,,,oui,,
+PV,Gobelins,Archers Gobelins,1,30,1,1,T,,oui,,
+PV,Gobelins,Bon gros tarré de gobelin,1,30,1,0,,Inflige 1 dégât en mourrant contre unité ennemie au front,oui,,
+PV,Gobelins,Shaman Gobelin,1,30,1,0,,,oui,,
+PV,Gobelins,Meneurs de Troll,4,1,5,2,D,,oui,,
+PV,Gobelins,Vague verte,0,3,,,,"Vous pouvez déployer une unité de gobelin à 1 de coûts ce tour-ci en dépensant 0, vous aurez 1 pts de recrutement en moins le tour suivant.",non,,
+PV,Gobelins,Grossinvokation,1,3,,,,Défaussez x Shaman Gobelin pour infliger x dégâts à une unité adverse.,non,,
+PV,Gobelins,Furie Gobeline,2,1,,,,Condition; au moins 1 Shaman Gobelin en jeu. Toutes vos unités gobelines ont +1 en dégâts lors de ce tour.,non,,

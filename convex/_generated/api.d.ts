@@ -9,6 +9,9 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as catalogImport from "../catalogImport.js";
+import type * as catalogue from "../catalogue.js";
+import type * as decks from "../decks.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
@@ -24,6 +27,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  catalogImport: typeof catalogImport;
+  catalogue: typeof catalogue;
+  decks: typeof decks;
   health: typeof health;
   http: typeof http;
   "lib/auth": typeof lib_auth;

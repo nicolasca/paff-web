@@ -10,6 +10,7 @@
     "lint": "oxlint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "import:catalogue": "node scripts/import-catalogue.mjs",
     "check": "npm run lint && npm run test && npm run build",
     "preview": "vite preview"
   },

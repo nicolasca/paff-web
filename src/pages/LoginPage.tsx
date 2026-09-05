@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useAuthSession } from '../auth/authSession'
+import { SiteHeader } from '../components/SiteHeader'
 import './LoginPage.css'
 
 const GENERIC_AUTH_ERROR = 'Identifiant ou mot de passe incorrect.'
@@ -31,9 +32,11 @@ export function LoginPage() {
   }
 
   return (
-    <main className="login-page">
-      <section className="login-panel" aria-labelledby="login-title">
-        <p className="login-panel__wordmark">PAFF</p>
+    <>
+      <SiteHeader overlay />
+      <main className="login-page">
+        <section className="login-panel" aria-labelledby="login-title">
+        <img className="login-panel__wordmark" src="/brand/paff-logo.png" alt="PAFF" width="1942" height="809" />
         <h1 id="login-title">Connexion</h1>
 
         <form onSubmit={handleSubmit} noValidate>
@@ -75,7 +78,8 @@ export function LoginPage() {
             {isSubmitting ? 'Connexion…' : 'Se connecter'}
           </button>
         </form>
-      </section>
-    </main>
+        </section>
+      </main>
+    </>
   )
 }
