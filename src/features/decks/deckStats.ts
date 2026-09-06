@@ -1,5 +1,6 @@
 import type { PublicCard } from '../catalogue/types'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { getUnitProfile, type UnitType } from '../../../shared/unitProfile'
 
 export type DeckCard = PublicCard & { quantity: number }
 export type Deck = {
@@ -15,10 +16,13 @@ export function getDeckStats(cards: DeckCard[]) {
     total: 0, unique: cards.length, units: 0, actions: 0, totalCost: 0,
     knownCostCount: 0, unknownCostCount: 0, averageCost: 0,
     costs: new Map<number, number>(), factions: new Map<string, number>(),
+    unitTypes: new Map<UnitType, number>(),
   }
   for (const card of cards) {
     stats.total += card.quantity
     stats[card.kind === 'unit' ? 'units' : 'actions'] += card.quantity
+    const profile = getUnitProfile(card)
+    if (profile) stats.unitTypes.set(profile.unitType, (stats.unitTypes.get(profile.unitType) ?? 0) + card.quantity)
     stats.factions.set(card.faction.name, (stats.factions.get(card.faction.name) ?? 0) + card.quantity)
     if (card.cost === undefined) {
       stats.unknownCostCount += card.quantity

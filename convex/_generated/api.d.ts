@@ -16,7 +16,10 @@ import type * as games from "../games.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
+import type * as lib_gameSetup from "../lib/gameSetup.js";
 import type * as lib_normalizeLoginId from "../lib/normalizeLoginId.js";
+import type * as lib_unitProfile from "../lib/unitProfile.js";
+import type * as migrations from "../migrations.js";
 import type * as players from "../players.js";
 import type * as provisioning from "../provisioning.js";
 
@@ -35,7 +38,10 @@ declare const fullApi: ApiFromModules<{
   health: typeof health;
   http: typeof http;
   "lib/auth": typeof lib_auth;
+  "lib/gameSetup": typeof lib_gameSetup;
   "lib/normalizeLoginId": typeof lib_normalizeLoginId;
+  "lib/unitProfile": typeof lib_unitProfile;
+  migrations: typeof migrations;
   players: typeof players;
   provisioning: typeof provisioning;
 }>;

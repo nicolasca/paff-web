@@ -32,7 +32,7 @@
 .game-error, .game-confirm { padding: 1rem 1.25rem; border: 1px solid #ad655650; background: #73332620; border-radius: 0.5rem; color: #f4b3a3; }
 .game-confirm { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
 .game-confirm p { margin: 0 auto 0 0; }
-.game-steps { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); padding: 0; margin: 0 0 2rem; border-bottom: 1px solid var(--line-dark); }
+.game-steps { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); padding: 0; margin: 0 0 2rem; border-bottom: 1px solid var(--line-dark); scroll-margin-top: 1rem; }
 .game-steps li { display: flex; gap: 0.8rem; align-items: center; padding: 1rem 0.5rem; font-size: 0.85rem; color: var(--parchment-700); border-bottom: 2px solid transparent; }
 .game-steps li > span { color: var(--bronze-500); font-family: var(--display); }
 .game-steps [aria-current='step'] { color: var(--parchment-100); border-color: var(--bronze-400); }
@@ -121,3 +121,8 @@
   .battle-player .eyebrow { font-size: 0.55rem; letter-spacing: 0.1em; }
   .battle-player .game-avatar { display: none; }
 }
+.battle-card__stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 0; padding: 0.35rem 0.25rem 0.5rem; border-top: 1px solid var(--line-dark); text-align: center; }
+.battle-card__stats dt { font-size: 0.55rem; color: var(--parchment-700); }
+.battle-card__stats dd { margin: 0.25rem 0 0; font-size: 0.75rem; color: var(--parchment-100); }
+.battle-card .battle-card__ability { height: auto; padding: 0 0.4rem 0.5rem; }
+.battle-card__ability .ability-hint { padding: 0.25rem; font-size: 0.55rem; }

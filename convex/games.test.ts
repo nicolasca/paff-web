@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { FunctionReturnType } from 'convex/server'
 import type { api } from './_generated/api'
 import type { MutationCtx } from './_generated/server'
@@ -37,11 +37,13 @@ function setup() {
     try { return await (games[name] as unknown as { _handler: (ctx: MutationCtx, args: Record<string, unknown>) => Promise<FunctionReturnType<typeof api.games[T]>> })._handler(ctx, args) }
     catch (error) { Object.assign(tables, snapshot); throw error }
   }
-  async function readyFor(phase: 'waiting' | 'deck_selection' | 'deployment' = 'deployment') {
+  async function readyFor(phase: 'waiting' | 'deck_selection' | 'deployment' = 'deployment', modern = false) {
     const gameId = await run('create')
     await run('join', 2, { gameId })
     if (phase === 'waiting') return gameId
     await run('start', 1, { gameId })
+    // Existing tests exercise legacy rooms, which must remain finishable.
+    if (!modern) delete tables.games.find((item) => item._id === gameId)!.setup
     if (phase === 'deck_selection') return gameId
     await run('selectDeck', 1, { gameId, deckId: 'deck-1' })
     await run('selectDeck', 2, { gameId, deckId: 'deck-2' })
@@ -51,6 +53,138 @@ function setup() {
 }
 
 const code = (value: string) => ({ data: { code: value } })
+afterEach(() => vi.restoreAllMocks())
+
+async function preparedGame(winner = 0, artilleryOnly = false) {
+  const harness = setup()
+  if (artilleryOnly) harness.tables.cards[0].name = 'Catapulte'
+  const gameId = await harness.readyFor('deployment', true)
+  vi.spyOn(Math, 'random').mockReturnValueOnce(winner === 0 ? 0.99 : 0).mockReturnValueOnce(winner === 0 ? 0 : 0.99)
+  await harness.run('rollInitiative', 1, { gameId, round: 1 })
+  await harness.run('rollInitiative', 2, { gameId, round: 1 })
+  await harness.run('confirmInitiative', 1, { gameId })
+  await harness.run('confirmInitiative', 2, { gameId })
+  const read = async (user = 1) => (await harness.run('get', user, { gameId }))!
+  const deploy = async (user: number, cell: number, cardStableId = 'archers') => harness.run('deployUnit', user, { gameId, cardStableId, cell, revision: (await read()).setup!.revision })
+  const finish = async (user: number) => harness.run('finishDeployment', user, { gameId, revision: (await read()).setup!.revision })
+  return { ...harness, gameId, read, deploy, finish }
+}
+
+describe('shared 2026 preparation', () => {
+  it('starts initiative only after both decks and records one server-generated D6 per player', async () => {
+    const { run, readyFor } = setup()
+    const gameId = await readyFor('deck_selection', true)
+    await run('selectDeck', 1, { gameId, deckId: 'deck-1' })
+    await expect(run('rollInitiative', 1, { gameId, round: 1 })).rejects.toMatchObject(code('WRONG_GAME_PHASE'))
+    await run('selectDeck', 2, { gameId, deckId: 'deck-2' })
+    const random = vi.spyOn(Math, 'random').mockReturnValueOnce(0).mockReturnValueOnce(0.99)
+    await expect(run('confirmInitiative', 1, { gameId })).rejects.toMatchObject(code('INITIATIVE_PENDING'))
+    await run('rollInitiative', 1, { gameId, round: 1 })
+    await run('rollInitiative', 1, { gameId, round: 1 })
+    expect(random).toHaveBeenCalledTimes(1)
+    expect((await run('get', 2, { gameId }))?.setup?.initiativeRolls).toEqual([{ seat: 0, result: 1, round: 1 }])
+    await run('rollInitiative', 2, { gameId, round: 1 })
+    await run('rollInitiative', 2, { gameId, round: 1 })
+    expect(random).toHaveBeenCalledTimes(2)
+    await run('confirmInitiative', 1, { gameId })
+    await run('confirmInitiative', 1, { gameId })
+    expect((await run('get', 1, { gameId }))?.phase).toBe('initiative')
+    await run('confirmInitiative', 2, { gameId })
+    const state = await run('get', 1, { gameId })
+    expect(state).toMatchObject({ phase: 'deployment', setup: { initiativeWinner: 1, deploymentTurn: 1, initiativeReady: [0, 1] } })
+  })
+  it('persists ties and prevents a delayed first-round request from rolling the next round', async () => {
+    const { run, readyFor } = setup()
+    const gameId = await readyFor('deployment', true)
+    vi.spyOn(Math, 'random').mockReturnValueOnce(0.5).mockReturnValueOnce(0.5).mockReturnValueOnce(0.99).mockReturnValueOnce(0)
+    await run('rollInitiative', 1, { gameId, round: 1 })
+    await run('rollInitiative', 2, { gameId, round: 1 })
+    const state = await run('get', 2, { gameId })
+    expect(state?.setup).toMatchObject({ initiativeRound: 2, initiativeRolls: [{ result: 4 }, { result: 4 }] })
+    expect(state?.setup?.initiativeWinner).toBeUndefined()
+    await expect(run('rollInitiative', 1, { gameId, round: 1 })).rejects.toMatchObject(code('STALE_GAME_ACTION'))
+    await expect(run('confirmInitiative', 2, { gameId })).rejects.toMatchObject(code('INITIATIVE_PENDING'))
+    await run('rollInitiative', 2, { gameId, round: 2 })
+    await run('rollInitiative', 1, { gameId, round: 2 })
+    expect((await run('get', 1, { gameId }))?.setup).toMatchObject({ initiativeWinner: 1, initiativeRound: 2 })
+  })
+  it('enforces alternating placement, first Centre Base, occupancy and each player’s deployment zone', async () => {
+    const { deploy, read, run, gameId } = await preparedGame()
+    await expect(deploy(2, 13)).rejects.toMatchObject(code('NOT_YOUR_TURN'))
+    await expect(deploy(1, 45)).rejects.toMatchObject(code('INVALID_DEPLOYMENT_CELL'))
+    await expect(deploy(1, 36)).rejects.toMatchObject(code('INVALID_DEPLOYMENT_CELL'))
+    const revision = (await read()).setup!.revision
+    await deploy(1, 40)
+    await expect(run('deployUnit', 1, { gameId, revision, cell: 41, cardStableId: 'archers' })).rejects.toMatchObject(code('STALE_GAME_ACTION'))
+    await expect(deploy(1, 41)).rejects.toMatchObject(code('NOT_YOUR_TURN'))
+    await deploy(2, 13)
+    await expect(deploy(1, 40)).rejects.toMatchObject(code('INVALID_DEPLOYMENT_CELL'))
+    await expect(deploy(1, 20)).rejects.toMatchObject(code('INVALID_DEPLOYMENT_CELL'))
+    await expect(deploy(1, 0)).rejects.toMatchObject(code('INVALID_DEPLOYMENT_CELL'))
+    await deploy(1, 45)
+    const host = await read()
+    const guest = await read(2)
+    expect(host.setup).toEqual(guest.setup)
+    expect(host.setup?.units).toEqual([{ seat: 0, cardStableId: 'archers', cell: 40 }, { seat: 1, cardStableId: 'archers', cell: 13 }, { seat: 0, cardStableId: 'archers', cell: 45 }])
+    expect(guest.players[0].deployedCards[0]).toMatchObject({ name: 'Archers', quantity: 2 })
+    expect(guest.players[0].cards).toEqual([])
+    expect(guest.players[0].drawPileCount).toBeNull()
+    await expect(run('updateDeployment', 1, { gameId, cardStableId: 'archers', change: { quantity: 5 } })).rejects.toMatchObject(code('WRONG_GAME_PHASE'))
+  })
+  it('rejects non-units and excess copies and lets the other player continue after an early finish', async () => {
+    const { deploy, finish, read, run, gameId } = await preparedGame()
+    await expect(deploy(1, 40, 'piege')).rejects.toMatchObject(code('UNIT_REQUIRED'))
+    await expect(deploy(1, 40, 'missing')).rejects.toMatchObject(code('UNIT_REQUIRED'))
+    await expect(finish(2)).rejects.toMatchObject(code('NOT_YOUR_TURN'))
+    await finish(1)
+    const revision = (await read()).setup!.revision
+    await deploy(2, 13)
+    await expect(run('deployUnit', 2, { gameId, revision, cell: 14, cardStableId: 'archers' })).rejects.toMatchObject(code('STALE_GAME_ACTION'))
+    for (const cell of [0, 1, 2, 3]) await deploy(2, cell)
+    await expect(deploy(2, 4)).rejects.toMatchObject(code('INVALID_DEPLOYMENT_QUANTITY'))
+    await expect(deploy(1, 40)).rejects.toMatchObject(code('DEPLOYMENT_LOCKED'))
+    expect((await read()).phase).toBe('deployment')
+    await finish(2)
+    const state = await read()
+    expect(state.phase).toBe('battle')
+    expect(state.battleStartedAt).toBeTypeOf('number')
+    expect(state.players.map((player) => [player.deploymentCount, player.drawPileCount])).toEqual([[0, 7], [5, 2]])
+    expect(state.setup?.units).toHaveLength(5)
+    await finish(2)
+    await expect(deploy(2, 4)).rejects.toMatchObject(code('WRONG_GAME_PHASE'))
+  })
+  it('requires a revision even when validating deployment without placing any units', async () => {
+    const { run, gameId, read, finish } = await preparedGame(1)
+    await expect(run('finishDeployment', 2, { gameId })).rejects.toMatchObject(code('STALE_GAME_ACTION'))
+    await finish(2)
+    await finish(1)
+    expect((await read()).setup?.units).toEqual([])
+    expect((await read()).phase).toBe('battle')
+  })
+  it('keeps artillery in the rear even for the first piece in an artillery-only army', async () => {
+    const { deploy, read } = await preparedGame(0, true)
+    await expect(deploy(1, 40)).rejects.toMatchObject(code('INVALID_DEPLOYMENT_CELL'))
+    await deploy(1, 45)
+    await expect(deploy(2, 13)).rejects.toMatchObject(code('INVALID_DEPLOYMENT_CELL'))
+    await deploy(2, 0)
+    expect((await read()).setup?.units.map((unit) => unit.cell)).toEqual([45, 0])
+  })
+  it('permits empty armies to finish the new flow without inventing a minimum budget', async () => {
+    const { run, readyFor, tables } = setup()
+    tables.deckCards = []
+    const gameId = await readyFor('deployment', true)
+    vi.spyOn(Math, 'random').mockReturnValueOnce(0.9).mockReturnValueOnce(0)
+    await run('rollInitiative', 1, { gameId, round: 1 })
+    await run('rollInitiative', 2, { gameId, round: 1 })
+    await run('confirmInitiative', 1, { gameId })
+    await run('confirmInitiative', 2, { gameId })
+    for (const user of [1, 2]) {
+      const state = (await run('get', user, { gameId }))!
+      await run('finishDeployment', user, { gameId, revision: state.setup!.revision })
+    }
+    expect((await run('get', 1, { gameId }))?.phase).toBe('battle')
+  })
+})
 
 describe('two-player lobby and access', () => {
   it('requires an authenticated and active player', async () => {
@@ -88,7 +222,7 @@ describe('two-player lobby and access', () => {
     const { run, readyFor } = setup()
     const gameId = await readyFor()
     expect(await run('get', 3, { gameId })).toBeNull()
-    for (const name of ['start', 'selectDeck', 'updateDeployment', 'finishDeployment', 'leave'] as const) {
+    for (const name of ['start', 'selectDeck', 'updateDeployment', 'finishDeployment', 'leave', 'rollInitiative', 'confirmInitiative', 'deployUnit'] as const) {
       await expect(run(name, 3, { gameId, deckId: 'deck-1', cardStableId: 'archers', change: { quantity: 1 } })).rejects.toMatchObject(code('GAME_NOT_AVAILABLE'))
     }
   })
@@ -156,6 +290,19 @@ describe('deck snapshots and simultaneous preparation', () => {
     expect(me.cards).toHaveLength(2)
     expect(me.cards[0]).toMatchObject({ name: 'Archers', quantity: 4, abilities: ['Tir'] })
     expect(me.deckName).toBe('Armée 1')
+  })
+  it('freezes the new profile when choosing a deck and hides it from the opponent', async () => {
+    const { run, readyFor, tables } = setup()
+    const profile = { unitType: 'ranged', regiment: 4, dice: 2, offense: { kind: 'ranged', score: 5 }, defenseMelee: 2, defenseRanged: 3, ability: { name: 'Tir précis', description: 'Relancez un dé.' }, source: 'defined' }
+    tables.cards[0].profile = profile
+    const gameId = await readyFor()
+    tables.cards[0].profile = { ...profile, dice: 99 }
+    expect((await run('get', 1, { gameId }))?.players[0].cards[0].profile).toEqual(profile)
+    expect((await run('get', 2, { gameId }))?.players[0].cards).toEqual([])
+    await run('updateDeployment', 1, { gameId, cardStableId: 'archers', change: { quantity: 1 } })
+    await run('finishDeployment', 1, { gameId })
+    await run('finishDeployment', 2, { gameId })
+    expect((await run('get', 2, { gameId }))?.players[0].deployedCards[0].profile).toEqual(profile)
   })
   it.each([-1, 1.5, 6, NaN, Infinity])('rejects deployment quantity %s outside available copies', async (quantity) => {
     const { run, readyFor } = setup()

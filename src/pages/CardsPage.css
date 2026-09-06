@@ -34,3 +34,4 @@
   .unit-card__abilities { padding: 0.6rem; }
 }
 @media (max-width: 540px) { .cards-grid { grid-template-columns: minmax(0, 22rem); justify-content: center; gap: 1.75rem; } }
+.cards-page__intro .cards-page__balancing { margin-top: 0.65rem; color: var(--bronze-400); font-size: 0.8rem; }

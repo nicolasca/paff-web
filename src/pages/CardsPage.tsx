@@ -5,6 +5,7 @@ import { SiteHeader } from '../components/SiteHeader'
 import { UnitCard } from '../features/catalogue/UnitCard'
 import type { PublicCard, PublicFaction } from '../features/catalogue/types'
 import './CardsPage.css'
+import { getUnitProfile } from '../../shared/unitProfile'
 
 export function CardsPage() {
   const factions = useQuery(api.catalogue.listFactions) as
@@ -57,6 +58,7 @@ export function CardsCatalogue({
         <p className="cards-page__eyebrow">Le codex</p>
         <h1>Les cartes de PAFF</h1>
         <p>Unités, actions et capacités. Découvrez les forces de chaque faction.</p>
+        {cards?.some((card) => getUnitProfile(card)?.source === 'estimated') && <p className="cards-page__balancing">Profils 2026 : valeurs provisoires, en cours d’équilibrage.</p>}
       </header>
 
       {factions === undefined ? (

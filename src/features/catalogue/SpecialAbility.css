@@ -1,0 +1,6 @@
+.ability-hint { max-width: 100%; padding: 0.35rem 0.55rem; border: 1px solid color-mix(in srgb, var(--faction-accent, var(--bronze-400)) 30%, transparent); border-radius: 0.3rem; background: #ffffff04; color: var(--parchment-200); font: 600 0.8rem/1.35 var(--body); cursor: help; text-align: left; }
+.ability-hint span { font-weight: 400; color: var(--faction-accent, var(--bronze-400)); }
+.ability-hint:hover, .ability-hint[aria-expanded='true'] { border-color: var(--faction-accent, var(--bronze-400)); background: #d1ad7010; }
+.ability-tooltip { position: fixed; z-index: 100; box-sizing: border-box; max-height: min(12rem, 40svh); overflow-y: auto; padding: 1rem; border: 1px solid var(--bronze-500); border-radius: 0.5rem; background: #20241f; box-shadow: 0 10px 36px #0009; color: var(--parchment-100); }
+.ability-tooltip strong { font: 600 0.85rem var(--display); color: var(--bronze-400); }
+.ability-tooltip p { margin: 0.6rem 0 0; font: 0.85rem/1.6 var(--body); white-space: pre-line; }

@@ -1,5 +1,6 @@
 import { v } from 'convex/values'
 import { query } from './_generated/server'
+import { getUnitProfile } from '../shared/unitProfile'
 
 export const listFactions = query({
   args: {},
@@ -69,6 +70,7 @@ export const listCards = query({
         attack: card.attack,
         unitType: card.unitType,
         abilities: card.abilities,
+        profile: getUnitProfile(card),
         imagePath: card.imagePath,
         faction: {
           stableId: faction.stableId,

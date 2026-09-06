@@ -13,6 +13,10 @@ const messages: Record<string, string> = {
   UNIT_REQUIRED: 'Seules les unités de votre deck peuvent être préparées.',
   INVALID_DEPLOYMENT_QUANTITY: 'Choisissez une quantité comprise entre zéro et le nombre d’exemplaires dans votre deck.',
   DEPLOYMENT_LOCKED: 'Votre préparation est déjà validée.',
+  STALE_GAME_ACTION: 'Le tour a changé. Consultez le plateau actualisé avant de rejouer.',
+  NOT_YOUR_TURN: 'C’est à votre adversaire de déployer une unité.',
+  INITIATIVE_PENDING: 'Les deux joueurs doivent lancer leur dé avant de continuer.',
+  INVALID_DEPLOYMENT_CELL: 'Cette case n’est pas disponible pour cette unité. Choisissez une case éclairée.',
 }
 export function gameError(error: unknown) {
   return error instanceof ConvexError && typeof error.data === 'object' && error.data !== null

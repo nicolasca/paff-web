@@ -3,6 +3,7 @@ import { mutation, query } from './_generated/server'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import type { Doc, Id } from './_generated/dataModel'
 import { requireActivePlayer } from './lib/auth'
+import { getUnitProfile } from '../shared/unitProfile'
 
 const deckId = v.id('decks')
 
@@ -41,6 +42,7 @@ export const listMine = query({
                     deckLimit: card.deckLimit,
                     unitType: card.unitType,
                     abilities: card.abilities,
+                    profile: getUnitProfile(card),
                     imagePath: card.imagePath,
                     faction: {
                       stableId: cardFaction?.stableId ?? 'unavailable',

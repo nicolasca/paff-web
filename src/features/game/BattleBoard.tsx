@@ -1,25 +1,30 @@
 import type { Game, GamePlayer } from './types'
+import { getUnitProfile, unitTypeNames } from '../../../shared/unitProfile'
+import { UnitProfileStats } from '../catalogue/UnitProfileStats'
+import { SpecialAbility } from '../catalogue/SpecialAbility'
+import { TacticalBoard } from './TacticalBoard'
 
 export function BattleBoard({ game }: { game: Game }) {
   const me = game.players.find((player) => player.isMe)!
   const opponent = game.players.find((player) => !player.isMe)!
   return (
     <section className="battle-arena" aria-label="Aire de jeu">
-      <BattleCamp player={opponent} />
-      <div className="battle-field" role="img" aria-label={`Champ de bataille initialisé entre ${opponent.displayName} et ${me.displayName}. Les emplacements sont encore vides.`}>
+      {game.setup && <div className="battle-round"><span className="eyebrow">Tour 1 · Plateau initialisé</span><p>Initiative : <strong>{game.players.find((player) => player.seat === game.setup?.initiativeWinner)?.displayName}</strong></p></div>}
+      <BattleCamp player={opponent} positioned={Boolean(game.setup)} />
+      {game.setup ? <TacticalBoard game={game} /> : <div className="battle-field" role="img" aria-label={`Champ de bataille initialisé entre ${opponent.displayName} et ${me.displayName}. Les emplacements sont encore vides.`}>
         <span className="battle-field__label">Zone adverse</span>
         <div className="battle-field__half" aria-hidden="true">{Array.from({ length: 10 }, (_, index) => <i key={index} />)}</div>
         <div className="battle-field__divide"><span /><img src="/brand/paff-logo.png" alt="" width="1942" height="809" /><span /></div>
         <div className="battle-field__half battle-field__half--you" aria-hidden="true">{Array.from({ length: 10 }, (_, index) => <i key={index} />)}</div>
         <span className="battle-field__label">Votre zone</span>
-      </div>
-      <BattleCamp player={me} />
-      <p className="battle-notice">Le plateau est prêt. Le placement des cartes et les combats seront disponibles à la prochaine étape.</p>
+      </div>}
+      <BattleCamp player={me} positioned={Boolean(game.setup)} />
+      <p className="battle-notice">{game.setup ? 'Les deux armées sont en place. Cliquez sur une unité pour consulter son profil. Les ordres, mouvements et combats arrivent dans une prochaine étape.' : 'Cette partie utilise l’ancienne préparation. Créez une nouvelle table pour jouer le déploiement sur le plateau 2026.'}</p>
     </section>
   )
 }
 
-function BattleCamp({ player }: { player: GamePlayer }) {
+function BattleCamp({ player, positioned = false }: { player: GamePlayer; positioned?: boolean }) {
   return (
     <section className={`battle-camp${player.isMe ? ' battle-camp--you' : ''}`} aria-label={`Camp de ${player.displayName}`}>
       <header className="battle-player">
@@ -27,13 +32,16 @@ function BattleCamp({ player }: { player: GamePlayer }) {
         <div><span className="eyebrow">{player.isMe ? 'Vous' : 'Adversaire'} · {player.factionName}</span><h2>{player.displayName}</h2><p>{player.deckName}</p></div>
         <div className="battle-pile" aria-label={`Pioche de ${player.displayName} : ${player.drawPileCount} cartes`}><strong>{player.drawPileCount}</strong><span>Pioche</span></div>
       </header>
-      <div className="battle-reserve-heading"><h3>Unités à déployer</h3><span>{player.deploymentCount} exemplaire{player.deploymentCount === 1 ? '' : 's'}</span></div>
-      {player.deployedCards.length ? <div className="battle-reserve">
-        {player.deployedCards.map((card) => <article className={`battle-card unit-card--${card.faction.themeKey}`} key={card.stableId}>
+      <div className="battle-reserve-heading"><h3>{positioned ? 'Unités sur le plateau' : 'Unités à déployer'}</h3><span>{player.deploymentCount} exemplaire{player.deploymentCount === 1 ? '' : 's'}</span></div>
+      {!positioned && (player.deployedCards.length ? <div className="battle-reserve">
+        {player.deployedCards.map((card) => {
+          const profile = getUnitProfile(card)
+          return <article className={`battle-card unit-card--${card.faction.themeKey}`} key={card.stableId}>
           <div><img src={card.imagePath} alt="" loading="lazy" /><strong>×{card.quantity}</strong></div>
-          <h4>{card.name}</h4><p>Vie {card.life ?? '—'} <span>·</span> Attaque {card.attack ?? '—'}</p>
-        </article>)}
-      </div> : <p className="battle-reserve--empty">Aucune unité préparée. Toutes les cartes sont dans la pioche.</p>}
+          <h4>{card.name}</h4>
+          {profile && <><p>{unitTypeNames[profile.unitType]}</p><UnitProfileStats profile={profile} compact />{profile.ability && <div className="battle-card__ability"><SpecialAbility ability={profile.ability} /></div>}</>}
+        </article>})}
+      </div> : <p className="battle-reserve--empty">Aucune unité préparée. Toutes les cartes sont dans la pioche.</p>)}
     </section>
   )
 }

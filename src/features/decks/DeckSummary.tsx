@@ -1,4 +1,5 @@
 import { formatNumber, getDeckStats, type Deck } from './deckStats'
+import { unitTypeNames } from '../../../shared/unitProfile'
 
 export function DeckSummary({ deck, onRemoveCard, busyCards = new Set() }: {
   deck: Deck
@@ -25,6 +26,9 @@ export function DeckSummary({ deck, onRemoveCard, busyCards = new Set() }: {
         <span><i className="unit-dot" />{formatNumber(stats.units)} unités</span>
         <span><i className="action-dot" />{formatNumber(stats.actions)} actions</span>
       </div>
+      {stats.unitTypes.size > 0 && <dl className="deck-summary__unit-types" aria-label="Répartition par type d’unité">
+        {[...stats.unitTypes].map(([type, count]) => <div key={type}><dt>{unitTypeNames[type]}</dt><dd>{formatNumber(count)}</dd></div>)}
+      </dl>}
       {stats.unknownCostCount > 0 && <p className="deck-summary__note">{stats.unknownCostCount} carte(s) sans coût renseigné, exclues du coût moyen.</p>}
       {costs.length > 0 && (
         <section className="cost-curve" aria-label="Répartition par coût">

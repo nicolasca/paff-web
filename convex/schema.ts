@@ -1,6 +1,8 @@
 import { authTables } from '@convex-dev/auth/server'
 import { defineSchema, defineTable } from 'convex/server'
 import { v } from 'convex/values'
+import { unitProfileValidator } from './lib/unitProfile'
+import { gameSetupValidator } from './lib/gameSetup'
 
 export default defineSchema({
   ...authTables,
@@ -50,6 +52,7 @@ export default defineSchema({
     attack: v.optional(v.number()),
     unitType: v.optional(v.string()),
     abilities: v.array(v.string()),
+    profile: v.optional(unitProfileValidator),
     imagePath: v.string(),
     sourceLine: v.number(),
     sourceNote: v.optional(v.string()),
@@ -79,7 +82,8 @@ export default defineSchema({
   games: defineTable({
     hostUserId: v.id('users'),
     name: v.string(),
-    phase: v.union(v.literal('waiting'), v.literal('deck_selection'), v.literal('deployment'), v.literal('battle'), v.literal('cancelled')),
+    phase: v.union(v.literal('waiting'), v.literal('deck_selection'), v.literal('initiative'), v.literal('deployment'), v.literal('battle'), v.literal('cancelled')),
+    setup: v.optional(gameSetupValidator),
     createdAt: v.number(),
     updatedAt: v.number(),
     battleStartedAt: v.optional(v.number()),
@@ -108,6 +112,7 @@ export default defineSchema({
     attack: v.optional(v.number()),
     unitType: v.optional(v.string()),
     abilities: v.array(v.string()),
+    profile: v.optional(unitProfileValidator),
     imagePath: v.string(),
     faction: v.object({ stableId: v.string(), name: v.string(), themeKey: v.string() }),
     quantity: v.number(),

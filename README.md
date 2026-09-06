@@ -10,7 +10,7 @@ Le site prépare son adaptation numérique : découvrir les cartes, construire s
 - Un espace joueur privé pour créer, consulter, renommer et supprimer ses decks.
 - Une seule faction par deck, avec des quantités de cartes libres et une sauvegarde automatique.
 - Un récapitulatif de la composition et des coûts pendant la construction.
-- Un lobby à deux joueurs, le choix des decks et des unités à déployer, puis un plateau initialisé face à face. Les déplacements et les combats viendront ensuite.
+- Un lobby à deux joueurs, le choix des decks, un jet d’initiative et un déploiement alterné sur un plateau de 54 cases. Les déplacements et les combats viendront ensuite.
 
 L’univers visuel mêle illustrations de fantasy, tons sombres et titres inspirés des inscriptions anciennes.
 

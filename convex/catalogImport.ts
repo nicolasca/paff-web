@@ -1,6 +1,7 @@
 import { v } from 'convex/values'
 import { internalMutation } from './_generated/server'
 import type { MutationCtx } from './_generated/server'
+import { getUnitProfile } from '../shared/unitProfile'
 
 const DATA_VERSION = 'paff-v100'
 
@@ -230,6 +231,9 @@ async function upsertCard(
     .query('cards')
     .withIndex('by_stable_id', (query) => query.eq('stableId', value.stableId))
     .unique()
+
+  // A later CSV import must not overwrite a profile already balanced by hand.
+  value = { ...value, profile: getUnitProfile({ ...value, profile: existing?.profile }) }
 
   if (!existing) {
     await ctx.db.insert('cards', value)

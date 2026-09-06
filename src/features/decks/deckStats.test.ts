@@ -18,4 +18,8 @@ describe('deck statistics', () => {
   it('supports a deck with no cards', () => {
     expect(getDeckStats([])).toMatchObject({ total: 0, unique: 0, totalCost: 0, averageCost: 0, units: 0, actions: 0 })
   })
+  it('counts copies by unit type without including action cards', () => {
+    const stats = getDeckStats([unit, { ...unit, stableId: 'cavalry', name: 'Chevaucheurs', unitType: 'C', quantity: 2 }, { ...unit, stableId: 'action', kind: 'action', quantity: 8 }])
+    expect([...stats.unitTypes]).toEqual([['ranged', 3], ['cavalry', 2]])
+  })
 })

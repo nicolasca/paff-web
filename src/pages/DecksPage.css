@@ -125,3 +125,7 @@
 
 .deck-create__faction { flex-basis: 15rem; }
 .deck-rule-note { margin: 0.75rem 0; color: var(--parchment-300); font-size: 0.875rem; line-height: 1.6; }
+.deck-summary__unit-types { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin: 1rem 1.25rem; }
+.deck-summary__unit-types > div { display: flex; gap: 0.5rem; font-size: 0.75rem; }
+.deck-summary__unit-types dt { color: var(--parchment-300); }
+.deck-summary__unit-types dd { margin: 0; color: var(--bronze-400); font-weight: 600; }

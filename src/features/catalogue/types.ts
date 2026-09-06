@@ -1,3 +1,5 @@
+import type { UnitProfile } from '../../../shared/unitProfile'
+
 export type PublicFaction = {
   stableId: string
   slug: string
@@ -20,6 +22,7 @@ export type PublicCard = {
   attack?: number
   unitType?: string
   abilities: string[]
+  profile?: UnitProfile
   imagePath: string
   faction: {
     stableId: string

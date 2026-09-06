@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { CardsCatalogue } from '../../pages/CardsPage'
 import type { PublicCard, PublicFaction } from './types'
@@ -53,16 +54,60 @@ describe('public card catalogue', () => {
   it('renders card characteristics and abilities without deck controls', () => {
     render(<UnitCard card={card} />)
     expect(screen.getByRole('heading', { name: 'Archers Gobelins' })).toBeVisible()
-    expect(screen.getByLabelText('Coût 1')).toBeVisible()
-    expect(screen.getByText('30')).toBeVisible()
-    expect(screen.getByText('Tir imprévisible.')).toBeVisible()
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Coût de recrutement 1')).toBeVisible()
+    expect(screen.getByLabelText('Points de Régiment : 1')).toBeVisible()
+    expect(screen.getByLabelText('Nombre de dés : 1')).toBeVisible()
+    expect(screen.getByLabelText('Valeur d’attaque au tir : 3')).toBeVisible()
+    expect(screen.getByLabelText('Défense contre le corps à corps : 2')).toBeVisible()
+    expect(screen.getByLabelText('Défense contre le tir : 2')).toBeVisible()
+    expect(screen.queryByText('A')).not.toBeInTheDocument()
+    expect(screen.queryByText('Limite')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Tir imprévisible/ })).toBeVisible()
+    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument()
   })
 
-  it('keeps missing values distinct from zero', () => {
-    render(<UnitCard card={{ ...card, cost: 0, life: undefined, attack: undefined }} />)
-    expect(screen.getByLabelText('Coût 0')).toBeVisible()
-    expect(screen.getAllByText('—')).toHaveLength(2)
+  it('uses an estimated profile for missing legacy values and preserves a zero dice count', () => {
+    render(<UnitCard card={{ ...card, cost: 0, life: undefined, attack: 0 }} />)
+    expect(screen.getByLabelText('Coût de recrutement 0')).toBeVisible()
+    expect(screen.getByLabelText('Points de Régiment : 1')).toBeVisible()
+    expect(screen.getByLabelText('Nombre de dés : 0')).toBeVisible()
+  })
+
+  it('uses defined profiles instead of stale legacy statistics', () => {
+    render(<UnitCard card={{ ...card, profile: { unitType: 'elite', regiment: 7, dice: 4, offense: { kind: 'melee', score: 5 }, defenseMelee: 6, defenseRanged: 3, source: 'defined' } }} />)
+    expect(screen.getByText('Élite')).toBeVisible()
+    expect(screen.getByLabelText('Points de Régiment : 7')).toBeVisible()
+    expect(screen.getByLabelText('Nombre de dés : 4')).toBeVisible()
+    expect(screen.getByLabelText('Valeur d’attaque au corps à corps : 5')).toBeVisible()
+    expect(screen.queryByText('T')).not.toBeInTheDocument()
+  })
+
+  it('reveals a full ability on hover or keyboard focus and dismisses it with Escape', async () => {
+    const user = userEvent.setup()
+    const description = 'Annulez un dégât sur une unité alliée de la même colonne.'
+    render(<UnitCard card={{ ...card, stableId: 'gaeli-druide', abilities: [description] }} />)
+    expect(screen.queryByText(description)).not.toBeInTheDocument()
+    const button = screen.getByRole('button', { name: /Protection druidique/ })
+    await user.hover(button)
+    expect(screen.getByRole('tooltip')).toHaveTextContent(description)
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    await user.tab()
+    expect(button).toHaveFocus()
+    expect(button).toHaveAccessibleDescription(/Annulez un dégât/)
+    await user.keyboard('{Escape}')
+    await user.click(button)
+    expect(screen.getByRole('tooltip')).toHaveTextContent(description)
+    await user.click(document.body)
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  })
+
+  it('keeps action cards readable without invented unit statistics', () => {
+    render(<UnitCard card={{ ...card, name: 'Tirs de balistes', kind: 'action', abilities: ['Infligez 1 dégât à chaque unité.'] }} />)
+    expect(screen.getByText('Action')).toBeVisible()
+    expect(screen.getByLabelText('Coût 1')).toBeVisible()
+    expect(screen.getByText('Infligez 1 dégât à chaque unité.')).toBeVisible()
+    expect(screen.queryByLabelText('Profil de l’unité')).not.toBeInTheDocument()
   })
 
   it('shows an explicit fallback when an illustration is missing', () => {

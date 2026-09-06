@@ -60,14 +60,16 @@
 .unit-card__faction { position: absolute; left: 0.8rem; bottom: 0.6rem; z-index: 1; color: #fff; text-shadow: 0 1px 5px #000; }
 .unit-card__missing { display: grid; height: 100%; place-content: center; gap: 0.4rem; color: var(--parchment-300); font-size: 0.75rem; text-align: center; }
 .unit-card__missing span { color: var(--faction-accent); font-size: 1.5rem; }
-.unit-card__stats { display: grid; margin: 0; border-bottom: 1px solid var(--line-dark); grid-template-columns: repeat(4, 1fr); }
+.unit-card__stats { display: grid; margin: 0; border-bottom: 1px solid var(--line-dark); grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .unit-card__stats div { display: grid; min-width: 0; padding: 0.65rem 0.2rem; place-items: center; }
 .unit-card__stats dt { color: var(--parchment-700); }
-.unit-card__stats dd { margin: 0.25rem 0 0; color: var(--parchment-100); font-size: 0.875rem; overflow-wrap: anywhere; }
+.unit-card__stats dd { margin: 0.25rem 0 0; color: var(--parchment-100); font-size: 1.1rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.unit-card__stats abbr, .battle-card__stats abbr { cursor: help; text-decoration: none; }
 .unit-card__abilities { flex: 1; padding: 0.85rem 1rem; }
 .unit-card__abilities h3 { margin: 0 0 0.35rem; }
 .unit-card__abilities p { margin: 0; color: var(--parchment-200); font-size: 0.875rem; line-height: 1.5; }
 .unit-card__abilities p + p { margin-top: 0.35rem; }
+.unit-card__abilities .unit-card__no-ability { color: var(--parchment-700); font-size: 0.8rem; }
 .unit-card__footer { display: flex; min-height: 3.5rem; padding: 0.55rem 0.8rem; border-top: 1px solid var(--line-dark); align-items: center; justify-content: space-between; gap: 0.5rem; background: #ffffff03; }
 @media (prefers-reduced-motion: reduce) {
   .unit-card, .unit-card__art img { transition: none; }
