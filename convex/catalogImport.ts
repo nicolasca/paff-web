@@ -8,7 +8,7 @@ const DATA_VERSION = 'paff-v100'
 const FACTIONS = {
   Sephosi: {
     stableId: 'sephosi',
-    name: 'Céphosi',
+    name: 'Sephosi',
     themeKey: 'sephosi',
     entity: { stableId: 'ep', name: 'EP', sourceCode: 'EP' },
   },
@@ -232,6 +232,11 @@ async function upsertCard(
     .withIndex('by_stable_id', (query) => query.eq('stableId', value.stableId))
     .unique()
 
+  // A legacy CSV cannot roll back the current roster or republish retired cards.
+  if (existing?.dataVersion?.startsWith('2026-')) {
+    result.cards.unchanged += 1
+    return
+  }
   // A later CSV import must not overwrite a profile already balanced by hand.
   value = { ...value, profile: getUnitProfile({ ...value, profile: existing?.profile }) }
 

@@ -50,3 +50,11 @@ export function canDeployUnit(cell: number, seat: number, profile: UnitProfile, 
   if (setup.version === 3 && isRear(cell, seat) && 9 - setup.units.filter((unit) => isRear(unit.cell, seat)).length <= artilleryRemaining) return false
   return !first || isCenterBase(cell, seat)
 }
+
+export function canRepositionUnit(from: number, to: number, seat: number, profile: UnitProfile, setup: GameSetup, artilleryOnly = false, artilleryRemaining = 0) {
+  const unit = setup.units.find((item) => item.cell === from && item.seat === seat)
+  if (!unit || from === to) return false
+  const first = setup.units.find((item) => item.seat === seat) === unit
+  if (first && profile.unitType !== 'artillery' && !isCenterBase(to, seat)) return false
+  return canDeployUnit(to, seat, profile, { ...setup, units: setup.units.filter((item) => item !== unit) }, artilleryOnly, artilleryRemaining)
+}

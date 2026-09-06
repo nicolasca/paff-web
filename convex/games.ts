@@ -4,7 +4,8 @@ import type { MutationCtx, QueryCtx } from './_generated/server'
 import type { Doc, Id } from './_generated/dataModel'
 import { requireActivePlayer } from './lib/auth'
 import { getUnitProfile } from '../shared/unitProfile'
-import { canDeployUnit, deploymentLimit, initialSetup, preparationCapacityError, type GameSetup } from '../shared/board'
+import { canDeployUnit, canRepositionUnit, deploymentLimit, initialSetup, preparationCapacityError, type GameSetup } from '../shared/board'
+import { BASE_ORDERS, initialBattle, MAX_STRATEGY_POINTS, MAX_TURNS, nextActor, remainingStock, RULES_VERSION, type BattleState } from '../shared/battle'
 
 const gameId = v.id('games')
 type Context = QueryCtx | MutationCtx
@@ -75,6 +76,8 @@ export const get = query({
       isHost: game.hostUserId === player.userId,
       battleStartedAt: game.battleStartedAt ?? null,
       setup: game.setup ?? null,
+      ...(game.battle ? { battle: game.battle } : {}),
+      ...(game.rulesVersion ? { rulesVersion: game.rulesVersion } : {}),
       players: await Promise.all(players.sort((a, b) => a.seat - b.seat).map(async (member) => {
         const isMe = member._id === me._id
         const cards = await gameCards(ctx, member._id)
@@ -138,7 +141,7 @@ export const start = mutation({
     if (game.hostUserId !== player.userId) throw new ConvexError({ code: 'HOST_ONLY' })
     requirePhase(game, 'waiting')
     if ((await members(ctx, game._id)).length !== 2) throw new ConvexError({ code: 'NEED_TWO_PLAYERS' })
-    await ctx.db.patch(game._id, { phase: 'deck_selection', setup: initialSetup(), updatedAt: Date.now() })
+    await ctx.db.patch(game._id, { phase: 'deck_selection', setup: initialSetup(), rulesVersion: RULES_VERSION, updatedAt: Date.now() })
   },
 })
 
@@ -176,7 +179,7 @@ export const selectDeck = mutation({
         quantity: entry.quantity, deploymentQuantity: 0, selectedQuantity: 0,
       })
     }
-    await ctx.db.patch(member._id, { deckId: deck._id, deckName: deck.name, factionName: faction.name, deploymentReady: false, preparationReady: false })
+    await ctx.db.patch(member._id, { deckId: deck._id, deckName: deck.name, factionName: faction.name, factionStableId: faction.stableId, deploymentReady: false, preparationReady: false })
     const players = await members(ctx, game._id)
     const bothChosen = players.length === 2 && players.every((item) => item._id === member._id || item.deckId !== undefined)
     await ctx.db.patch(game._id, { phase: bothChosen ? game.setup?.version === 3 ? 'preparation' : game.setup ? 'initiative' : 'deployment' : 'deck_selection', updatedAt: Date.now() })
@@ -256,6 +259,7 @@ export const finishDeployment = mutation({
     await ctx.db.patch(game._id, {
       phase: ready ? 'battle' : 'deployment', updatedAt: now,
       ...(ready ? { battleStartedAt: now } : {}),
+      ...(ready && setup?.version === 3 && game.rulesVersion === RULES_VERSION ? { battle: initialBattle(setup.initiativeWinner!, players.map((item) => ({ seat: item.seat, faction: item.factionStableId ?? '' }))) } : {}),
       ...(setup ? { setup: { ...setup, revision: setup.revision + 1, deploymentTurn: 1 - member.seat } } : {}),
     })
   },
@@ -322,6 +326,115 @@ export const deployUnit = mutation({
         units: [...setup.units, { seat: member.seat, cardStableId: card.stableId, cell: args.cell }],
       }, updatedAt: Date.now(),
     })
+  },
+})
+
+export const repositionUnit = mutation({
+  args: { gameId, from: v.number(), to: v.number(), revision: v.number() },
+  handler: async (ctx, args) => {
+    const { game, member } = await requireMember(ctx, args.gameId)
+    requirePhase(game, 'deployment')
+    const setup = requireSetup(game)
+    if (args.revision !== setup.revision) throw new ConvexError({ code: 'STALE_GAME_ACTION' })
+    if (member.deploymentReady) throw new ConvexError({ code: 'DEPLOYMENT_LOCKED' })
+    const unit = setup.units.find((item) => item.cell === args.from && item.seat === member.seat)
+    const cards = await gameCards(ctx, member._id)
+    const card = cards.find((item) => item.stableId === unit?.cardStableId)
+    const profile = card && getUnitProfile(card)
+    if (!unit || !profile) throw new ConvexError({ code: 'UNIT_NOT_OWNED' })
+    const artilleryOnly = !cards.some((item) => deploymentLimit(item, setup) > 0 && getUnitProfile(item)?.unitType !== 'artillery')
+    const artilleryRemaining = cards.filter((item) => getUnitProfile(item)?.unitType === 'artillery').reduce((sum, item) => sum + deploymentLimit(item, setup) - item.deploymentQuantity, 0)
+    if (!canRepositionUnit(args.from, args.to, member.seat, profile, setup, artilleryOnly, artilleryRemaining)) throw new ConvexError({ code: 'INVALID_DEPLOYMENT_CELL' })
+    // A correction does not spend a placement or change whose turn it is.
+    await ctx.db.patch(game._id, { setup: { ...setup, revision: setup.revision + 1, units: setup.units.map((item) => item === unit ? { ...item, cell: args.to } : item) }, updatedAt: Date.now() })
+  },
+})
+
+function requireBattle(game: Doc<'games'>, phase: BattleState['phase'], revision?: number) {
+  requirePhase(game, 'battle')
+  if (!game.battle || game.battle.phase !== phase) throw new ConvexError({ code: 'WRONG_BATTLE_PHASE' })
+  if (revision !== undefined && revision !== game.battle.revision) throw new ConvexError({ code: 'STALE_GAME_ACTION' })
+  return game.battle
+}
+
+export const chooseOrder = mutation({
+  args: { gameId, orderId: v.string(), revision: v.number() },
+  handler: async (ctx, args) => {
+    const { game, member } = await requireMember(ctx, args.gameId)
+    const battle = requireBattle(game, 'orders', args.revision)
+    if (battle.actingSeat !== member.seat) throw new ConvexError({ code: 'NOT_YOUR_ORDER_TURN' })
+    const definition = battle.catalog.find((item) => item.id === args.orderId && item.seats.includes(member.seat))
+    if (!definition) throw new ConvexError({ code: 'ORDER_NOT_AVAILABLE' })
+    if (remainingStock(battle, definition, member.seat) === 0) throw new ConvexError({ code: 'ORDER_EXHAUSTED' })
+    if (battle.orders.filter((item) => item.seat === member.seat).length >= battle.allowance[member.seat]) throw new ConvexError({ code: 'ORDER_QUOTA_REACHED' })
+    const orders = [...battle.orders, { id: `${battle.turn}:${battle.orders.length}`, seat: member.seat, orderId: definition.id, status: 'selected' as const }]
+    const used = [...battle.used]
+    if (definition.limit !== undefined) {
+      const index = used.findIndex((item) => item.seat === member.seat && item.orderId === definition.id)
+      if (index < 0) used.push({ seat: member.seat, orderId: definition.id, count: 1 })
+      else used[index] = { ...used[index], count: used[index].count + 1 }
+    }
+    const needs = (seat: number) => orders.filter((item) => item.seat === seat).length < battle.allowance[seat]
+    const complete = !needs(0) && !needs(1)
+    await ctx.db.patch(game._id, { battle: { ...battle, revision: battle.revision + 1, orders, used,
+      phase: complete ? 'actions' : 'orders', actingSeat: complete ? battle.initiativeSeat : nextActor(member.seat, needs),
+    }, updatedAt: Date.now() })
+  },
+})
+
+export const passOrder = mutation({
+  args: { gameId, chosenId: v.string(), revision: v.number() },
+  handler: async (ctx, args) => {
+    const { game, member } = await requireMember(ctx, args.gameId)
+    const battle = requireBattle(game, 'actions', args.revision)
+    if (battle.actingSeat !== member.seat) throw new ConvexError({ code: 'NOT_YOUR_ORDER_TURN' })
+    const chosen = battle.orders.find((item) => item.id === args.chosenId && item.seat === member.seat && item.status === 'selected')
+    if (!chosen) throw new ConvexError({ code: 'ORDER_NOT_AVAILABLE' })
+    // Demo progression only: no movement, damage or other game effect is claimed.
+    const orders = battle.orders.map((item) => item === chosen ? { ...item, status: 'passed' as const } : item)
+    const needs = (seat: number) => orders.some((item) => item.seat === seat && item.status === 'selected')
+    await ctx.db.patch(game._id, { battle: { ...battle, revision: battle.revision + 1, orders,
+      phase: !needs(0) && !needs(1) ? 'combat' : 'actions', actingSeat: nextActor(member.seat, needs), readySeats: [],
+    }, updatedAt: Date.now() })
+  },
+})
+
+export const setStrategyPoints = mutation({
+  args: { gameId, turn: v.number(), points: v.number() },
+  handler: async (ctx, args) => {
+    const { game, member } = await requireMember(ctx, args.gameId)
+    const battle = requireBattle(game, 'end_turn')
+    if (args.turn !== battle.turn) throw new ConvexError({ code: 'STALE_GAME_ACTION' })
+    if (battle.readySeats.includes(member.seat)) throw new ConvexError({ code: 'ROUND_ALREADY_CONFIRMED' })
+    if (!Number.isSafeInteger(args.points) || args.points < 0 || args.points > MAX_STRATEGY_POINTS) throw new ConvexError({ code: 'INVALID_STRATEGY_POINTS' })
+    const draftPoints = [...battle.draftPoints]
+    draftPoints[member.seat] = args.points
+    await ctx.db.patch(game._id, { battle: { ...battle, revision: battle.revision + 1, draftPoints }, updatedAt: Date.now() })
+  },
+})
+
+export const confirmBattlePhase = mutation({
+  args: { gameId, turn: v.number(), phase: v.union(v.literal('combat'), v.literal('end_turn')) },
+  handler: async (ctx, args) => {
+    const { game, member } = await requireMember(ctx, args.gameId)
+    const battle = requireBattle(game, args.phase)
+    if (args.turn !== battle.turn) throw new ConvexError({ code: 'STALE_GAME_ACTION' })
+    if (battle.readySeats.includes(member.seat)) return
+    const readySeats = [...battle.readySeats, member.seat]
+    let next: BattleState = { ...battle, revision: battle.revision + 1, readySeats }
+    if (readySeats.length === 2) {
+      if (battle.phase === 'combat') next = { ...next, phase: 'end_turn', readySeats: [], draftPoints: [0, 0] }
+      else {
+        const history = [...battle.history, { turn: battle.turn, initiativeSeat: battle.initiativeSeat, orders: battle.orders, strategyPoints: battle.draftPoints }]
+        if (battle.turn === MAX_TURNS) {
+          next = { ...next, phase: 'finished', history, strategyPoints: battle.draftPoints }
+          for (const player of await members(ctx, game._id)) await ctx.db.patch(player._id, { active: false })
+        } else next = { ...next, turn: battle.turn + 1, phase: 'orders', initiativeSeat: 1 - battle.initiativeSeat, actingSeat: 1 - battle.initiativeSeat,
+          strategyPoints: battle.draftPoints, allowance: battle.draftPoints.map((points) => BASE_ORDERS + points), draftPoints: [0, 0], readySeats: [], orders: [], history,
+        }
+      }
+    }
+    await ctx.db.patch(game._id, { battle: next, updatedAt: Date.now() })
   },
 })
 

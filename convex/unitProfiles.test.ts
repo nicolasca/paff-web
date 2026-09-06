@@ -32,6 +32,17 @@ function setup() {
 }
 
 describe('profile migration and imports', () => {
+  it('does not undo a current roster rename or republish an archived card on legacy CSV reimport', async () => {
+    const { tables, run } = setup()
+    const source = { lineNumber: 2, entityCode: 'EP', faction: 'Sephosi', name: 'Lanciers Sephosiens', cost: '3', deckLimit: '30', life: '3', attack: '1', unitType: 'D', abilities: '', isUnit: 'oui', sourceNote: '' }
+    await run(importCards, { rows: [source] })
+    for (const status of ['published', 'archived']) {
+      Object.assign(tables.cards[0], { dataVersion: '2026-09-06-wip', name: 'Nouveau nom', status })
+      const saved = structuredClone(tables.cards[0])
+      await run(importCards, { rows: [source] })
+      expect(tables.cards[0]).toEqual(saved)
+    }
+  })
   it('fills only missing unit profiles and preserves IDs and manually defined values', async () => {
     const { tables, run } = setup()
     const manual = { ...getUnitProfile(legacy)!, dice: 8, source: 'defined' as const }

@@ -10,8 +10,8 @@ const bands = [[0], [1], [2, 3], [4], [5]]
 const axes = [[0, 1], [2, 3, 4, 5, 6], [7, 8]]
 const bandNames = ['Arrière adverse', 'Base adverse', 'Centre stratégique', 'Votre base', 'Votre arrière']
 
-export function TacticalBoard({ game, allowedCells = [], onPlace, busy = false }: {
-  game: Game; allowedCells?: number[]; onPlace?: (cell: number) => void; busy?: boolean
+export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, placeLabel = 'Déployer ici', busy = false }: {
+  game: Game; allowedCells?: number[]; onPlace?: (cell: number) => void; onReposition?: (cell: number) => void; placeLabel?: string; busy?: boolean
 }) {
   const me = game.players.find((player) => player.isMe)!
   const opponent = game.players.find((player) => !player.isMe)!
@@ -40,7 +40,7 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, busy = false }
             const allowed = allowedCells.includes(cell)
             const content = <>{unit ? <><img src={unit.card.imagePath} alt="" /><span className="board-unit__regiment">{getUnitProfile(unit.card)?.regiment}<small>R</small></span><strong>{unit.card.name}</strong></> : <span className="board-cell__mark" aria-hidden="true">{allowed ? '+' : '·'}</span>}<span className="board-cell__coordinate" aria-hidden="true">{cellCoordinate(cell)}</span></>
             const className = `board-cell${unit ? ` board-unit board-unit--${unit.owner.isMe ? 'you' : 'opponent'}` : ''}${allowed ? ' board-cell--allowed' : ''}${cell === inspected ? ' board-cell--selected' : ''}`
-            const label = `${cellCoordinate(cell)}${unit ? ` · ${unit.card.name} · ${unit.owner.displayName}` : allowed ? ' · Déployer ici' : ' · Case vide'}`
+            const label = `${cellCoordinate(cell)}${unit ? ` · ${unit.card.name} · ${unit.owner.displayName}` : allowed ? ` · ${placeLabel}` : ' · Case vide'}`
             return unit || allowed ? <button key={cell} type="button" data-cell={cell} className={className} aria-label={label} aria-pressed={unit ? cell === inspected : undefined} disabled={!unit && busy} onClick={() => unit ? setInspected(cell === inspected ? null : cell) : onPlace?.(cell)}>{content}</button>
               : <div key={cell} data-cell={cell} className={className} aria-label={label}>{content}</div>
           }))}</div>
@@ -51,6 +51,7 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, busy = false }
     {detail && profile && <div className="board-inspection" aria-label={`Détails de ${detail.card.name}`}>
       <div><p className="eyebrow">{detail.owner.displayName} · {cellCoordinate(inspected!)}</p><h3>{detail.card.name}</h3></div>
       <UnitProfileStats profile={profile} compact />{profile.ability && <SpecialAbility ability={profile.ability} />}
+      {onReposition && detail.owner.isMe && <button type="button" className="ui-button" disabled={busy} onClick={() => onReposition(inspected!)}>Changer de case</button>}
       <button type="button" className="ui-button ui-button--quiet" onClick={() => setInspected(null)}>Fermer</button>
     </div>}
     <p className="board-caption">3 axes · 15 zones · 54 cases <span>✦ Zones stratégiques</span></p>

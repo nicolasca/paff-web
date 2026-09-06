@@ -49,6 +49,7 @@
 .setup-finish__confirm { border-top: 1px solid #99835950; padding-top: 0.6rem; }
 .setup-finish__confirm .ui-button + .ui-button { margin-top: 0.5rem; }
 .setup-footnote { font-size: 0.75rem; color: #aeb69f; line-height: 1.6; margin-top: 1rem; }
+.setup-correction { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem; padding: 1rem; margin-bottom: 1rem; background: #d0b37115; border: 1px solid #c3a26d; border-radius: .5rem; color: #e4cc9f; font-size: .9rem; }
 @media (prefers-reduced-motion: no-preference) {
   .initiative-die:not([aria-label*='en attente']) { animation: initiative-reveal 450ms ease-out; }
   @keyframes initiative-reveal { from { transform: rotate(-12deg) scale(0.85); opacity: 0.3; } to { transform: rotate(0) scale(1); opacity: 1; } }

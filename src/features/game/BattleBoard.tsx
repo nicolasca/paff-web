@@ -3,13 +3,14 @@ import { getUnitProfile, unitTypeNames } from '../../../shared/unitProfile'
 import { UnitProfileStats } from '../catalogue/UnitProfileStats'
 import { SpecialAbility } from '../catalogue/SpecialAbility'
 import { TacticalBoard } from './TacticalBoard'
+import { BattleFlow, type BattleControls } from './BattleFlow'
 
-export function BattleBoard({ game }: { game: Game }) {
+export function BattleBoard({ game, busy, perform }: { game: Game } & BattleControls) {
   const me = game.players.find((player) => player.isMe)!
   const opponent = game.players.find((player) => !player.isMe)!
   return (
     <section className="battle-arena" aria-label="Aire de jeu">
-      {game.setup && <div className="battle-round"><span className="eyebrow">Tour 1 · Plateau initialisé</span><p>Initiative : <strong>{game.players.find((player) => player.seat === game.setup?.initiativeWinner)?.displayName}</strong></p></div>}
+      {game.battle ? <BattleFlow game={game} busy={busy} perform={perform} /> : game.setup && <div className="battle-round"><span className="eyebrow">Tour 1 · Plateau initialisé</span><p>Initiative : <strong>{game.players.find((player) => player.seat === game.setup?.initiativeWinner)?.displayName}</strong></p></div>}
       <BattleCamp player={opponent} positioned={Boolean(game.setup)} />
       {game.setup ? <TacticalBoard game={game} /> : <div className="battle-field" role="img" aria-label={`Champ de bataille initialisé entre ${opponent.displayName} et ${me.displayName}. Les emplacements sont encore vides.`}>
         <span className="battle-field__label">Zone adverse</span>
@@ -19,7 +20,7 @@ export function BattleBoard({ game }: { game: Game }) {
         <span className="battle-field__label">Votre zone</span>
       </div>}
       <BattleCamp player={me} positioned={Boolean(game.setup)} />
-      <p className="battle-notice">{game.setup ? 'Les deux armées sont en place. Cliquez sur une unité pour consulter son profil. Les ordres, mouvements et combats arrivent dans une prochaine étape.' : 'Cette partie utilise l’ancienne préparation. Créez une nouvelle table pour jouer le déploiement sur le plateau 2026.'}</p>
+      <p className="battle-notice">{game.battle ? 'Cliquez sur une unité pour consulter son profil. Les unités restent à leur emplacement de déploiement pendant cette démo.' : 'Cette partie utilise une ancienne version. Créez une nouvelle table pour découvrir le catalogue et les tours de la démo 2026.'}</p>
     </section>
   )
 }

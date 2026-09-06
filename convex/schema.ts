@@ -3,6 +3,7 @@ import { defineSchema, defineTable } from 'convex/server'
 import { v } from 'convex/values'
 import { unitProfileValidator } from './lib/unitProfile'
 import { gameSetupValidator } from './lib/gameSetup'
+import { battleValidator } from './lib/battle'
 
 export default defineSchema({
   ...authTables,
@@ -84,6 +85,8 @@ export default defineSchema({
     name: v.string(),
     phase: v.union(v.literal('waiting'), v.literal('deck_selection'), v.literal('preparation'), v.literal('initiative'), v.literal('deployment'), v.literal('battle'), v.literal('cancelled')),
     setup: v.optional(gameSetupValidator),
+    rulesVersion: v.optional(v.string()),
+    battle: v.optional(battleValidator),
     createdAt: v.number(),
     updatedAt: v.number(),
     battleStartedAt: v.optional(v.number()),
@@ -97,6 +100,7 @@ export default defineSchema({
     deckId: v.optional(v.id('decks')),
     deckName: v.optional(v.string()),
     factionName: v.optional(v.string()),
+    factionStableId: v.optional(v.string()),
     deploymentReady: v.boolean(),
     preparationReady: v.optional(v.boolean()),
   })

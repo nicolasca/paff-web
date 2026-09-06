@@ -11,7 +11,7 @@ import { GameRoom } from './GamePage'
 import { LobbyContent } from './LobbyPage'
 import { initialSetup } from '../../shared/board'
 
-const mutations = vi.hoisted(() => ({ create: vi.fn(), join: vi.fn(), start: vi.fn(), selectDeck: vi.fn(), updateDeployment: vi.fn(), finishDeployment: vi.fn(), leave: vi.fn(), rollInitiative: vi.fn(), confirmInitiative: vi.fn(), deployUnit: vi.fn(), updatePreparation: vi.fn(), finishPreparation: vi.fn() }))
+const mutations = vi.hoisted(() => ({ create: vi.fn(), join: vi.fn(), start: vi.fn(), selectDeck: vi.fn(), updateDeployment: vi.fn(), finishDeployment: vi.fn(), leave: vi.fn(), rollInitiative: vi.fn(), confirmInitiative: vi.fn(), deployUnit: vi.fn(), updatePreparation: vi.fn(), finishPreparation: vi.fn(), repositionUnit: vi.fn(), chooseOrder: vi.fn(), passOrder: vi.fn(), setStrategyPoints: vi.fn(), confirmBattlePhase: vi.fn() }))
 vi.mock('convex/react', () => ({
   useQuery: vi.fn(), useConvexConnectionState: () => ({ isWebSocketConnected: true }),
   useMutation: (reference: unknown) => mutations[getFunctionName(reference as never).split(':')[1] as keyof typeof mutations],
@@ -103,7 +103,7 @@ describe('2026 preparation screens', () => {
     await userEvent.click(screen.getByRole('button', { name: 'E5 · Archers · Nicolas' }))
     expect(screen.getByLabelText('Détails de Archers')).toBeVisible()
     expect(screen.queryByRole('button', { name: /Déployer ici/ })).not.toBeInTheDocument()
-    expect(screen.getByText(/Les ordres, mouvements et combats arrivent/)).toBeVisible()
+    expect(screen.getByText(/Cette partie utilise une ancienne version/)).toBeVisible()
   })
 })
 

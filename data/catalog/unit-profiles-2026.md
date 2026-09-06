@@ -1,6 +1,8 @@
-# Profils d’unité 2026
+# Profils historiques et estimations de compatibilité
 
-Structure confirmée par Nicolas : nom, coût de recrutement, type, R (points de Régiment), nombre de dés, un seul score offensif A ou T, DA, DT et une capacité avec intitulé court et définition. Le nombre de dés est indépendant de la valeur offensive. Les cartes Action existantes restent des actions.
+La référence courante est [Règles implémentées](../../docs/regles-implementees.md), section 1, avec les 12 profils Gobelins/Sephosi du Drive du 6 septembre. Les estimations ci-dessous concernent les anciens profils, notamment Orcs/Gaeli, et les anciennes parties.
+
+Structure confirmée par Nicolas : nom, coût de recrutement, type, R (points de Régiment), nombre de dés, un seul score offensif A ou T, DA, DT et une capacité avec intitulé court et définition. Le nombre de dés est indépendant de la valeur offensive. Les nouvelles listes Gobelins/Sephosi remplacent leurs anciennes cartes publiées ; les cartes Action des autres factions sont conservées.
 
 Les valeurs initiales sont des estimations autorisées, identifiées par `profile.source = "estimated"`. Un profil corrigé utilise `"defined"`. Les champs historiques restent disponibles pour assurer la compatibilité des decks et des parties.
 
@@ -14,6 +16,6 @@ Les valeurs initiales sont des estimations autorisées, identifiées par `profil
 - Classement, par priorité : limite individuelle de 1 → Unique ; baliste/catapulte/canon → Artillerie ; ancien C ou unité montée → Cavalerie ; tireur → Tir ; R ≥ 3 et dés ≥ 2 → Élite ; sinon Troupe. Le type ne force pas le mode offensif : une cavalerie peut tirer.
 - Les anciens textes de capacité sont conservés sous des intitulés de trois mots au maximum. Leur adaptation mécanique sera faite avec les combats.
 
-Les six types sont disponibles, même si le catalogue actuel ne contient pas d’unité d’artillerie. Les quotas du PDF restent provisoires et ne sont pas imposés ici.
+Les six types sont disponibles. Le catalogue courant comprend les Balistes Sephosiennes de type Artillerie. Les quotas du PDF restent provisoires et ne sont pas imposés ici.
 
 La migration complète seulement les profils absents, par lots de 100, dans `cards` puis `gameCards`. Une partie utilise ses propres valeurs figées. Un import ultérieur du CSV conserve les profils déjà enregistrés.

@@ -32,6 +32,48 @@ async function preparation() {
 }
 
 describe('unit selection before initiative', () => {
+  it('corrects a misclick during the opponent’s turn without changing the turn or number of units', async () => {
+    const { run, gameId, choose, initiative, read, deploy, finish } = await preparation()
+    await choose(1, 2)
+    await choose(2, 1)
+    await initiative()
+    await deploy(1, 40)
+    const before = await read()
+    const args = { gameId, from: 40, to: 41, revision: before.setup!.revision }
+    await expect(run('repositionUnit', 2, args)).rejects.toMatchObject(code('UNIT_NOT_OWNED'))
+    await expect(run('repositionUnit', 3, args)).rejects.toMatchObject(code('GAME_NOT_AVAILABLE'))
+    await expect(run('repositionUnit', 1, { ...args, to: 45 })).rejects.toMatchObject(code('INVALID_DEPLOYMENT_CELL'))
+    await run('repositionUnit', 1, args)
+    const after = await read(2)
+    expect(after.setup).toMatchObject({ deploymentTurn: 1, revision: before.setup!.revision + 1, units: [{ seat: 0, cell: 41 }] })
+    expect(after.players[0].deploymentCount).toBe(1)
+    await expect(run('repositionUnit', 1, { ...args, from: 41, to: 40 })).rejects.toMatchObject(code('STALE_GAME_ACTION'))
+    await deploy(2, 13)
+    await deploy(1, 45)
+    await finish(2)
+    for (const to of [45, 13, 54, -1, 41, 40.5]) await expect(run('repositionUnit', 1, { gameId, from: 41, to, revision: (await read()).setup!.revision })).rejects.toMatchObject(code('INVALID_DEPLOYMENT_CELL'))
+    await run('repositionUnit', 1, { gameId, from: 45, to: 46, revision: (await read()).setup!.revision })
+    await expect(run('repositionUnit', 2, { gameId, from: 13, to: 14, revision: (await read()).setup!.revision })).rejects.toMatchObject(code('DEPLOYMENT_LOCKED'))
+    await finish(1)
+    await expect(run('repositionUnit', 1, { gameId, from: 46, to: 47, revision: (await read()).setup!.revision })).rejects.toMatchObject(code('WRONG_GAME_PHASE'))
+  })
+  it('keeps corrected artillery in the rear and reserves rear space for artillery still waiting', async () => {
+    const { tables, run, gameId, choose, initiative, deploy, finish, read } = await preparation()
+    const artillery = tables.gameCards.find((card) => card.stableId === 'archers')!
+    artillery.profile = { ...(artillery.profile as object), unitType: 'artillery' }
+    artillery.quantity = 9
+    await choose(1, 9)
+    await choose(1, 2, 'lanciers')
+    await initiative()
+    await deploy(1, 40, 'lanciers')
+    await finish(2)
+    await deploy(1, 41, 'lanciers')
+    await expect(run('repositionUnit', 1, { gameId, from: 41, to: 45, revision: (await read()).setup!.revision })).rejects.toMatchObject(code('INVALID_DEPLOYMENT_CELL'))
+    await deploy(1, 45)
+    await expect(run('repositionUnit', 1, { gameId, from: 45, to: 42, revision: (await read()).setup!.revision })).rejects.toMatchObject(code('INVALID_DEPLOYMENT_CELL'))
+    await run('repositionUnit', 1, { gameId, from: 45, to: 46, revision: (await read()).setup!.revision })
+    expect((await read()).setup!.units.at(-1)?.cell).toBe(46)
+  })
   it('opens an empty preparation after both decks and waits for both confirmations', async () => {
     const { run, gameId, read, choose, validate } = await preparation()
     expect(await read()).toMatchObject({ phase: 'preparation', setup: { version: 3 }, players: [{ preparationReady: false, preparationCount: 0, deploymentCount: 0, drawPileCount: 10 }, { preparationReady: false, preparationCount: 0 }] })

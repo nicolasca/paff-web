@@ -503,6 +503,10 @@ export function DeckWorkspace({
           factions depuis le récapitulatif pour continuer à le construire.
         </p>
       )}
+      {deck.cards.some((card) => card.available === false) && <div className="deck-error" role="alert">
+        <p>Le catalogue a évolué. Remplacez les cartes retirées avant de choisir ce deck pour une nouvelle partie :</p>
+        {deck.cards.filter((card) => card.available === false).map((card) => <p key={card.stableId}>{card.name} ×{card.quantity}{editing && <button type="button" className="ui-button ui-button--quiet" disabled={busyCards.has(card.stableId)} onClick={() => void changeQuantity(card.stableId, { quantity: 0 })}>Retirer {card.name}</button>}</p>)}
+      </div>}
       <div className="deck-workspace">
         <section
           className="deck-editor"

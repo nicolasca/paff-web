@@ -13,9 +13,10 @@ export type UnitProfile = {
   unitType: UnitType
   regiment: number
   dice: number
-  offense: { kind: 'melee' | 'ranged'; score: number }
+  offense: { kind: 'melee' | 'ranged'; score: number | null }
   defenseMelee: number
   defenseRanged: number
+  defenseRangedFormat?: 'threshold'
   ability?: { name: string; description: string }
   source: 'estimated' | 'defined'
 }

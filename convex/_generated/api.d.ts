@@ -11,11 +11,13 @@
 import type * as auth from "../auth.js";
 import type * as catalogImport from "../catalogImport.js";
 import type * as catalogue from "../catalogue.js";
+import type * as catalogue2026 from "../catalogue2026.js";
 import type * as decks from "../decks.js";
 import type * as games from "../games.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
+import type * as lib_battle from "../lib/battle.js";
 import type * as lib_gameSetup from "../lib/gameSetup.js";
 import type * as lib_normalizeLoginId from "../lib/normalizeLoginId.js";
 import type * as lib_unitProfile from "../lib/unitProfile.js";
@@ -33,11 +35,13 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   catalogImport: typeof catalogImport;
   catalogue: typeof catalogue;
+  catalogue2026: typeof catalogue2026;
   decks: typeof decks;
   games: typeof games;
   health: typeof health;
   http: typeof http;
   "lib/auth": typeof lib_auth;
+  "lib/battle": typeof lib_battle;
   "lib/gameSetup": typeof lib_gameSetup;
   "lib/normalizeLoginId": typeof lib_normalizeLoginId;
   "lib/unitProfile": typeof lib_unitProfile;

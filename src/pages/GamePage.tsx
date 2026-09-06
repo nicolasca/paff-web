@@ -66,7 +66,7 @@ export function GameRoom({ game, decks, onLeave }: { game: Game; decks?: Deck[];
 
   return <>
     <header className="game-page-heading game-page-heading--room"><div><p className="eyebrow">Table à deux joueurs</p><h1>{game.name}</h1></div>
-      <button type="button" className="ui-button ui-button--quiet" disabled={busy} onClick={() => setConfirmLeave(true)}>Quitter la table</button>
+      {game.battle?.phase === 'finished' ? <Link className="ui-button ui-button--quiet" to="/lobby">Toutes les tables</Link> : <button type="button" className="ui-button ui-button--quiet" disabled={busy} onClick={() => setConfirmLeave(true)}>Quitter la table</button>}
     </header>
     {confirmLeave && <section className="game-confirm" aria-label="Quitter la table">
       <p>{game.phase === 'waiting' && !game.isHost ? 'Libérer votre place à cette table ?' : 'Quitter fermera cette partie pour les deux joueurs.'}</p>
@@ -93,9 +93,10 @@ export function GameRoom({ game, decks, onLeave }: { game: Game; decks?: Deck[];
       {decks === undefined ? <p role="status">Chargement de vos decks…</p> : !decks.length ? <div className="game-empty"><h3>Il vous faut un deck.</h3><p>Créez-en un, puis revenez à cette table depuis le lobby.</p><Link className="ui-button ui-button--primary" to="/decks">Créer mon premier deck</Link></div> : <div className="game-deck-grid">{decks.map((deck) => {
         const stats = getDeckStats(deck.cards)
         const selected = me.deckId === deck.id
+        const unavailable = deck.cards.some((card) => card.available === false)
         return <article key={deck.id} className={`game-deck${selected ? ' game-deck--selected' : ''}`}>
           <div className="game-deck__art" aria-hidden="true">{deck.cards[0] ? <img src={deck.cards[0].imagePath} alt="" /> : <span>✦</span>}<span>{deck.faction?.name ?? 'Faction à définir'}</span></div>
-          <div className="game-deck__body"><h3>{deck.name}</h3><p>{stats.total} cartes <span>·</span> {stats.units} unités</p><button className={`ui-button${selected ? '' : ' ui-button--primary'}`} type="button" aria-pressed={selected} disabled={busy || selected} onClick={() => void perform(() => selectDeck({ gameId: game.id, deckId: deck.id }))}>{selected ? 'Deck choisi ✓' : `Choisir ${deck.name}`}</button></div>
+          <div className="game-deck__body"><h3>{deck.name}</h3><p>{stats.total} cartes <span>·</span> {stats.units} unités</p>{unavailable && <p>Ce deck contient des cartes retirées. <Link to={`/decks/${deck.id}/edit`}>Mettre à jour le deck</Link></p>}<button className={`ui-button${selected ? '' : ' ui-button--primary'}`} type="button" aria-pressed={selected} disabled={busy || selected || unavailable} onClick={() => void perform(() => selectDeck({ gameId: game.id, deckId: deck.id }))}>{selected ? 'Deck choisi ✓' : `Choisir ${deck.name}`}</button></div>
         </article>
       })}</div>}
     </section>}
@@ -113,7 +114,7 @@ export function GameRoom({ game, decks, onLeave }: { game: Game; decks?: Deck[];
         onAdjust={(delta) => void perform(() => updateDeployment({ gameId: game.id, cardStableId: card.stableId, change: { delta } }))}
         onSet={(quantity) => void perform(() => updateDeployment({ gameId: game.id, cardStableId: card.stableId, change: { quantity } }))} /></div>} />)}</div> : <div className="game-empty"><h3>Aucune unité dans ce deck.</h3><p>Vous pouvez valider la préparation : vos cartes resteront dans la pioche.</p></div>}
     </section>}
-    {game.phase === 'battle' && <BattleBoard game={game} />}
+    {game.phase === 'battle' && <BattleBoard game={game} busy={busy} perform={perform} />}
   </>
 }
 

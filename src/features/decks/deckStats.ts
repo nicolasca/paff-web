@@ -2,7 +2,7 @@ import type { PublicCard } from '../catalogue/types'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { getUnitProfile, type UnitType } from '../../../shared/unitProfile'
 
-export type DeckCard = PublicCard & { quantity: number }
+export type DeckCard = PublicCard & { quantity: number; available?: boolean }
 export type Deck = {
   id: Id<'decks'>
   name: string

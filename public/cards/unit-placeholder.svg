@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 480">
+  <defs><radialGradient id="bg"><stop stop-color="#454631"/><stop offset="1" stop-color="#151d19"/></radialGradient><pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse"><path d="M22 0 44 22 22 44 0 22Z" fill="none" stroke="#d6bd78" stroke-opacity=".06"/></pattern></defs>
+  <rect width="600" height="480" fill="url(#bg)"/><rect width="600" height="480" fill="url(#grid)"/>
+  <path d="M300 74 400 128 380 269 300 330 220 269 200 128Z" fill="#20291f" stroke="#c6ad71" stroke-width="2"/>
+  <path d="m300 109 13 66 50 30-50 19-13 68-13-68-50-19 50-30Z" fill="#c6ad71" opacity=".8"/>
+  <text x="300" y="385" fill="#ded0ac" text-anchor="middle" font-family="Georgia,serif" font-size="32" letter-spacing="9">PAFF</text>
+  <text x="300" y="419" fill="#a8ac98" text-anchor="middle" font-family="sans-serif" font-size="14" letter-spacing="2">ILLUSTRATION À VENIR</text>
+</svg>

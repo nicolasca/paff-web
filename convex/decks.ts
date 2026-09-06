@@ -35,6 +35,7 @@ export const listMine = query({
                     stableId: card.stableId,
                     name: card.name,
                     quantity: entry.quantity,
+                    available: card.status === 'published' && cardFaction?.status === 'published',
                     cost: card.cost,
                     kind: card.kind,
                     life: card.life,

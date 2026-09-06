@@ -12,6 +12,7 @@
     "test:functional": "vitest run src/functional",
     "test:watch": "vitest",
     "import:catalogue": "node scripts/import-catalogue.mjs",
+    "import:catalogue:2026": "convex run catalogue2026:apply",
     "check": "npm run lint && npm run test && npm run build",
     "preview": "vite preview"
   },

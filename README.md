@@ -6,11 +6,13 @@ Le site prépare son adaptation numérique : découvrir les cartes, construire s
 
 ## Le site aujourd’hui
 
-- Un catalogue public d’unités et d’actions, réparties entre quatre factions : Céphosi, Gaeli, Orcs et Gobelins.
+- Un catalogue public réparti entre quatre factions : Sephosi, Gaeli, Orcs et Gobelins, avec les nouveaux profils 2026 des Gobelins et Sephosi.
 - Un espace joueur privé pour créer, consulter, renommer et supprimer ses decks.
 - Une seule faction par deck, avec des quantités de cartes libres et une sauvegarde automatique.
 - Un récapitulatif de la composition et des coûts pendant la construction.
-- Un lobby à deux joueurs, le choix des decks puis des unités à déployer, un jet d’initiative et un déploiement alterné sur un plateau de 54 cases. Les déplacements et les combats viendront ensuite.
+- Un lobby à deux joueurs, la préparation privée des unités, l’initiative et le déploiement sur 54 cases, puis huit tours avec choix d’ordres synchronisé. Les déplacements et les combats viendront ensuite.
+
+L’état précis du jeu et les écarts encore ouverts sont suivis dans les [règles implémentées](docs/regles-implementees.md).
 
 L’univers visuel mêle illustrations de fantasy, tons sombres et titres inspirés des inscriptions anciennes.
 
