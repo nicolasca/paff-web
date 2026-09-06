@@ -1,3 +1,4 @@
+import { LiveBattle } from './LiveBattle'
 import type { Game, GamePlayer } from './types'
 import { getUnitProfile, unitTypeNames } from '../../../shared/unitProfile'
 import { UnitProfileStats } from '../catalogue/UnitProfileStats'
@@ -6,6 +7,7 @@ import { TacticalBoard } from './TacticalBoard'
 import { BattleFlow, type BattleControls } from './BattleFlow'
 
 export function BattleBoard({ game, busy, perform }: { game: Game } & BattleControls) {
+  if (game.battle?.engine) return <LiveBattle game={game} busy={busy} perform={perform} />
   const me = game.players.find((player) => player.isMe)!
   const opponent = game.players.find((player) => !player.isMe)!
   return (

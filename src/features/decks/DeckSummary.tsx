@@ -1,4 +1,5 @@
 import { formatNumber, getDeckStats, type Deck } from './deckStats'
+import { deckRuleIssues } from '../../../shared/armyRules'
 import { unitTypeNames } from '../../../shared/unitProfile'
 
 export function DeckSummary({ deck, onRemoveCard, busyCards = new Set() }: {
@@ -7,6 +8,7 @@ export function DeckSummary({ deck, onRemoveCard, busyCards = new Set() }: {
   busyCards?: Set<string>
 }) {
   const stats = getDeckStats(deck.cards)
+  const issues = deckRuleIssues(deck.cards)
   const costs = [...stats.costs.entries()].sort(([a], [b]) => a - b)
   const max = Math.max(1, ...stats.costs.values())
 
@@ -22,6 +24,8 @@ export function DeckSummary({ deck, onRemoveCard, busyCards = new Set() }: {
         <div><dt>Coût total</dt><dd>{formatNumber(stats.totalCost)}{stats.unknownCostCount > 0 ? ' + ?' : ''}</dd></div>
         <div><dt>Coût moyen</dt><dd>{stats.knownCostCount ? formatNumber(stats.averageCost) : '—'}</dd></div>
       </dl>
+      <p className="deck-summary__note">Bataille 2026 : 33 points maximum. Les brouillons restent modifiables au-delà des limites.</p>
+      {issues.length > 0 && <ul className="deck-summary__note" aria-label="Règles à respecter pour jouer">{issues.map((issue) => <li key={issue}>{issue}</li>)}</ul>}
       <div className="deck-summary__types">
         <span><i className="unit-dot" />{formatNumber(stats.units)} unités</span>
         <span><i className="action-dot" />{formatNumber(stats.actions)} actions</span>

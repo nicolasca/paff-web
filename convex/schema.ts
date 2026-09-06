@@ -123,6 +123,7 @@ export default defineSchema({
     quantity: v.number(),
     deploymentQuantity: v.number(),
     selectedQuantity: v.optional(v.number()),
+    enteredQuantity: v.optional(v.number()),
   })
     .index('by_player', ['gamePlayerId'])
     .index('by_player_and_card', ['gamePlayerId', 'stableId']),

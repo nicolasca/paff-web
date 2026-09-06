@@ -1,4 +1,5 @@
-export const RULES_VERSION = '2026-09-06-demo-1'
+import { ACTION_RULES_VERSION, type EngineState } from './battleEngine'
+export const RULES_VERSION = ACTION_RULES_VERSION
 export const MAX_TURNS = 8
 export const BASE_ORDERS = 3
 export const MAX_STRATEGY_POINTS = 3
@@ -18,8 +19,9 @@ export const orderDefinitions: OrderDefinition[] = [
   { id: 'waaagh', name: 'WAAAGGGHHH !', faction: 'gobelins', category: 'legendary', limit: 1, description: 'Ordre unique. Son effet sera défini avec le créateur.' },
 ]
 
-export type ChosenOrder = { id: string; seat: number; orderId: string; status: 'selected' | 'passed' }
+export type ChosenOrder = { id: string; seat: number; orderId: string; status: 'selected' | 'passed' | 'resolved' }
 export type BattleState = {
+  engine?: EngineState
   revision: number; turn: number; phase: 'orders' | 'actions' | 'combat' | 'end_turn' | 'finished'
   initiativeSeat: number; actingSeat: number; allowance: number[]; strategyPoints: number[]; draftPoints: number[]; readySeats: number[]
   catalog: (OrderDefinition & { seats: number[] })[]
@@ -28,11 +30,12 @@ export type BattleState = {
   history: { turn: number; initiativeSeat: number; orders: ChosenOrder[]; strategyPoints: number[] }[]
 }
 
-export function initialBattle(initiativeSeat: number, factions: { seat: number; faction: string }[]): BattleState {
+export function initialBattle(initiativeSeat: number, factions: { seat: number; faction: string }[], live = false): BattleState {
   return {
     revision: 0, turn: 1, phase: 'orders', initiativeSeat, actingSeat: initiativeSeat,
     allowance: [BASE_ORDERS, BASE_ORDERS], strategyPoints: [0, 0], draftPoints: [0, 0], readySeats: [], orders: [], used: [], history: [],
-    catalog: orderDefinitions.map((order) => ({ ...order, seats: factions.filter((player) => order.faction === 'common' || player.faction === order.faction).map((player) => player.seat) })).filter((order) => order.seats.length > 0),
+    ...(live ? { engine: { units: [], engagements: [], endedSeats: [], chargesPassed: [], combatStep: 'charges' as const, resolvedUnits: [], log: [] } } : {}),
+    catalog: (live ? liveOrderDefinitions : orderDefinitions).map((order) => ({ ...order, seats: factions.filter((player) => order.faction === 'common' || player.faction === order.faction).map((player) => player.seat) })).filter((order) => order.seats.length > 0),
   }
 }
 
@@ -42,3 +45,9 @@ export function remainingStock(battle: BattleState, order: OrderDefinition, seat
 export function nextActor(current: number, needsAction: (seat: number) => boolean) {
   return needsAction(1 - current) ? 1 - current : current
 }
+
+export const liveOrderDefinitions: OrderDefinition[] = [
+  { id: 'movement', name: 'Mouvement', faction: 'common', category: 'common', description: 'Déplacer une ou plusieurs unités d’une même zone. Une unité agit une fois par ordre.' },
+  { id: 'shooting', name: 'Tir', faction: 'common', category: 'common', description: 'Faire tirer une ou plusieurs unités d’une même zone, artillerie comprise. Choisissez chaque tireur et sa cible.' },
+  { id: 'recruitment', name: 'Recrutement', faction: 'common', category: 'common', limit: 3, description: 'Faire entrer des unités de réserve dans une zone de votre camp, en payant leur coût. Trois ordres par partie.' },
+]

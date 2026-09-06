@@ -1,13 +1,14 @@
 import type { FunctionReturnType } from 'convex/server'
 import type { api } from '../../convex/_generated/api'
 import type { MutationCtx } from '../../convex/_generated/server'
+import * as actions from '../../convex/actions'
 import * as games from '../../convex/games'
 import * as decks from '../../convex/decks'
 import * as players from '../../convex/players'
 import * as catalogue2026 from '../../convex/catalogue2026'
 type Row = Record<string, unknown> & { _id: string }
 
-export function createGameHarness() {
+export function createGameHarness(options: { legacyDemo?: boolean } = {}) {
   const tables: Record<string, Row[]> = {
     playerProfiles: [1, 2, 3].map((i) => ({ _id: `profile-${i}`, userId: `user-${i}`, active: true, displayName: `Joueur ${i}`, loginId: `joueur${i}`, role: 'player' })),
     entities: [{ _id: 'entity', status: 'published' }],
@@ -32,13 +33,17 @@ export function createGameHarness() {
     patch: async (id: string, fields: Record<string, unknown>) => { Object.assign(row(id)!, structuredClone(fields)) },
     delete: async (id: string) => { for (const rows of Object.values(tables)) { const index = rows.findIndex((item) => item._id === id); if (index >= 0) rows.splice(index, 1) } },
   }
-  const modules = { games, decks, players, catalogue2026 }
+  const modules = { games, decks, players, catalogue2026, actions }
   async function invoke(module: keyof typeof modules, name: string, user: number, args: Record<string, unknown> = {}): Promise<unknown> {
     const ctx = { db, auth: { getUserIdentity: async () => user ? { subject: `user-${user}|session` } : null } } as unknown as MutationCtx
     const snapshot = structuredClone(tables)
     const handler = (modules[module] as unknown as Record<string, { _handler: (ctx: MutationCtx, args: Record<string, unknown>) => Promise<unknown> }>)[name]
     if (!handler) throw new Error(`Missing test handler ${module}:${name}`)
-    try { return await handler._handler(ctx, args) }
+    try {
+      const result = await handler._handler(ctx, args)
+      if (options.legacyDemo && module === 'games' && name === 'start') row(args.gameId as string)!.rulesVersion = '2026-09-06-demo-1'
+      return result
+    }
     catch (error) { Object.assign(tables, snapshot); throw error }
   }
   async function run<T extends keyof typeof games>(name: T, user = 1, args: Record<string, unknown> = {}): Promise<FunctionReturnType<typeof api.games[T]>> {

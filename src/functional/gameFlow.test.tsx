@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { useEffect } from 'react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createGameHarness } from '../test/gameHarness'
 import { App } from '../app/App'
 import { createFunctionalTransport, FunctionalClientContext } from '../test/functionalClient'
 
@@ -37,7 +38,7 @@ afterEach(() => vi.restoreAllMocks())
 
 describe('functional two-player journey with real game handlers', () => {
   it('keeps private preparation, corrects deployment, and synchronizes orders and manual points across two turns', async () => {
-    const transport = createFunctionalTransport()
+    const transport = createFunctionalTransport(createGameHarness({ legacyDemo: true }))
     const { tables } = transport.harness
     tables.cards.push({ ...tables.cards[0], _id: 'lancers', stableId: 'lanciers', name: 'Lanciers' })
     tables.deckCards.push({ _id: 'lancers-1', deckId: 'deck-1', cardId: 'lancers', quantity: 4 })

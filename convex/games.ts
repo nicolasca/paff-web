@@ -5,6 +5,8 @@ import type { Doc, Id } from './_generated/dataModel'
 import { requireActivePlayer } from './lib/auth'
 import { getUnitProfile } from '../shared/unitProfile'
 import { canDeployUnit, canRepositionUnit, deploymentLimit, initialSetup, preparationCapacityError, type GameSetup } from '../shared/board'
+import { deckRuleIssues, preparationBudgetError } from '../shared/armyRules'
+import { ACTION_RULES_VERSION } from '../shared/battleEngine'
 import { BASE_ORDERS, initialBattle, MAX_STRATEGY_POINTS, MAX_TURNS, nextActor, remainingStock, RULES_VERSION, type BattleState } from '../shared/battle'
 
 const gameId = v.id('games')
@@ -82,6 +84,7 @@ export const get = query({
         const isMe = member._id === me._id
         const cards = await gameCards(ctx, member._id)
         const total = cards.reduce((sum, card) => sum + card.quantity, 0)
+        const live = game.battle?.engine
         const deployed = cards.reduce((sum, card) => sum + card.deploymentQuantity, 0)
         const prepared = game.setup?.version === 3 ? cards.reduce((sum, card) => sum + (card.selectedQuantity ?? 0), 0) : deployed
         // Deployed units are public in the new alternating setup. Unplayed cards stay private.
@@ -96,9 +99,9 @@ export const get = query({
           factionName: isMe || reveal ? member.factionName ?? null : null,
           cards: isMe ? cards.map(({ _id, _creationTime, gamePlayerId: _gamePlayerId, ...card }) => ({ ...card, profile: getUnitProfile(card) })) : [],
           deployedCards: reveal
-            ? cards.filter((card) => card.deploymentQuantity > 0).map(({ _id, _creationTime, gamePlayerId: _gamePlayerId, quantity: _quantity, selectedQuantity: _selectedQuantity, ...card }) => ({ ...card, profile: getUnitProfile(card), quantity: card.deploymentQuantity })) : [],
-          drawPileCount: isMe || game.phase === 'battle' ? total - (game.setup?.version === 3 ? prepared : deployed) : null,
-          deploymentCount: isMe || reveal ? deployed : null,
+            ? cards.filter((card) => (live ? card.enteredQuantity ?? card.deploymentQuantity : card.deploymentQuantity) > 0).map(({ _id, _creationTime, gamePlayerId: _gamePlayerId, quantity: _quantity, selectedQuantity: _selectedQuantity, enteredQuantity: _enteredQuantity, ...card }) => ({ ...card, profile: getUnitProfile(card), quantity: live ? live.units.filter((unit) => unit.seat === member.seat && unit.cardStableId === card.stableId).length : card.deploymentQuantity })) : [],
+          drawPileCount: live ? cards.filter((card) => card.kind === 'unit').reduce((sum, card) => sum + card.quantity - (card.enteredQuantity ?? card.deploymentQuantity), 0) : isMe || game.phase === 'battle' ? total - (game.setup?.version === 3 ? prepared : deployed) : null,
+          deploymentCount: live ? live.units.filter((unit) => unit.seat === member.seat).length : isMe || reveal ? deployed : null,
         }
       })),
     }
@@ -163,6 +166,7 @@ export const selectDeck = mutation({
         throw new ConvexError({ code: 'INVALID_DECK' })
       }
     }
+    if (game.rulesVersion === ACTION_RULES_VERSION && game.setup?.version === 3 && deckRuleIssues(sourceCards.map(({ entry, card }) => ({ ...card!, quantity: entry.quantity, profile: getUnitProfile(card!) }))).length) throw new ConvexError({ code: 'DECK_RULES_VIOLATION' })
     for (const card of await gameCards(ctx, member._id)) await ctx.db.delete(card._id)
     // Snapshot the selected deck: later catalogue/deck edits cannot alter a game.
     for (const { entry, card } of sourceCards) {
@@ -214,6 +218,8 @@ export const finishPreparation = mutation({
     const cards = await gameCards(ctx, member._id)
     const capacityError = preparationCapacityError(cards.map((card) => ({ ...card, profile: getUnitProfile(card) })))
     if (capacityError) throw new ConvexError({ code: capacityError })
+    const budgetError = game.rulesVersion === ACTION_RULES_VERSION ? preparationBudgetError(cards) : null
+    if (budgetError) throw new ConvexError({ code: budgetError })
     await ctx.db.patch(member._id, { preparationReady: true })
     const players = await members(ctx, game._id)
     const ready = players.length === 2 && players.every((item) => item._id === member._id || item.preparationReady)
@@ -256,10 +262,22 @@ export const finishDeployment = mutation({
     const players = await members(ctx, game._id)
     const ready = players.length === 2 && players.every((item) => item._id === member._id || item.deploymentReady)
     const now = Date.now()
+    let battle: BattleState | undefined
+    if (ready && setup?.version === 3 && game.rulesVersion) {
+      battle = initialBattle(setup.initiativeWinner!, players.map((item) => ({ seat: item.seat, faction: item.factionStableId ?? '' })), game.rulesVersion === ACTION_RULES_VERSION)
+      if (battle.engine) {
+        for (const player of players) for (const card of await gameCards(ctx, player._id)) {
+          const profile = getUnitProfile(card)
+          if (!profile) continue
+          await ctx.db.patch(card._id, { enteredQuantity: card.deploymentQuantity })
+          setup.units.filter((unit) => unit.seat === player.seat && unit.cardStableId === card.stableId).forEach((unit, index) => battle!.engine!.units.push({ ...unit, id: `${player.seat}:${card.stableId}:${index}`, regiment: profile.regiment }))
+        }
+      }
+    }
     await ctx.db.patch(game._id, {
       phase: ready ? 'battle' : 'deployment', updatedAt: now,
       ...(ready ? { battleStartedAt: now } : {}),
-      ...(ready && setup?.version === 3 && game.rulesVersion === RULES_VERSION ? { battle: initialBattle(setup.initiativeWinner!, players.map((item) => ({ seat: item.seat, faction: item.factionStableId ?? '' }))) } : {}),
+      ...(battle ? { battle } : {}),
       ...(setup ? { setup: { ...setup, revision: setup.revision + 1, deploymentTurn: 1 - member.seat } } : {}),
     })
   },
@@ -352,7 +370,7 @@ export const repositionUnit = mutation({
 
 function requireBattle(game: Doc<'games'>, phase: BattleState['phase'], revision?: number) {
   requirePhase(game, 'battle')
-  if (!game.battle || game.battle.phase !== phase) throw new ConvexError({ code: 'WRONG_BATTLE_PHASE' })
+  if (!game.battle || game.battle.engine || game.battle.phase !== phase) throw new ConvexError({ code: 'WRONG_BATTLE_PHASE' })
   if (revision !== undefined && revision !== game.battle.revision) throw new ConvexError({ code: 'STALE_GAME_ACTION' })
   return game.battle
 }

@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createGameHarness } from '../src/test/gameHarness'
-import { RULES_VERSION } from '../shared/battle'
+const RULES_VERSION = '2026-09-06-demo-1'
 
 const code = (code: string) => ({ data: { code } })
 afterEach(() => vi.restoreAllMocks())
 
 async function battleGame() {
-  const h = createGameHarness()
+  const h = createGameHarness({ legacyDemo: true })
   h.tables.factions.push({ ...h.tables.factions[0], _id: 'sephosi', stableId: 'sephosi', name: 'Sephosi' })
   h.tables.decks[1].factionId = 'sephosi'
   h.tables.deckCards = h.tables.deckCards.filter((item) => item.deckId !== 'deck-2')

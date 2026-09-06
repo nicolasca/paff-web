@@ -12,6 +12,8 @@ import { SetupPhases } from '../features/game/SetupPhases'
 import { PreparationPhase } from '../features/game/PreparationPhase'
 import { GameConnection } from '../features/game/GameConnection'
 import { gameError } from '../features/game/gameError'
+import { deckRuleIssues } from '../../shared/armyRules'
+import { ACTION_RULES_VERSION } from '../../shared/battleEngine'
 import { phaseNames, type Game, type GamePlayer } from '../features/game/types'
 import './GamePage.css'
 
@@ -93,10 +95,11 @@ export function GameRoom({ game, decks, onLeave }: { game: Game; decks?: Deck[];
       {decks === undefined ? <p role="status">Chargement de vos decks…</p> : !decks.length ? <div className="game-empty"><h3>Il vous faut un deck.</h3><p>Créez-en un, puis revenez à cette table depuis le lobby.</p><Link className="ui-button ui-button--primary" to="/decks">Créer mon premier deck</Link></div> : <div className="game-deck-grid">{decks.map((deck) => {
         const stats = getDeckStats(deck.cards)
         const selected = me.deckId === deck.id
+        const ruleIssues = game.rulesVersion === ACTION_RULES_VERSION ? deckRuleIssues(deck.cards) : []
         const unavailable = deck.cards.some((card) => card.available === false)
         return <article key={deck.id} className={`game-deck${selected ? ' game-deck--selected' : ''}`}>
           <div className="game-deck__art" aria-hidden="true">{deck.cards[0] ? <img src={deck.cards[0].imagePath} alt="" /> : <span>✦</span>}<span>{deck.faction?.name ?? 'Faction à définir'}</span></div>
-          <div className="game-deck__body"><h3>{deck.name}</h3><p>{stats.total} cartes <span>·</span> {stats.units} unités</p>{unavailable && <p>Ce deck contient des cartes retirées. <Link to={`/decks/${deck.id}/edit`}>Mettre à jour le deck</Link></p>}<button className={`ui-button${selected ? '' : ' ui-button--primary'}`} type="button" aria-pressed={selected} disabled={busy || selected || unavailable} onClick={() => void perform(() => selectDeck({ gameId: game.id, deckId: deck.id }))}>{selected ? 'Deck choisi ✓' : `Choisir ${deck.name}`}</button></div>
+          <div className="game-deck__body"><h3>{deck.name}</h3><p>{stats.total} cartes <span>·</span> {stats.units} unités</p>{unavailable && <p>Ce deck contient des cartes retirées. <Link to={`/decks/${deck.id}/edit`}>Mettre à jour le deck</Link></p>}{ruleIssues.length > 0 && <p>{ruleIssues.join(' ')} <Link to={`/decks/${deck.id}/edit`}>Corriger le deck</Link></p>}<button className={`ui-button${selected ? '' : ' ui-button--primary'}`} type="button" aria-pressed={selected} disabled={busy || selected || unavailable || ruleIssues.length > 0} onClick={() => void perform(() => selectDeck({ gameId: game.id, deckId: deck.id }))}>{selected ? 'Deck choisi ✓' : `Choisir ${deck.name}`}</button></div>
         </article>
       })}</div>}
     </section>}

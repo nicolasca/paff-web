@@ -10,7 +10,7 @@ Le site prépare son adaptation numérique : découvrir les cartes, construire s
 - Un espace joueur privé pour créer, consulter, renommer et supprimer ses decks.
 - Une seule faction par deck, avec des quantités de cartes libres et une sauvegarde automatique.
 - Un récapitulatif de la composition et des coûts pendant la construction.
-- Un lobby à deux joueurs, la préparation privée des unités, l’initiative et le déploiement sur 54 cases, puis huit tours avec choix d’ordres synchronisé. Les déplacements et les combats viendront ensuite.
+- Un lobby à deux joueurs, la préparation privée des unités, l’initiative et le déploiement sur 54 cases, puis huit tours avec mouvements, tirs, recrutement et combats synchronisés.
 
 L’état précis du jeu et les écarts encore ouverts sont suivis dans les [règles implémentées](docs/regles-implementees.md).
 

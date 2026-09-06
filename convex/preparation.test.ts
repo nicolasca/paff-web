@@ -5,7 +5,7 @@ const code = (code: string) => ({ data: { code } })
 afterEach(() => vi.restoreAllMocks())
 
 async function preparation() {
-  const h = createGameHarness()
+  const h = createGameHarness({ legacyDemo: true })
   // A second unit type lets tests distinguish the chosen subset from the deck.
   h.tables.cards.push({ ...h.tables.cards[0], _id: 'other-unit', stableId: 'lanciers', name: 'Lanciers' })
   h.tables.deckCards.push({ _id: 'lanciers-1', deckId: 'deck-1', cardId: 'other-unit', quantity: 3 })

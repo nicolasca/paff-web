@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as actions from "../actions.js";
 import type * as auth from "../auth.js";
 import type * as catalogImport from "../catalogImport.js";
 import type * as catalogue from "../catalogue.js";
@@ -18,7 +19,9 @@ import type * as health from "../health.js";
 import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_battle from "../lib/battle.js";
+import type * as lib_battleEngine from "../lib/battleEngine.js";
 import type * as lib_gameSetup from "../lib/gameSetup.js";
+import type * as lib_liveBattle from "../lib/liveBattle.js";
 import type * as lib_normalizeLoginId from "../lib/normalizeLoginId.js";
 import type * as lib_unitProfile from "../lib/unitProfile.js";
 import type * as migrations from "../migrations.js";
@@ -32,6 +35,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  actions: typeof actions;
   auth: typeof auth;
   catalogImport: typeof catalogImport;
   catalogue: typeof catalogue;
@@ -42,7 +46,9 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/auth": typeof lib_auth;
   "lib/battle": typeof lib_battle;
+  "lib/battleEngine": typeof lib_battleEngine;
   "lib/gameSetup": typeof lib_gameSetup;
+  "lib/liveBattle": typeof lib_liveBattle;
   "lib/normalizeLoginId": typeof lib_normalizeLoginId;
   "lib/unitProfile": typeof lib_unitProfile;
   migrations: typeof migrations;
