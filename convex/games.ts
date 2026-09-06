@@ -4,7 +4,7 @@ import type { MutationCtx, QueryCtx } from './_generated/server'
 import type { Doc, Id } from './_generated/dataModel'
 import { requireActivePlayer } from './lib/auth'
 import { getUnitProfile } from '../shared/unitProfile'
-import { canDeployUnit, initialSetup, type GameSetup } from '../shared/board'
+import { canDeployUnit, deploymentLimit, initialSetup, preparationCapacityError, type GameSetup } from '../shared/board'
 
 const gameId = v.id('games')
 type Context = QueryCtx | MutationCtx
@@ -80,18 +80,21 @@ export const get = query({
         const cards = await gameCards(ctx, member._id)
         const total = cards.reduce((sum, card) => sum + card.quantity, 0)
         const deployed = cards.reduce((sum, card) => sum + card.deploymentQuantity, 0)
+        const prepared = game.setup?.version === 3 ? cards.reduce((sum, card) => sum + (card.selectedQuantity ?? 0), 0) : deployed
         // Deployed units are public in the new alternating setup. Unplayed cards stay private.
         const reveal = game.phase === 'battle' || (Boolean(game.setup) && game.phase === 'deployment')
         return {
           id: member._id, displayName: member.displayName, seat: member.seat, isMe,
           deckChosen: member.deckId !== undefined, deploymentReady: member.deploymentReady,
+          preparationReady: member.preparationReady ?? false,
+          preparationCount: prepared,
           deckId: isMe ? member.deckId ?? null : null,
           deckName: isMe || reveal ? member.deckName ?? null : null,
           factionName: isMe || reveal ? member.factionName ?? null : null,
           cards: isMe ? cards.map(({ _id, _creationTime, gamePlayerId: _gamePlayerId, ...card }) => ({ ...card, profile: getUnitProfile(card) })) : [],
           deployedCards: reveal
-            ? cards.filter((card) => card.deploymentQuantity > 0).map(({ _id, _creationTime, gamePlayerId: _gamePlayerId, quantity: _quantity, ...card }) => ({ ...card, profile: getUnitProfile(card), quantity: card.deploymentQuantity })) : [],
-          drawPileCount: isMe || game.phase === 'battle' ? total - deployed : null,
+            ? cards.filter((card) => card.deploymentQuantity > 0).map(({ _id, _creationTime, gamePlayerId: _gamePlayerId, quantity: _quantity, selectedQuantity: _selectedQuantity, ...card }) => ({ ...card, profile: getUnitProfile(card), quantity: card.deploymentQuantity })) : [],
+          drawPileCount: isMe || game.phase === 'battle' ? total - (game.setup?.version === 3 ? prepared : deployed) : null,
           deploymentCount: isMe || reveal ? deployed : null,
         }
       })),
@@ -170,13 +173,48 @@ export const selectDeck = mutation({
         abilities: card.abilities, imagePath: card.imagePath,
         ...(card.kind === 'unit' ? { profile: getUnitProfile(card) } : {}),
         faction: { stableId: faction.stableId, name: faction.name, themeKey: faction.themeKey },
-        quantity: entry.quantity, deploymentQuantity: 0,
+        quantity: entry.quantity, deploymentQuantity: 0, selectedQuantity: 0,
       })
     }
-    await ctx.db.patch(member._id, { deckId: deck._id, deckName: deck.name, factionName: faction.name, deploymentReady: false })
+    await ctx.db.patch(member._id, { deckId: deck._id, deckName: deck.name, factionName: faction.name, deploymentReady: false, preparationReady: false })
     const players = await members(ctx, game._id)
     const bothChosen = players.length === 2 && players.every((item) => item._id === member._id || item.deckId !== undefined)
-    await ctx.db.patch(game._id, { phase: bothChosen ? game.setup ? 'initiative' : 'deployment' : 'deck_selection', updatedAt: Date.now() })
+    await ctx.db.patch(game._id, { phase: bothChosen ? game.setup?.version === 3 ? 'preparation' : game.setup ? 'initiative' : 'deployment' : 'deck_selection', updatedAt: Date.now() })
+  },
+})
+
+export const updatePreparation = mutation({
+  args: {
+    gameId, cardStableId: v.string(),
+    change: v.union(v.object({ quantity: v.number() }), v.object({ delta: v.union(v.literal(-1), v.literal(1)) })),
+  },
+  handler: async (ctx, args) => {
+    const { game, member } = await requireMember(ctx, args.gameId)
+    requirePhase(game, 'preparation')
+    if (member.preparationReady) throw new ConvexError({ code: 'PREPARATION_LOCKED' })
+    const card = await ctx.db.query('gameCards')
+      .withIndex('by_player_and_card', (q) => q.eq('gamePlayerId', member._id).eq('stableId', args.cardStableId)).unique()
+    if (!card || card.kind !== 'unit') throw new ConvexError({ code: 'UNIT_REQUIRED' })
+    const quantity = 'quantity' in args.change ? args.change.quantity : (card.selectedQuantity ?? 0) + args.change.delta
+    if (!Number.isSafeInteger(quantity) || quantity < 0 || quantity > card.quantity) throw new ConvexError({ code: 'INVALID_DEPLOYMENT_QUANTITY' })
+    await ctx.db.patch(card._id, { selectedQuantity: quantity })
+    await ctx.db.patch(game._id, { updatedAt: Date.now() })
+  },
+})
+
+export const finishPreparation = mutation({
+  args: { gameId },
+  handler: async (ctx, args) => {
+    const { game, member } = await requireMember(ctx, args.gameId)
+    if (member.preparationReady) return
+    requirePhase(game, 'preparation')
+    const cards = await gameCards(ctx, member._id)
+    const capacityError = preparationCapacityError(cards.map((card) => ({ ...card, profile: getUnitProfile(card) })))
+    if (capacityError) throw new ConvexError({ code: capacityError })
+    await ctx.db.patch(member._id, { preparationReady: true })
+    const players = await members(ctx, game._id)
+    const ready = players.length === 2 && players.every((item) => item._id === member._id || item.preparationReady)
+    await ctx.db.patch(game._id, { phase: ready ? 'initiative' : 'preparation', updatedAt: Date.now() })
   },
 })
 
@@ -208,6 +246,9 @@ export const finishDeployment = mutation({
     if (member.deploymentReady) return
     requirePhase(game, 'deployment')
     const setup = game.setup ? requireDeploymentTurn(game, member, args.revision) : undefined
+    if (setup?.version === 3 && (await gameCards(ctx, member._id)).some((card) => card.deploymentQuantity < deploymentLimit(card, setup))) {
+      throw new ConvexError({ code: 'DEPLOYMENT_INCOMPLETE' })
+    }
     await ctx.db.patch(member._id, { deploymentReady: true })
     const players = await members(ctx, game._id)
     const ready = players.length === 2 && players.every((item) => item._id === member._id || item.deploymentReady)
@@ -268,9 +309,10 @@ export const deployUnit = mutation({
     const card = cards.find((item) => item.stableId === args.cardStableId)
     const profile = card && getUnitProfile(card)
     if (!card || !profile || card.kind !== 'unit') throw new ConvexError({ code: 'UNIT_REQUIRED' })
-    if (card.deploymentQuantity >= card.quantity) throw new ConvexError({ code: 'INVALID_DEPLOYMENT_QUANTITY' })
-    const artilleryOnly = !cards.some((item) => item.kind === 'unit' && getUnitProfile(item)?.unitType !== 'artillery')
-    if (!canDeployUnit(args.cell, member.seat, profile, setup, artilleryOnly)) throw new ConvexError({ code: 'INVALID_DEPLOYMENT_CELL' })
+    if (card.deploymentQuantity >= deploymentLimit(card, setup)) throw new ConvexError({ code: setup.version === 3 ? 'UNIT_NOT_PREPARED' : 'INVALID_DEPLOYMENT_QUANTITY' })
+    const artilleryOnly = !cards.some((item) => deploymentLimit(item, setup) > 0 && getUnitProfile(item)?.unitType !== 'artillery')
+    const artilleryRemaining = cards.filter((item) => getUnitProfile(item)?.unitType === 'artillery').reduce((sum, item) => sum + deploymentLimit(item, setup) - item.deploymentQuantity, 0)
+    if (!canDeployUnit(args.cell, member.seat, profile, setup, artilleryOnly, artilleryRemaining)) throw new ConvexError({ code: 'INVALID_DEPLOYMENT_CELL' })
     const players = await members(ctx, game._id)
     const otherReady = players.find((item) => item.seat !== member.seat)?.deploymentReady
     await ctx.db.patch(card._id, { deploymentQuantity: card.deploymentQuantity + 1 })

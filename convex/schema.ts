@@ -82,7 +82,7 @@ export default defineSchema({
   games: defineTable({
     hostUserId: v.id('users'),
     name: v.string(),
-    phase: v.union(v.literal('waiting'), v.literal('deck_selection'), v.literal('initiative'), v.literal('deployment'), v.literal('battle'), v.literal('cancelled')),
+    phase: v.union(v.literal('waiting'), v.literal('deck_selection'), v.literal('preparation'), v.literal('initiative'), v.literal('deployment'), v.literal('battle'), v.literal('cancelled')),
     setup: v.optional(gameSetupValidator),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -98,6 +98,7 @@ export default defineSchema({
     deckName: v.optional(v.string()),
     factionName: v.optional(v.string()),
     deploymentReady: v.boolean(),
+    preparationReady: v.optional(v.boolean()),
   })
     .index('by_game', ['gameId'])
     .index('by_game_and_user', ['gameId', 'userId'])
@@ -117,6 +118,7 @@ export default defineSchema({
     faction: v.object({ stableId: v.string(), name: v.string(), themeKey: v.string() }),
     quantity: v.number(),
     deploymentQuantity: v.number(),
+    selectedQuantity: v.optional(v.number()),
   })
     .index('by_player', ['gamePlayerId'])
     .index('by_player_and_card', ['gamePlayerId', 'stableId']),

@@ -29,10 +29,10 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, busy = false }
     <p className="board-mobile-hint">↔ Faites défiler le plateau horizontalement</p>
     <div className="board-scroll" tabIndex={0} role="region" aria-label="Plateau de 54 cases et 15 zones, défilement horizontal sur petit écran">
       <div className="board-surface">
-        <div className="board-axis"><span>Flanc gauche</span><span>Centre</span><span>Flanc droit</span></div>
+        <div className="board-axis"><span>Flanc coco</span><span>Centre</span><span>Flanc aux pommes</span></div>
         <div className="board-zones">{bands.flatMap((rows, band) => axes.map((columns, axis) => <div
           key={`${band}-${axis}`} className={`board-zone board-zone--${band < 2 ? 'opponent' : band === 2 ? 'strategic' : 'you'}`}
-          role="group" aria-label={`${bandNames[band]} · ${['flanc gauche', 'centre', 'flanc droit'][axis]}`}>
+          role="group" aria-label={`${bandNames[band]} · ${['Flanc coco', 'Centre', 'Flanc aux pommes'][axis]}`}>
           <span className="board-zone__label">{axis === 1 ? bandNames[band] : band === 2 ? '✦' : band === 0 || band === 4 ? 'Arrière' : 'Base'}</span>
           <div className="board-zone__cells" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}>{rows.flatMap((row) => columns.map((column) => {
             const cell = displayCell(row * 9 + column, me.seat)

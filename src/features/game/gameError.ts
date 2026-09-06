@@ -17,9 +17,15 @@ const messages: Record<string, string> = {
   NOT_YOUR_TURN: 'C’est à votre adversaire de déployer une unité.',
   INITIATIVE_PENDING: 'Les deux joueurs doivent lancer leur dé avant de continuer.',
   INVALID_DEPLOYMENT_CELL: 'Cette case n’est pas disponible pour cette unité. Choisissez une case éclairée.',
+  PREPARATION_LOCKED: 'Votre sélection est déjà validée. Elle ne peut plus être modifiée.',
+  PREPARATION_TOO_LARGE: 'Votre camp compte 18 cases. Choisissez au maximum 18 unités à déployer.',
+  TOO_MUCH_ARTILLERY: 'L’arrière compte 9 cases. Choisissez au maximum 9 unités d’artillerie.',
+  DEPLOYMENT_INCOMPLETE: 'Placez toutes les unités choisies avant de terminer le déploiement.',
+  UNIT_NOT_PREPARED: 'Cet exemplaire ne fait pas partie des unités choisies avant l’initiative.',
 }
+export const gameErrorMessage = (code: string) => messages[code] ?? 'La modification n’a pas été enregistrée. Réessayez.'
 export function gameError(error: unknown) {
   return error instanceof ConvexError && typeof error.data === 'object' && error.data !== null
-    ? messages[error.data.code] ?? 'La modification n’a pas été enregistrée. Réessayez.'
+    ? gameErrorMessage(error.data.code)
     : 'La modification n’a pas été enregistrée. Vérifiez votre connexion et réessayez.'
 }

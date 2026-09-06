@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from 'convex/react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
@@ -9,12 +9,14 @@ import { QuantityControl } from '../features/decks/QuantityControl'
 import { getDeckStats, type Deck } from '../features/decks/deckStats'
 import { BattleBoard } from '../features/game/BattleBoard'
 import { SetupPhases } from '../features/game/SetupPhases'
+import { PreparationPhase } from '../features/game/PreparationPhase'
 import { GameConnection } from '../features/game/GameConnection'
 import { gameError } from '../features/game/gameError'
 import { phaseNames, type Game, type GamePlayer } from '../features/game/types'
 import './GamePage.css'
 
-const newSteps = ['waiting', 'deck_selection', 'initiative', 'deployment', 'battle'] as const
+const newSteps = ['waiting', 'deck_selection', 'preparation', 'initiative', 'deployment', 'battle'] as const
+const v2Steps = ['waiting', 'deck_selection', 'initiative', 'deployment', 'battle'] as const
 const legacySteps = ['waiting', 'deck_selection', 'deployment', 'battle'] as const
 
 export function GamePage() {
@@ -44,7 +46,7 @@ export function GameRoom({ game, decks, onLeave }: { game: Game; decks?: Deck[];
   const [confirmLeave, setConfirmLeave] = useState(false)
   const me = game.players.find((player) => player.isMe)!
   const opponent = game.players.find((player) => !player.isMe)
-  const steps: readonly Game['phase'][] = game.setup || game.phase === 'waiting' ? newSteps : legacySteps
+  const steps: readonly Game['phase'][] = game.setup?.version === 3 || game.phase === 'waiting' ? newSteps : game.setup ? v2Steps : legacySteps
   useEffect(() => {
     if (previousPhase.current !== game.phase) {
       stepHeading.current?.scrollIntoView?.({ block: 'start' })
@@ -71,7 +73,7 @@ export function GameRoom({ game, decks, onLeave }: { game: Game; decks?: Deck[];
       <button type="button" className="ui-button ui-button--danger" disabled={busy} onClick={() => void perform(async () => { await leave({ gameId: game.id }); onLeave() })}>Confirmer le départ</button>
       <button type="button" className="ui-button ui-button--quiet" onClick={() => setConfirmLeave(false)}>Rester</button>
     </section>}
-    <ol ref={stepHeading} className="game-steps" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }} aria-label="Étapes de la partie">{steps.map((step, index) => <li key={step} aria-current={game.phase === step ? 'step' : undefined} className={index < steps.indexOf(game.phase) ? 'is-complete' : ''}><span>{String(index + 1).padStart(2, '0')}</span>{phaseNames[step]}</li>)}</ol>
+    <ol ref={stepHeading} className="game-steps" style={{ '--step-count': steps.length } as CSSProperties} aria-label="Étapes de la partie">{steps.map((step, index) => <li key={step} aria-current={game.phase === step ? 'step' : undefined} className={index < steps.indexOf(game.phase) ? 'is-complete' : ''}><span>{String(index + 1).padStart(2, '0')}</span>{phaseNames[step]}</li>)}</ol>
     {error && <p className="game-error" role="alert">{error}</p>}
     {game.phase !== 'battle' && <div className="game-seats" aria-label="Joueurs à la table">
       <PlayerSeat player={game.players[0]} phase={game.phase} />
@@ -97,6 +99,7 @@ export function GameRoom({ game, decks, onLeave }: { game: Game; decks?: Deck[];
         </article>
       })}</div>}
     </section>}
+    {game.phase === 'preparation' && <PreparationPhase game={game} busy={busy} perform={perform} />}
     {game.setup && (game.phase === 'initiative' || game.phase === 'deployment') && <SetupPhases key={game.phase} game={game} busy={busy} perform={perform} />}
     {game.phase === 'deployment' && !game.setup && <section>
       <div className="game-section-heading"><div><p className="eyebrow">Avant la bataille · {me.deckName}</p><h2>Préparez vos unités</h2></div></div>
@@ -115,7 +118,7 @@ export function GameRoom({ game, decks, onLeave }: { game: Game; decks?: Deck[];
 }
 
 function PlayerSeat({ player, phase }: { player?: GamePlayer; phase: Game['phase'] }) {
-  const ready = phase === 'deck_selection' ? player?.deckChosen : phase === 'deployment' ? player?.deploymentReady : Boolean(player)
-  const status = !player ? 'En attente d’un joueur' : phase === 'deck_selection' ? ready ? 'Deck choisi' : 'Choisit son deck…' : phase === 'initiative' ? 'Jet d’initiative' : phase === 'deployment' ? ready ? 'Préparation terminée' : 'Déploiement en cours' : player.seat === 0 ? 'Hôte de la table' : 'A rejoint la table'
+  const ready = phase === 'deck_selection' ? player?.deckChosen : phase === 'preparation' ? player?.preparationReady : phase === 'deployment' ? player?.deploymentReady : Boolean(player)
+  const status = !player ? 'En attente d’un joueur' : phase === 'deck_selection' ? ready ? 'Deck choisi' : 'Choisit son deck…' : phase === 'preparation' ? ready ? 'Unités choisies' : 'Choisit ses unités…' : phase === 'initiative' ? 'Jet d’initiative' : phase === 'deployment' ? ready ? 'Déploiement terminé' : 'Déploiement en cours' : player.seat === 0 ? 'Hôte de la table' : 'A rejoint la table'
   return <article className={`game-seat${player ? '' : ' game-seat--empty'}`}><div className="game-avatar" aria-hidden="true">{player?.displayName.slice(0, 1) ?? '+'}</div><div><h2>{player?.displayName ?? 'Place libre'}{player?.isMe && <span>Vous</span>}</h2><p className={ready ? 'is-ready' : ''} role="status">{ready && <span aria-hidden="true">✓ </span>}{status}</p></div></article>
 }

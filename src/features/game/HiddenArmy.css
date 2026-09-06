@@ -1,0 +1,11 @@
+.hidden-army { display: flex; align-items: center; gap: 1.5rem; padding: 1rem 1.25rem; border: 1px solid #ad8d6440; border-radius: 0.5rem; background: linear-gradient(120deg, #84604615, #171c17); }
+.hidden-army__cards { position: relative; width: 6rem; height: 4.1rem; flex-shrink: 0; }
+.hidden-army__cards > span { position: absolute; top: 0.3rem; left: 0.25rem; display: grid; place-items: center; width: 2.6rem; height: 3.4rem; border: 1px solid #b99f6e; border-radius: 0.2rem; background: repeating-linear-gradient(45deg, #b9a6750a 0 1px, transparent 1px 6px), #252e22; box-shadow: 2px 2px 5px #0009; }
+.hidden-army__cards img { width: 2rem; height: auto; opacity: 0.8; }
+.hidden-army .eyebrow { margin: 0 0 0.4rem; font-size: 0.6rem; }
+.hidden-army strong { color: #d9c8a5; font: 500 0.95rem var(--display); }
+.hidden-army p:last-child { margin: 0.4rem 0 0; color: #acaf9b; font-size: 0.75rem; }
+.preparation-opponent { margin-top: 1.5rem; }
+.initiative-panel > .hidden-army { max-width: 30rem; margin: 1.5rem auto 0; text-align: left; }
+.setup-layout + .hidden-army { margin-top: 1.5rem; }
+@media (max-width: 650px) { .hidden-army { gap: 0.9rem; padding: 0.8rem; } .hidden-army strong { font-size: 0.8rem; } }

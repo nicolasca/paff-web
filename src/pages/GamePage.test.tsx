@@ -11,7 +11,7 @@ import { GameRoom } from './GamePage'
 import { LobbyContent } from './LobbyPage'
 import { initialSetup } from '../../shared/board'
 
-const mutations = vi.hoisted(() => ({ create: vi.fn(), join: vi.fn(), start: vi.fn(), selectDeck: vi.fn(), updateDeployment: vi.fn(), finishDeployment: vi.fn(), leave: vi.fn(), rollInitiative: vi.fn(), confirmInitiative: vi.fn(), deployUnit: vi.fn() }))
+const mutations = vi.hoisted(() => ({ create: vi.fn(), join: vi.fn(), start: vi.fn(), selectDeck: vi.fn(), updateDeployment: vi.fn(), finishDeployment: vi.fn(), leave: vi.fn(), rollInitiative: vi.fn(), confirmInitiative: vi.fn(), deployUnit: vi.fn(), updatePreparation: vi.fn(), finishPreparation: vi.fn() }))
 vi.mock('convex/react', () => ({
   useQuery: vi.fn(), useConvexConnectionState: () => ({ isWebSocketConnected: true }),
   useMutation: (reference: unknown) => mutations[getFunctionName(reference as never).split(':')[1] as keyof typeof mutations],
@@ -19,7 +19,7 @@ vi.mock('convex/react', () => ({
 
 const gameId = 'game-1' as Id<'games'>
 const card = { stableId: 'archers', name: 'Archers', kind: 'unit' as const, cost: 2, life: 1, attack: 1, abilities: [], profile: undefined, imagePath: '/archers.webp', faction: { stableId: 'gobelins', name: 'Gobelins', themeKey: 'gobelins' }, quantity: 5, deploymentQuantity: 2 }
-const me: GamePlayer = { id: 'member-1' as Id<'gamePlayers'>, displayName: 'Nicolas', seat: 0, isMe: true, deckChosen: false, deploymentReady: false, deckId: null, deckName: null, factionName: null, cards: [], deployedCards: [], drawPileCount: 0, deploymentCount: 0 }
+const me: GamePlayer = { id: 'member-1' as Id<'gamePlayers'>, displayName: 'Nicolas', seat: 0, isMe: true, deckChosen: false, deploymentReady: false, preparationReady: false, preparationCount: 0, deckId: null, deckName: null, factionName: null, cards: [], deployedCards: [], drawPileCount: 0, deploymentCount: 0 }
 const opponent: GamePlayer = { ...me, id: 'member-2' as Id<'gamePlayers'>, displayName: 'Nicolas 2', seat: 1, isMe: false, drawPileCount: null, deploymentCount: null }
 const game: Game = { id: gameId, name: 'Partie de Nicolas', phase: 'waiting', isHost: true, battleStartedAt: null, setup: null, players: [me, opponent] }
 const deck: Deck = { id: 'deck-1' as Id<'decks'>, name: 'Embuscade', faction: card.faction, cards: [card], updatedAt: 1 }
@@ -42,7 +42,7 @@ beforeEach(() => {
 })
 
 describe('2026 preparation screens', () => {
-  const modern: Game = { ...deployment, setup: { ...initialSetup(), initiativeWinner: 0, initiativeReady: [0, 1], revision: 4 }, players: [{ ...deployment.players[0], cards: [{ ...card, deploymentQuantity: 0 }], deployedCards: [], deploymentCount: 0, drawPileCount: 5 }, deployment.players[1]] }
+  const modern: Game = { ...deployment, setup: { ...initialSetup(), version: 2, initiativeWinner: 0, initiativeReady: [0, 1], revision: 4 }, players: [{ ...deployment.players[0], cards: [{ ...card, deploymentQuantity: 0 }], deployedCards: [], deploymentCount: 0, drawPileCount: 5 }, deployment.players[1]] }
   it('rolls once, displays both results and waits for both confirmations', async () => {
     const value: Game = { ...modern, phase: 'initiative', setup: initialSetup() }
     const { rerender } = room(value)
