@@ -6,6 +6,7 @@ import { remainingStock } from '../../../shared/battle'
 import { adjacent, combatGroups, enemiesOf, isEngaged, legalMoves, legalRecruitmentCells, legalTargets, RECRUITMENT_POINTS, strategyControl, type BattleUnit } from '../../../shared/battleEngine'
 import { cellCoordinate, zoneOf } from '../../../shared/board'
 import { getUnitProfile } from '../../../shared/unitProfile'
+import { UnitCard } from '../catalogue/UnitCard'
 import { TacticalBoard } from './TacticalBoard'
 import type { BattleControls } from './BattleFlow'
 import type { Game } from './types'
@@ -94,7 +95,7 @@ export function LiveBattle({ game, busy, perform }: { game: Game } & BattleContr
         <p className="eyebrow">{name(order.seat)} joue</p><h3>{battle.catalog.find((item) => item.id === order.orderId)?.name}</h3>
         {ownTurn ? <>
           <p>{order.orderId === 'movement' ? 'Sélectionnez une unité, puis une case éclairée. Vous pouvez activer une fois chacune des unités de la même zone de départ.' : order.orderId === 'shooting' ? 'Sélectionnez un tireur, puis une cible éclairée. Portée en cases ; T contre DT, 1 R perdu par touche.' : `Faites entrer vos réserves dans une même zone Arrière ou Base. Budget restant : ${recruitmentLeft} points. Un PS peut ajouter un point de recrutement.`}</p>
-          {order.orderId === 'recruitment' && <div className="live-unit-picker" aria-label="Unités de réserve">{reserves.map((card) => <button key={card.stableId} className="ui-button" aria-pressed={selectedId === card.stableId} disabled={busy || (card.cost ?? 0) > recruitmentLeft + battle.strategyPoints[me.seat]} onClick={() => select(card.stableId)}>{card.name} · {card.cost} pts · ×{card.quantity - (card.enteredQuantity ?? card.deploymentQuantity)}</button>)}{!reserves.length && <p>Votre réserve est vide.</p>}</div>}
+          {order.orderId === 'recruitment' && <p>Choisissez une carte dans votre réserve, sous le plateau.</p>}
           {reserve && order.orderId === 'recruitment' && <p>Choisissez une case éclairée pour recruter {reserve.name}{strategyCost > 0 ? ` et dépenser ${strategyCost} PS` : ''}.</p>}
           <button className="ui-button ui-button--primary" disabled={busy} onClick={() => run(() => finishOrder(args))}>Terminer cet ordre</button>
         </> : <p role="status">L’adversaire exécute son ordre. Le plateau se met à jour en direct.</p>}
@@ -115,6 +116,17 @@ export function LiveBattle({ game, busy, perform }: { game: Game } & BattleContr
       {battle.phase === 'finished' && engine.result && <div className="live-action-panel"><h3>{engine.result.winner === null ? 'Match nul' : `${name(engine.result.winner)} remporte la partie`}</h3><p>{{ annihilation: 'L’armée adverse et ses réserves sont éliminées.', base: 'La base centrale adverse est conquise.', strategy: 'Davantage de zones stratégiques contrôlées à la fin du huitième tour.', draw: 'Les deux camps sont à égalité.' }[engine.result.reason]}</p><Link className="ui-button" to="/lobby">Retour au lobby</Link></div>}
     </section>
     <TacticalBoard game={game} allowedCells={allowed} onPlace={act} selectedCell={selectedUnit?.cell} onUnit={actionable ? (cell) => { const unit = eligible.find((item) => item.cell === cell); if (unit) select(unit.id) } : undefined} placeLabel={charges ? 'Charger' : order?.orderId === 'shooting' ? 'Tirer' : order?.orderId === 'recruitment' ? 'Recruter ici' : 'Déplacer ici'} busy={busy} />
+    <section className="live-reserve" aria-label="Votre réserve">
+      <header><h3>Votre réserve</h3><span>{me.drawPileCount} unités · Cachée à l’adversaire</span></header>
+      {reserves.length ? <div className="live-reserve__cards" aria-label={actionable && order?.orderId === 'recruitment' ? 'Unités de réserve' : undefined}>
+        {reserves.map((card) => <UnitCard key={card.stableId} card={card} costPlacement="footer" footer={<>
+          <span>×{card.quantity - (card.enteredQuantity ?? card.deploymentQuantity)}</span>
+          <button type="button" className="ui-button" aria-label={`${card.name} · ${card.cost} pts · ×${card.quantity - (card.enteredQuantity ?? card.deploymentQuantity)}`} aria-pressed={selectedId === card.stableId}
+            disabled={!actionable || order?.orderId !== 'recruitment' || (card.cost ?? 0) > recruitmentLeft + battle.strategyPoints[me.seat]}
+            onClick={() => select(card.stableId)}>{selectedId === card.stableId ? 'Sélectionnée' : 'Recruter'}</button>
+        </>} />)}
+      </div> : <p>Votre réserve est vide.</p>}
+    </section>
     <section className="live-log" aria-label="Journal de bataille"><h3>Journal de bataille</h3><ol>{[...engine.log].reverse().slice(0, 20).map((event) => <li key={event.id}><small>Tour {event.turn}</small><p>{event.text}</p>{event.rolls.map((roll, index) => <div className="live-dice" key={index} aria-label={`${roll.hits} touches, seuil ${roll.threshold}, modificateur ${roll.modifier}`}><span>{roll.threshold}+{roll.modifier !== 0 ? ` · mod. +${roll.modifier}` : ''}</span>{roll.dice.map((die, index) => { const reroll = roll.rerolls.find((item) => item.index === index); return <i key={index}>{die}{reroll && <>→{reroll.result}</>}</i> })}<strong>{roll.hits} touche(s)</strong></div>)}</li>)}</ol>{engine.log.length === 0 && <p>La bataille commence.</p>}</section>
   </section>
 }

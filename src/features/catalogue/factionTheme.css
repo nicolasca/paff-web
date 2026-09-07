@@ -1,0 +1,5 @@
+[data-faction] { --faction-color: #967747; --faction-surface: #554128; --faction-ink: #fff2ea; --faction-accent: #dfc49c; }
+[data-faction=sephosi] { --faction-color: #990000; --faction-surface: #6e1110; --faction-ink: #fff2ea; --faction-accent: #e6bca2; }
+[data-faction=gobelins] { --faction-color: #78d140; --faction-surface: #78d140; --faction-ink: #172510; --faction-accent: #b9fc8e; }
+[data-faction=orcs] { --faction-color: #687c4d; --faction-surface: #35442c; --faction-accent: #b9cba2; }
+[data-faction=gaeli] { --faction-color: #497f91; --faction-surface: #244752; --faction-accent: #afd7dd; }

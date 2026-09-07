@@ -75,7 +75,7 @@ describe('public card catalogue', () => {
 
   it('uses defined profiles instead of stale legacy statistics', () => {
     render(<UnitCard card={{ ...card, profile: { unitType: 'elite', regiment: 7, dice: 4, offense: { kind: 'melee', score: 5 }, defenseMelee: 6, defenseRanged: 3, source: 'defined' } }} />)
-    expect(screen.getByText('Élite')).toBeVisible()
+    expect(screen.getByLabelText('Élite')).toHaveTextContent('E')
     expect(screen.getByLabelText('Points de Régiment : 7')).toBeVisible()
     expect(screen.getByLabelText('Nombre de dés : 4')).toBeVisible()
     expect(screen.getByLabelText('Valeur d’attaque au corps à corps : 5')).toBeVisible()
@@ -114,6 +114,17 @@ describe('public card catalogue', () => {
     render(<UnitCard card={card} />)
     fireEvent.error(screen.getByRole('img', { name: 'Illustration de Archers Gobelins' }))
     expect(screen.getByRole('img', { name: 'Illustration absente' })).toBeVisible()
+  })
+
+  it('keeps recruitment off the illustration in reserve and battlefield contexts', () => {
+    const { container, rerender } = render(<UnitCard card={card} costPlacement="footer" />)
+    expect(screen.getByLabelText('Coût de recrutement 1')).toHaveTextContent('Recrutement')
+    expect(container.querySelector('.unit-card__art')).not.toHaveTextContent('1')
+    rerender(<UnitCard card={card} costPlacement="hidden" />)
+    expect(screen.queryByLabelText('Coût de recrutement 1')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Valeur d’attaque au tir : 3')).toHaveTextContent('3T')
+    expect(screen.getByText('DC')).toBeVisible()
+    expect(screen.queryByText('DA')).not.toBeInTheDocument()
   })
 
   it('does not display a false empty state while loading', () => {

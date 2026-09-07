@@ -1,0 +1,4 @@
+.card-preview { position: fixed; z-index: 90; width: min(18rem, calc(100vw - 24px)); max-height: calc(100svh - 24px); overflow-y: auto; pointer-events: none; filter: drop-shadow(0 12px 22px #0009); }
+.card-preview .unit-card { transform: none; }
+.card-preview .unit-card__header h2 { font-size: 1.05rem; }
+@media (max-height: 560px) { .card-preview { width: min(15rem, calc(100vw - 24px)); } .card-preview .unit-card__art { max-height: 32svh; aspect-ratio: auto; } }

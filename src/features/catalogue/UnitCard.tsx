@@ -1,34 +1,29 @@
 import { useState, type ReactNode } from 'react'
 import type { PublicCard } from './types'
-import { getUnitProfile, unitTypeNames } from '../../../shared/unitProfile'
+import { getUnitProfile, unitTypeNames, type UnitType } from '../../../shared/unitProfile'
 import { SpecialAbility } from './SpecialAbility'
 import { UnitProfileStats } from './UnitProfileStats'
 import './UnitCard.css'
 
+const typeLetters: Record<UnitType, string> = { troop: 'B', ranged: 'T', cavalry: 'C', artillery: 'A', elite: 'E', unique: 'U' }
+
 export function UnitCard({
   card,
   footer,
+  costPlacement = 'art',
+  interactiveAbilities = true,
 }: {
   card: PublicCard
   footer?: ReactNode
+  costPlacement?: 'art' | 'footer' | 'hidden'
+  interactiveAbilities?: boolean
 }) {
   const [failedImagePath, setFailedImagePath] = useState<string | null>(null)
   const imageAvailable = failedImagePath !== card.imagePath
   const profile = getUnitProfile(card)
 
   return (
-    <article className={`unit-card unit-card--${card.faction.themeKey}`}>
-      <header className="unit-card__header">
-        <div>
-          <span>{profile ? unitTypeNames[profile.unitType] : 'Action'}</span>
-          <h2>{card.name}</h2>
-        </div>
-        <strong aria-label={`${profile ? 'Coût de recrutement' : 'Coût'} ${displayValue(card.cost)}`}>
-          <span>{profile ? 'Recrut.' : 'Coût'}</span>
-          {displayValue(card.cost)}
-        </strong>
-      </header>
-
+    <article className={`unit-card unit-card--${card.faction.themeKey}`} data-faction={card.faction.themeKey}>
       <div className="unit-card__art">
         {imageAvailable ? (
           <img
@@ -43,20 +38,25 @@ export function UnitCard({
             Illustration absente
           </div>
         )}
-        <span className="unit-card__faction">{card.faction.name}</span>
+        {costPlacement === 'art' && <strong className="unit-card__cost" aria-label={`${profile ? 'Coût de recrutement' : 'Coût'} ${displayValue(card.cost)}`} title={profile ? 'Coût de recrutement' : 'Coût'}>{displayValue(card.cost)}</strong>}
       </div>
 
+      <div className="unit-card__body">
+      <header className="unit-card__header">
+        <h2>{card.name}</h2>
+        {profile ? <abbr className="unit-card__type" title={unitTypeNames[profile.unitType]} aria-label={unitTypeNames[profile.unitType]}>{typeLetters[profile.unitType]}</abbr> : <span className="unit-card__type unit-card__type--action">Action</span>}
+      </header>
       {profile && <UnitProfileStats profile={profile} />}
 
       <section className="unit-card__abilities" aria-label="Capacités">
-        <h3>{profile ? 'Capacité spéciale' : 'Effet'}</h3>
-        {profile ? profile.ability ? <SpecialAbility ability={profile.ability} /> : <p className="unit-card__no-ability">Aucune capacité</p> : card.abilities.length > 0 ? (
+        {profile ? profile.ability ? interactiveAbilities ? <SpecialAbility ability={profile.ability} /> : <p>{profile.ability.name}</p> : <p className="unit-card__no-ability" aria-label="Aucune capacité">—</p> : card.abilities.length > 0 ? (
           card.abilities.map((ability) => <p key={ability}>{ability}</p>)
         ) : (
           <p aria-label="Aucune capacité renseignée">—</p>
         )}
       </section>
-
+      </div>
+      {costPlacement === 'footer' && <div className="unit-card__recruitment" aria-label={`${profile ? 'Coût de recrutement' : 'Coût'} ${displayValue(card.cost)}`}><span>{profile ? 'Recrutement' : 'Coût'}</span><strong>{displayValue(card.cost)} pts</strong></div>}
       {footer ? <footer className="unit-card__footer">{footer}</footer> : null}
     </article>
   )

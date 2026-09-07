@@ -2,10 +2,12 @@ import { useQuery } from 'convex/react'
 import { useMemo, useState } from 'react'
 import { api } from '../../convex/_generated/api'
 import { SiteHeader } from '../components/SiteHeader'
+import { FactionBanner } from '../features/catalogue/FactionBanner'
 import { UnitCard } from '../features/catalogue/UnitCard'
 import type { PublicCard, PublicFaction } from '../features/catalogue/types'
 import './CardsPage.css'
 import { getUnitProfile } from '../../shared/unitProfile'
+import { sortCards } from '../features/catalogue/sortCards'
 
 export function CardsPage() {
   const factions = useQuery(api.catalogue.listFactions) as
@@ -17,7 +19,7 @@ export function CardsPage() {
       return selectedFactionId
     }
 
-    return factions?.[0]?.stableId ?? ''
+    return (factions?.find((faction) => faction.themeKey === 'sephosi') ?? factions?.[0])?.stableId ?? ''
   }, [factions, selectedFactionId])
   const cards = useQuery(
     api.catalogue.listCards,
@@ -53,61 +55,43 @@ export function CardsCatalogue({
   )
 
   return (
-    <main className={`cards-page cards-page--${activeFaction?.themeKey ?? 'neutral'}`}>
-      <header className="cards-page__intro">
-        <p className="cards-page__eyebrow">Le codex</p>
-        <h1>Les cartes de PAFF</h1>
-        <p>Unités, actions et capacités. Découvrez les forces de chaque faction.</p>
-        {cards?.some((card) => getUnitProfile(card)?.source === 'estimated') && <p className="cards-page__balancing">Profils 2026 : valeurs provisoires, en cours d’équilibrage.</p>}
-      </header>
-
+    <main className="cards-page" data-faction={activeFaction?.themeKey ?? 'neutral'}>
+      <FactionBanner faction={activeFaction}>
+        {factions && factions.length > 0 && <label className="faction-picker" htmlFor="faction-select">
+          Faction
+          <select id="faction-select" value={selectedFactionId} onChange={(event) => onSelectFaction(event.target.value)}>
+            {factions.map((faction) => <option key={faction.stableId} value={faction.stableId}>{faction.name}</option>)}
+          </select>
+        </label>}
+      </FactionBanner>
+      <div className="cards-page__collection">
       {factions === undefined ? (
         <CatalogueState>Chargement des factions…</CatalogueState>
       ) : factions.length === 0 ? (
         <CatalogueState>Aucune faction publiée.</CatalogueState>
       ) : (
         <>
-          <section className="faction-picker" aria-labelledby="faction-picker-title">
-            <div>
-              <label id="faction-picker-title" htmlFor="faction-select">
-                Faction
-              </label>
-              <select
-                id="faction-select"
-                value={selectedFactionId}
-                onChange={(event) => onSelectFaction(event.target.value)}
-              >
-                {factions.map((faction) => (
-                  <option key={faction.stableId} value={faction.stableId}>
-                    {faction.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {activeFaction ? (
-              <p>
-                Entité <strong>{activeFaction.entity.name}</strong>
-              </p>
-            ) : null}
-          </section>
-
           <div className="catalogue-heading">
-            <h2>{activeFaction?.name}</h2>
+            <h2>{cards?.some((card) => card.kind === 'action') ? 'Les cartes' : 'Les unités'}</h2>
             <span>{cards === undefined ? 'Chargement…' : `${cards.length} cartes disponibles`}</span>
           </div>
+          {cards?.some((card) => getUnitProfile(card)?.source === 'estimated') && <p className="cards-page__balancing">Profils provisoires, en cours d’équilibrage.</p>}
+
           {cards === undefined ? (
             <CatalogueState>Chargement des cartes…</CatalogueState>
           ) : cards.length === 0 ? (
             <CatalogueState>Aucune carte publiée pour cette faction.</CatalogueState>
           ) : (
             <section className="cards-grid" aria-label={`Cartes ${activeFaction?.name ?? ''}`}>
-              {cards.map((card) => (
+              {sortCards(cards).map((card) => (
                 <UnitCard key={card.stableId} card={card} />
               ))}
             </section>
           )}
         </>
       )}
+      {activeFaction && <footer className="catalogue-footer"><span>{activeFaction.entity.name}</span><span>PAFF · Collection 2026</span></footer>}
+      </div>
     </main>
   )
 }

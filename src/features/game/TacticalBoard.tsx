@@ -1,9 +1,8 @@
 import { isEngaged } from '../../../shared/battleEngine'
-import { useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { cellCoordinate, displayCell } from '../../../shared/board'
 import { getUnitProfile } from '../../../shared/unitProfile'
-import { SpecialAbility } from '../catalogue/SpecialAbility'
-import { UnitProfileStats } from '../catalogue/UnitProfileStats'
+import { CardPreview } from '../catalogue/CardPreview'
 import type { Game } from './types'
 import './TacticalBoard.css'
 
@@ -17,6 +16,16 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
   const me = game.players.find((player) => player.isMe)!
   const opponent = game.players.find((player) => !player.isMe)!
   const [inspected, setInspected] = useState<number | null>(null)
+  const previewId = useId()
+  const [hovered, setHovered] = useState<{ cell: number; x: number; y: number } | null>(null)
+  useEffect(() => {
+    const dismiss = () => setHovered(null)
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') dismiss() }
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('scroll', dismiss, true)
+    window.addEventListener('resize', dismiss)
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('scroll', dismiss, true); window.removeEventListener('resize', dismiss) }
+  }, [])
   function unitAt(cell: number) {
     const unit = (game.battle?.engine?.units ?? game.setup?.units)?.find((item) => item.cell === cell)
     const owner = game.players.find((player) => player.seat === unit?.seat)
@@ -25,7 +34,8 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
     return card && owner ? { card, owner, runtime } : undefined
   }
   const detail = inspected === null ? undefined : unitAt(inspected)
-  const profile = detail && getUnitProfile(detail.card)
+  const previewUnit = hovered && unitAt(hovered.cell)
+  const previewProfile = previewUnit && getUnitProfile(previewUnit.card)
   return <div className="tactical-board">
     <div className="board-camp-label"><span className="board-side-dot board-side-dot--opponent" />{opponent.displayName}<span>Adversaire</span></div>
     <p className="board-mobile-hint">↔ Faites défiler le plateau horizontalement</p>
@@ -43,19 +53,33 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
             const content = <>{unit ? <><img src={unit.card.imagePath} alt="" /><span className="board-unit__regiment">{unit.runtime?.regiment ?? getUnitProfile(unit.card)?.regiment}<small>R</small></span><strong>{unit.card.name}</strong>{unit.runtime && isEngaged(game.battle!.engine!, unit.runtime.id) && <span className="board-unit__engaged">⚔</span>}</> : <span className="board-cell__mark" aria-hidden="true">{allowed ? '+' : '·'}</span>}<span className="board-cell__coordinate" aria-hidden="true">{cellCoordinate(cell)}</span></>
             const className = `board-cell${unit ? ` board-unit board-unit--${unit.owner.isMe ? 'you' : 'opponent'}` : ''}${allowed ? ' board-cell--allowed' : ''}${cell === (selectedCell ?? inspected) ? ' board-cell--selected' : ''}`
             const label = `${cellCoordinate(cell)}${allowed ? ` · ${placeLabel}` : ''}${unit ? ` · ${unit.card.name} · ${unit.owner.displayName}` : allowed ? '' : ' · Case vide'}`
-            return unit || allowed ? <button key={cell} type="button" data-cell={cell} className={className} aria-label={label} aria-pressed={unit ? cell === inspected : undefined} disabled={busy && (allowed || Boolean(onUnit))} onClick={() => allowed ? onPlace?.(cell) : unit ? (onUnit ? onUnit(cell) : setInspected(cell === inspected ? null : cell)) : undefined}>{content}</button>
+            return unit || allowed ? <button key={cell} type="button" data-cell={cell} className={className} aria-label={label} aria-describedby={hovered?.cell === cell ? previewId : undefined} aria-pressed={unit ? cell === (selectedCell ?? inspected) : undefined} disabled={busy && (allowed || Boolean(onUnit))}
+              onMouseEnter={(event) => unit && setHovered({ cell, x: event.clientX, y: event.clientY })}
+              onMouseMove={(event) => unit && hovered?.cell === cell && setHovered({ cell, x: event.clientX, y: event.clientY })}
+              onMouseLeave={() => setHovered(null)}
+              onFocus={(event) => { if (unit) { const rect = event.currentTarget.getBoundingClientRect(); setHovered({ cell, x: rect.right, y: rect.top }) } }}
+              onBlur={() => setHovered(null)}
+              onClick={(event) => {
+                if (allowed) { setHovered(null); onPlace?.(cell) }
+                else if (unit) {
+                  if (onUnit) onUnit(cell)
+                  else setInspected(cell === inspected ? null : cell)
+                  const rect = event.currentTarget.getBoundingClientRect()
+                  setHovered({ cell, x: rect.right, y: rect.top })
+                }
+              }}>{content}</button>
               : <div key={cell} data-cell={cell} className={className} aria-label={label}>{content}</div>
           }))}</div>
         </div>))}</div>
       </div>
     </div>
     <div className="board-camp-label board-camp-label--you"><span className="board-side-dot" />{me.displayName}<span>Votre camp</span></div>
-    {detail && profile && <div className="board-inspection" aria-label={`Détails de ${detail.card.name}`}>
+    {detail && onReposition && detail.owner.isMe && <div className="board-inspection" aria-label="Correction du placement">
       <div><p className="eyebrow">{detail.owner.displayName} · {cellCoordinate(inspected!)}</p><h3>{detail.card.name}</h3></div>
-      <UnitProfileStats profile={profile} compact />{detail.runtime && <p>{detail.runtime.regiment} R restants</p>}{profile.ability && <SpecialAbility ability={profile.ability} />}
-      {onReposition && detail.owner.isMe && <button type="button" className="ui-button" disabled={busy} onClick={() => onReposition(inspected!)}>Changer de case</button>}
+      <button type="button" className="ui-button" disabled={busy} onClick={() => { setHovered(null); onReposition(inspected!) }}>Changer de case</button>
       <button type="button" className="ui-button ui-button--quiet" onClick={() => setInspected(null)}>Fermer</button>
     </div>}
+    {previewUnit && hovered && <CardPreview id={previewId} x={hovered.x} y={hovered.y} card={{ ...previewUnit.card, ...(previewProfile ? { profile: { ...previewProfile, regiment: previewUnit.runtime?.regiment ?? previewProfile.regiment } } : {}) }} />}
     <p className="board-caption">3 axes · 15 zones · 54 cases <span>✦ Zones stratégiques</span></p>
   </div>
 }

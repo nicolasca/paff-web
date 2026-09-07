@@ -1,0 +1,174 @@
+<div id="__ROOT__" class="paff-concept" data-design="__DESIGN__" data-faction="sephosi" aria-label="__TITLE__">
+  <style>
+    @font-face{font-family:PaffCinzel;src:url(__FONT__) format('truetype');font-weight:400 900;font-display:swap}
+    #__ROOT__{--pa-ink:#eee8d9;--pa-muted:#c6b8ab;--pa-paper:#121110;--pa-accent:#990000;--pa-bright:#e6bca2;--pa-card:#6e1110;--pa-card-ink:#fff4e3;--pa-line:#ab807345;font-family:'Avenir Next',Avenir,system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--pa-ink);background:var(--pa-paper);color-scheme:dark;container-type:inline-size;overflow:clip}
+    #__ROOT__ *{box-sizing:border-box}#__ROOT__ button,#__ROOT__ select{font:inherit;cursor:pointer}#__ROOT__ button{color:inherit}#__ROOT__ h1,#__ROOT__ h2,#__ROOT__ h3,#__ROOT__ p{margin:0}#__ROOT__ button:focus-visible,#__ROOT__ select:focus-visible{outline:2px solid var(--pa-bright);outline-offset:3px}
+    #__ROOT__[data-faction=gobelins]{--pa-accent:#78d140;--pa-bright:#b9fc8e;--pa-card:#78d140;--pa-card-ink:#14240e;--pa-line:#b5da9a45;--pa-muted:#bbc7ae}
+    #__ROOT__ .pa-header{display:flex;align-items:center;gap:34px;padding:14px 32px;border-bottom:1px solid var(--pa-line);background:#141311;color:#e5ded0}
+    #__ROOT__ .pa-logo{width:91px;height:40px;object-fit:contain}
+    #__ROOT__ .pa-nav{display:flex;gap:24px;align-self:stretch}
+    #__ROOT__ .pa-nav button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;padding:9px 0;color:#bbb7ac;font-size:13px}
+    #__ROOT__ .pa-nav button[aria-pressed=true]{border-color:var(--pa-bright);color:#fff4e3}
+    #__ROOT__ .pa-user{margin-left:auto;font-size:12px;color:#bcb5a8}
+    #__ROOT__ .pa-hero{position:relative;display:grid;grid-template-columns:1fr auto;align-items:center;gap:24px;padding:34px 32px 32px;overflow:hidden;isolation:isolate;background:linear-gradient(115deg,color-mix(in srgb,var(--pa-accent) 62%,#151311),#151311 90%);border-bottom:1px solid var(--pa-line)}
+    #__ROOT__ .pa-eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--pa-bright);margin-bottom:8px}
+    #__ROOT__ h1{font-family:PaffCinzel,Georgia,serif;font-weight:500;font-size:52px;line-height:1.12;letter-spacing:-.03em}
+    #__ROOT__ .pa-tagline{margin-top:12px;color:#e5d5c8;max-width:460px;font-size:14px}
+    #__ROOT__ .pa-select-label{display:grid;gap:8px;color:#e5d5c8;font-size:11px;letter-spacing:.08em;text-transform:uppercase;min-width:160px;z-index:1}
+    #__ROOT__ select{background:#191613;color:#f5ede1;border:1px solid #bfa79885;padding:11px 14px;border-radius:2px;font-size:14px}
+    #__ROOT__ .pa-hero-art{display:none}
+    #__ROOT__ .pa-main{padding:24px 32px 32px;background:radial-gradient(ellipse at top,color-mix(in srgb,var(--pa-accent) 9%,transparent),transparent 70%)}
+    #__ROOT__ .pa-toolbar{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:24px;color:var(--pa-muted);font-size:12px}
+    #__ROOT__ .pa-toolbar strong{font-family:PaffCinzel,Georgia,serif;color:var(--pa-ink);font-size:17px;font-weight:500}
+    #__ROOT__ .pa-collection{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;align-items:start}
+    #__ROOT__ .pa-unit{position:relative;min-width:0;background:var(--pa-card);color:var(--pa-card-ink);border:1px solid color-mix(in srgb,var(--pa-bright) 64%,transparent);padding:8px;border-radius:8px;box-shadow:0 8px 20px #0004;transition:transform .16s}
+    #__ROOT__ .pa-unit:hover{transform:translateY(-4px)}
+    #__ROOT__ .pa-card-top{display:flex;align-items:center;justify-content:space-between;gap:7px;min-height:45px;padding:2px 3px 8px}
+    #__ROOT__ .pa-card-top .pa-unit-type{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.86}
+    #__ROOT__ .pa-cost{display:grid;place-items:center;border:1px solid currentColor;width:31px;height:31px;font-family:PaffCinzel,Georgia,serif;font-size:19px;flex-shrink:0}
+    #__ROOT__ .pa-picture{position:relative;aspect-ratio:1;overflow:hidden;border:1px solid color-mix(in srgb,var(--pa-card-ink) 25%,transparent)}
+    #__ROOT__ .pa-picture>img{width:100%;height:100%;object-fit:cover;display:block}
+    #__ROOT__ .pa-mode{display:flex;align-items:center;gap:6px;position:absolute;bottom:10px;left:10px;background:#161712ed;border:1px solid #e9ead355;color:#fff5e5;padding:5px 8px;font-size:11px;border-radius:3px}
+    #__ROOT__ .pa-mode svg{width:13px;height:13px}
+    #__ROOT__ .pa-card-content{padding:13px 4px 4px}
+    #__ROOT__ h2{font:500 18px/1.24 PaffCinzel,Georgia,serif;min-height:45px;letter-spacing:-.02em;text-wrap:balance}
+    #__ROOT__ .pa-stats{display:grid;grid-template-columns:repeat(5,1fr);margin:12px 0 0;padding:10px 0;border-top:1px solid color-mix(in srgb,var(--pa-card-ink) 25%,transparent);border-bottom:1px solid color-mix(in srgb,var(--pa-card-ink) 25%,transparent)}
+    #__ROOT__ .pa-stats>div{text-align:center;border-right:1px solid color-mix(in srgb,var(--pa-card-ink) 18%,transparent)}#__ROOT__ .pa-stats>div:last-child{border:0}
+    #__ROOT__ dt{font-size:11px;opacity:.8}#__ROOT__ dd{margin:3px 0 0;font-family:PaffCinzel,Georgia,serif;font-size:23px;font-weight:500;line-height:1.1}
+    #__ROOT__ .pa-ability{min-height:35px;display:flex;align-items:center;justify-content:center;padding:10px 0 2px;font-size:12px;gap:6px}
+    #__ROOT__ .pa-ability button{border:0;border-bottom:1px dotted currentColor;background:none;padding:0;font-size:12px}
+    #__ROOT__ .pa-quantity{display:flex;justify-content:space-between;align-items:center;border-top:1px solid color-mix(in srgb,var(--pa-card-ink) 25%,transparent);margin-top:12px;padding:10px 2px 2px;font-size:12px;gap:6px}
+    #__ROOT__ .pa-quantity button{width:32px;height:32px;background:transparent;border:1px solid currentColor;border-radius:3px;font-size:20px;line-height:1}
+    #__ROOT__ .pa-quantity output{font-size:16px;min-width:20px;text-align:center;font-variant-numeric:tabular-nums}
+    #__ROOT__ .pa-quantity>span{margin-right:auto}
+    #__ROOT__ .pa-footer{display:flex;justify-content:space-between;gap:16px;padding-top:24px;font-size:11px;color:var(--pa-muted);border-top:1px solid var(--pa-line);margin-top:24px;letter-spacing:.03em}
+    #__ROOT__ .pa-deck-total{display:flex;gap:20px;align-items:center;flex-wrap:wrap;background:var(--pa-accent);color:#fff0e0;margin-bottom:24px;padding:14px 18px;border-radius:3px;font-size:13px}
+    #__ROOT__[data-faction=gobelins] .pa-deck-total{color:#16230f}
+    #__ROOT__ .pa-deck-total[hidden]{display:none}
+    #__ROOT__ .pa-serial{display:none}
+    #__ROOT__[data-faction=gobelins] .pa-eyebrow{letter-spacing:.13em}
+    #__ROOT__[data-faction=gobelins] .pa-unit:nth-child(2){rotate:-.5deg}
+    #__ROOT__[data-faction=gobelins] .pa-unit:nth-child(3){rotate:.4deg}
+
+    /* Proposition 2 : registre clair, bordures franches et composition éditoriale. */
+    #__ROOT__[data-design="2"]{--pa-paper:#ede9de;--pa-ink:#25251f;--pa-muted:#66655c;--pa-line:#b8b3a1;--pa-card:#990000;--pa-bright:#990000;color-scheme:light}
+    #__ROOT__[data-design="2"][data-faction=gobelins]{--pa-card:#78d140;--pa-bright:#294617;--pa-muted:#5a6553;--pa-line:#bac6af}
+    #__ROOT__[data-design="2"] .pa-header{background:#eee9dd;color:#282b22;border-color:#b7b29f}
+    #__ROOT__[data-design="2"] .pa-logo{filter:brightness(.35)}
+    #__ROOT__[data-design="2"] .pa-nav button{color:#68665c}
+    #__ROOT__[data-design="2"] .pa-nav button[aria-pressed=true]{color:#25251f;border-color:var(--pa-accent)}
+    #__ROOT__[data-design="2"] .pa-user{color:#68665c}
+    #__ROOT__[data-design="2"] .pa-hero{padding:28px 32px 28px 56px;background:transparent;border-bottom:1px solid var(--pa-line)}
+    #__ROOT__[data-design="2"] .pa-hero:before{content:'';position:absolute;left:32px;top:28px;bottom:28px;width:6px;background:var(--pa-accent)}
+    #__ROOT__[data-design="2"] h1{font-size:58px;text-transform:uppercase;letter-spacing:-.06em}
+    #__ROOT__[data-design="2"] .pa-tagline{color:#54564b}
+    #__ROOT__[data-design="2"] .pa-select-label{color:#67685a}
+    #__ROOT__[data-design="2"] select{background:#f9f6ed;color:#25251f;border-color:#b2ac97;border-radius:0}
+    #__ROOT__[data-design="2"] .pa-main{background:none}
+    #__ROOT__[data-design="2"] .pa-collection{gap:22px}
+    #__ROOT__[data-design="2"] .pa-unit{border:0;border-radius:0;padding:0;box-shadow:4px 5px 0 #171e1714}
+    #__ROOT__[data-design="2"] .pa-card-top{background:#f8f5ec;color:#444639;border-top:3px solid var(--pa-accent);padding:8px 10px;min-height:45px}
+    #__ROOT__[data-design="2"] .pa-cost{border:0;border-left:1px solid #bab49e;width:40px;height:25px}
+    #__ROOT__[data-design="2"] .pa-picture{border:0}
+    #__ROOT__[data-design="2"] .pa-mode{bottom:0;left:0;border:0;border-radius:0;background:var(--pa-accent);color:var(--pa-card-ink);padding:6px 10px}
+    #__ROOT__[data-design="2"] .pa-card-content{padding:16px 14px 10px}
+    #__ROOT__[data-design="2"] h2{font-family:Georgia,serif;font-size:21px;min-height:50px}
+    #__ROOT__[data-design="2"] .pa-stats{padding:10px 0}
+    #__ROOT__[data-design="2"] .pa-stats dd{font-family:'Avenir Next',system-ui,sans-serif;font-size:25px}
+    #__ROOT__[data-design="2"] .pa-serial{display:inline-block;font-size:11px;margin-right:6px;font-variant-numeric:tabular-nums;opacity:.7}
+    #__ROOT__[data-design="2"][data-faction=gobelins] .pa-unit{rotate:0;box-shadow:4px 5px 0 #294617}
+    #__ROOT__[data-design="2"][data-faction=gobelins] .pa-hero:before{width:9px;transform:skew(-8deg)}
+
+    /* Proposition 3 : galerie immersive, visuels bord à bord et socles de faction. */
+    #__ROOT__[data-design="3"]{--pa-paper:#111112;--pa-card:#990000;--pa-card-ink:#fff2ea;--pa-line:#67534b80}
+    #__ROOT__[data-design="3"][data-faction=gobelins]{--pa-card:#78d140;--pa-card-ink:#172510;--pa-line:#84a87250}
+    #__ROOT__[data-design="3"] .pa-header{background:#111112;padding-top:10px;padding-bottom:10px}
+    #__ROOT__[data-design="3"] .pa-hero{min-height:215px;align-items:end;padding-top:45px;background:#111112}
+    #__ROOT__[data-design="3"] .pa-hero-art{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 39%;z-index:-2;opacity:.65}
+    #__ROOT__[data-design="3"] .pa-hero:after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,color-mix(in srgb,var(--pa-accent) 48%,#080909) 0%,#08090988 60%,#08090955),linear-gradient(0deg,#111112,transparent 75%)}
+    #__ROOT__[data-design="3"] h1{font-family:PaffCinzel,Georgia,serif;font-size:65px;text-transform:uppercase;letter-spacing:-.05em}
+    #__ROOT__[data-design="3"] .pa-hero .pa-eyebrow{color:#e5e2d5}
+    #__ROOT__[data-design="3"] .pa-tagline{font-size:15px}
+    #__ROOT__[data-design="3"] .pa-main{background:linear-gradient(180deg,#111112,color-mix(in srgb,var(--pa-accent) 12%,#111112))}
+    #__ROOT__[data-design="3"] .pa-unit{border:0;padding:0;border-radius:0 0 12px 12px;box-shadow:0 14px 25px #0007;overflow:hidden}
+    #__ROOT__[data-design="3"] .pa-card-top{position:absolute;inset:0 0 auto;z-index:1;padding:12px;color:white;background:linear-gradient(#0009,transparent);min-height:60px;align-items:start}
+    #__ROOT__[data-design="3"] .pa-unit-type{background:#151511cc;padding:5px 8px;border-radius:3px;font-size:10px;opacity:1}
+    #__ROOT__[data-design="3"] .pa-cost{background:var(--pa-accent);color:var(--pa-card-ink);border:1px solid #ffffff88;border-radius:50%;width:34px;height:34px;font-size:22px}
+    #__ROOT__[data-design="3"] .pa-picture{border:0}
+    #__ROOT__[data-design="3"] .pa-mode{background:#111512dd;border-color:#ffffff66;left:12px;bottom:12px}
+    #__ROOT__[data-design="3"] .pa-card-content{padding:16px 15px 13px}
+    #__ROOT__[data-design="3"] h2{font-family:'Avenir Next',system-ui,sans-serif;font-size:21px;font-weight:500;line-height:1.12;letter-spacing:-.05em;min-height:47px}
+    #__ROOT__[data-design="3"] .pa-stats{border:0;padding:0;margin-top:13px;gap:5px}
+    #__ROOT__[data-design="3"] .pa-stats>div{padding:6px 1px;background:color-mix(in srgb,var(--pa-card-ink) 10%,transparent);border:0;border-radius:4px}
+    #__ROOT__[data-design="3"] dd{font-family:'Avenir Next',system-ui,sans-serif;font-size:22px}
+    #__ROOT__[data-design="3"] .pa-ability{padding-top:12px;min-height:32px;justify-content:start}
+    #__ROOT__[data-design="3"][data-faction=gobelins] h1{font-style:italic;transform:skew(-4deg);transform-origin:left}
+    #__ROOT__[data-design="3"][data-faction=gobelins] .pa-unit{border-radius:0 0 10px 0}
+
+    @container (max-width:760px){#__ROOT__ .pa-header{padding:12px 20px;gap:22px}#__ROOT__ .pa-hero{padding:26px 20px}#__ROOT__ .pa-main{padding:22px 20px}#__ROOT__ .pa-collection{gap:14px}#__ROOT__ h2{font-size:16px}#__ROOT__ dd{font-size:21px}#__ROOT__[data-design="2"] .pa-hero{padding-left:42px}#__ROOT__[data-design="2"] .pa-hero:before{left:20px}#__ROOT__[data-design="2"] h1{font-size:48px}#__ROOT__[data-design="2"] h2{font-size:18px}#__ROOT__[data-design="3"] h1{font-size:54px}#__ROOT__[data-design="3"] .pa-card-content{padding:12px 9px}#__ROOT__[data-design="3"] h2{font-size:18px}#__ROOT__[data-design="3"] .pa-cost{width:28px;height:28px}}
+    @container (max-width:590px){#__ROOT__ .pa-collection{grid-template-columns:1fr;gap:26px;max-width:350px;margin:auto}#__ROOT__ .pa-hero{grid-template-columns:1fr;gap:20px}#__ROOT__ .pa-select-label{max-width:100%;grid-template-columns:auto 1fr;align-items:center}#__ROOT__ select{font-size:16px}#__ROOT__ .pa-header{gap:20px}#__ROOT__ .pa-user{display:none}#__ROOT__ .pa-nav{gap:18px;margin-left:auto}#__ROOT__ .pa-toolbar{align-items:start;flex-direction:column;gap:5px}#__ROOT__ h2{font-size:22px;min-height:0}#__ROOT__ dd{font-size:27px}#__ROOT__ .pa-mode{font-size:12px}#__ROOT__ .pa-unit-type{font-size:12px}#__ROOT__ .pa-footer{flex-direction:column;gap:6px}#__ROOT__ .pa-quantity button{width:44px;height:44px}#__ROOT__[data-design="2"] h2{font-size:23px;min-height:0}#__ROOT__[data-design="3"] h2{font-size:23px;min-height:0}#__ROOT__[data-design="3"] h1{font-size:47px}#__ROOT__[data-design="3"] .pa-card-content{padding:18px}#__ROOT__[data-design="3"] .pa-cost{width:36px;height:36px}}
+    @media(prefers-reduced-motion:reduce){#__ROOT__ .pa-unit{transition:none}}
+  </style>
+  <header class="pa-header">
+    <img class="pa-logo" src="__LOGO__" alt="PAFF" width="300" height="125">
+    <nav class="pa-nav" aria-label="Navigation"><button type="button" data-page="cards" aria-pressed="true">Cartes</button><button type="button" data-page="deck" aria-pressed="false">Mon deck</button></nav>
+    <span class="pa-user">Nicolas</span>
+  </header>
+  <section class="pa-hero" aria-label="Faction sélectionnée">
+    <img class="pa-hero-art" alt="">
+    <div><p class="pa-eyebrow" data-eyebrow></p><h1 data-name></h1><p class="pa-tagline" data-tagline></p></div>
+    <label class="pa-select-label">Faction<select aria-label="Choisir la faction"><option value="sephosi">Sephosi</option><option value="gobelins">Gobelins</option></select></label>
+  </section>
+  <main class="pa-main">
+    <div class="pa-toolbar"><strong data-collection-title>Les unités</strong><span data-collection-caption>Trois profils de votre armée</span></div>
+    <div class="pa-deck-total" hidden aria-live="polite"><span data-deck-name></span><strong data-unit-count></strong><span data-points></span></div>
+    <div class="pa-collection"></div>
+    <footer class="pa-footer"><span data-motto></span><span>PAFF · Collection 2026</span></footer>
+  </main>
+  <script>
+  (() => {
+    const root=document.getElementById('__ROOT__');
+    const assets=__ASSETS__;
+    const data={
+      sephosi:{name:'Sephosi',eyebrow:'Discipline · Rigueur · Cohésion',tagline:'Une seule ligne. Une seule volonté.',motto:'La force d’une armée professionnelle.',units:[
+        {name:'Lanciers Sephosiens',type:'Troupe',ranged:false,cost:3,r:3,dice:2,offense:3,dc:4,dt:'3+',ability:'Repli stratégique',art:'lanciers-sephosi'},
+        {name:'Arbalétriers Sephosiens',type:'Unité de tir',ranged:true,cost:2,r:1,dice:2,offense:3,dc:2,dt:'5+',ability:'',art:'arbaletriers-sephosi'},
+        {name:'Cavalerie lourde Sephosienne',type:'Cavalerie',ranged:false,cost:2,r:2,dice:2,offense:3,dc:3,dt:'4+',ability:'Charge puissante',art:'cavalerie-sephosie'}]},
+      gobelins:{name:'Gobelins',eyebrow:'Chaos · Instabilité · Déferlement',tagline:'Pas de rangs. Pas de calme. Des gobelins.',motto:'Le chaos n’attend pas les ordres.',units:[
+        {name:'Bande de Gobelins',type:'Troupe',ranged:false,cost:1,r:3,dice:3,offense:2,dc:2,dt:'1',ability:'',art:'bande-gobelins'},
+        {name:'Archers Gobelins',type:'Unité de tir',ranged:true,cost:1,r:2,dice:3,offense:1,dc:1,dt:'1',ability:'Tir en mêlée',art:'archers-gobelins'},
+        {name:'Shamans Gobelins',type:'Unité de tir',ranged:true,cost:1,r:1,dice:1,offense:3,dc:1,dt:'1',ability:'Tir magique',art:'shaman'}]}
+    };
+    const state={faction:'sephosi',page:'cards',sephosi:[2,1,1],gobelins:[2,1,1]};
+    const card=(u,i)=>`<article class="pa-unit" aria-label="${u.name}">
+      <div class="pa-card-top"><span class="pa-unit-type"><span class="pa-serial">0${i+1} /</span>${u.type}</span><span class="pa-cost" aria-label="Coût de recrutement : ${u.cost}">${u.cost}</span></div>
+      <div class="pa-picture"><img src="${assets[u.art]}" alt="${u.name}" width="640" height="640"><span class="pa-mode"><i data-lucide="${u.ranged?'crosshair':'swords'}" aria-hidden="true"></i>${u.ranged?'Tir':'Corps à corps'}</span></div>
+      <div class="pa-card-content"><h2>${u.name}</h2><dl class="pa-stats" aria-label="Profil de l’unité">${[['R',u.r,'Points de Régiment'],['Dés',u.dice,'Nombre de D6'],[u.ranged?'T':'A',u.offense,u.ranged?'Valeur de tir':'Valeur de corps à corps'],['DC',u.dc,'Défense au corps à corps'],['DT',u.dt,'Défense au tir']].map(([label,value,meaning])=>`<div><dt data-tooltip="${meaning}">${label}</dt><dd>${value}</dd></div>`).join('')}</dl>
+      <div class="pa-ability">${u.ability?`<button type="button" data-tooltip="Capacité en cours de définition avec le créateur.">${u.ability}</button>`:'<span>—</span>'}</div>
+      ${state.page==='deck'?`<div class="pa-quantity"><span>Dans le deck</span><button type="button" data-adjust="${i}" data-delta="-1" aria-label="Retirer ${u.name}">−</button><output>${state[state.faction][i]}</output><button type="button" data-adjust="${i}" data-delta="1" aria-label="Ajouter ${u.name}">+</button></div>`:''}</div></article>`;
+    function render(){
+      const faction=data[state.faction];root.dataset.faction=state.faction;
+      root.querySelector('select').value=state.faction;
+      root.querySelector('[data-eyebrow]').textContent=faction.eyebrow;
+      root.querySelector('[data-name]').textContent=faction.name;
+      root.querySelector('[data-tagline]').textContent=faction.tagline;
+      root.querySelector('[data-motto]').textContent=faction.motto;
+      root.querySelector('.pa-hero-art').src=assets[faction.units[0].art];
+      root.querySelector('[data-collection-title]').textContent=state.page==='deck'?'Mon armée':'Les unités';
+      root.querySelector('[data-collection-caption]').textContent=state.page==='deck'?'Composition du deck':'Trois profils de votre armée';
+      root.querySelector('.pa-deck-total').hidden=state.page!=='deck';
+      root.querySelector('[data-deck-name]').textContent=`Armée ${faction.name}`;
+      root.querySelector('[data-unit-count]').textContent=`${state[state.faction].reduce((a,b)=>a+b,0)} unités`;
+      root.querySelector('[data-points]').textContent=`${faction.units.reduce((sum,u,i)=>sum+u.cost*state[state.faction][i],0)} points de recrutement`;
+      root.querySelectorAll('[data-page]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.page===state.page)));
+      root.querySelector('.pa-collection').innerHTML=faction.units.map(card).join('');
+      if(globalThis.lucide)lucide.createIcons({attrs:{width:14,height:14}});
+    }
+    root.querySelector('select').addEventListener('change',event=>{state.faction=event.target.value;render()});
+    root.addEventListener('click',event=>{const page=event.target.closest('[data-page]');if(page){state.page=page.dataset.page;render()}
+      const adjust=event.target.closest('[data-adjust]');if(adjust){const i=Number(adjust.dataset.adjust);state[state.faction][i]=Math.max(0,state[state.faction][i]+Number(adjust.dataset.delta));render();root.querySelector(`[data-adjust="${i}"][data-delta="${adjust.dataset.delta}"]`).focus()}});
+    render();
+    if(globalThis.Tweak){const tweaks=new Tweak({container:root,onChange:render});tweaks.addSelect(state,'faction',{label:'Faction',options:[{label:'Sephosi',value:'sephosi'},{label:'Gobelins',value:'gobelins'}]});}
+  })();
+  </script>
+</div>

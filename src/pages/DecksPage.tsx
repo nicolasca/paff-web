@@ -5,6 +5,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { SiteHeader } from "../components/SiteHeader";
+import { FactionBanner } from "../features/catalogue/FactionBanner";
+import { sortCards } from "../features/catalogue/sortCards";
 import { UnitCard } from "../features/catalogue/UnitCard";
 import type { PublicCard, PublicFaction } from "../features/catalogue/types";
 import { DeckSummary } from "../features/decks/DeckSummary";
@@ -22,7 +24,7 @@ export function DecksPage({ mode = "list" }: { mode?: DeckMode }) {
   const decks = useQuery(api.decks.listMine);
   const factions = useQuery(
     api.catalogue.listFactions,
-    mode !== "view" ? {} : "skip",
+    {},
   );
   const { deckId } = useParams();
   const navigate = useNavigate();
@@ -241,7 +243,7 @@ export function DeckLibrary({
             {decks.map((deck) => {
               const stats = getDeckStats(deck.cards);
               return (
-                <article className="deck-tile" key={deck.id}>
+                <article className="deck-tile" data-faction={factions?.find((faction) => faction.stableId === deck.faction?.stableId)?.themeKey ?? deck.cards[0]?.faction.themeKey ?? "neutral"} key={deck.id}>
                   <Link
                     className="deck-tile__cover"
                     to={`/decks/${deck.id}`}
@@ -358,6 +360,7 @@ export function DeckWorkspace({
   const [deleting, setDeleting] = useState(false);
   const [saved, setSaved] = useState(false);
   const editing = mode === "edit";
+  const faction = factions?.find((item) => item.stableId === selectedFactionId) ?? deck.cards[0]?.faction;
   const hasMixedFactions = deck.cards.some(
     (card) =>
       card.faction.stableId !==
@@ -425,10 +428,11 @@ export function DeckWorkspace({
   }
 
   return (
-    <div className="decks-container">
+    <div className="decks-container deck-detail" data-faction={faction?.themeKey ?? "neutral"}>
       <Link className="deck-breadcrumb" to="/decks">
         ← Mes decks
       </Link>
+      <FactionBanner faction={faction} heading="h2" />
       <header className="deck-workspace-heading">
         <div>
           <p className="eyebrow">
@@ -555,7 +559,7 @@ export function DeckWorkspace({
                 </div>
               ) : (
                 <div className="deck-card-grid">
-                  {availableCards.map((card) => (
+                  {sortCards(availableCards).map((card) => (
                     <UnitCard
                       key={card.stableId}
                       card={card}
@@ -599,7 +603,7 @@ export function DeckWorkspace({
                 <span>{deck.cards.length} cartes différentes</span>
               </div>
               <div className="deck-card-grid">
-                {deck.cards.map((card) => (
+                {sortCards(deck.cards).map((card) => (
                   <UnitCard
                     key={card.stableId}
                     card={card}

@@ -1,6 +1,6 @@
 # PAFF — règles implémentées
 
-**État du 6 septembre 2026 · version de partie `2026-09-06-actions-1` · catalogue `2026-09-06-wip`.**
+**État du 7 septembre 2026 · version de partie `2026-09-06-actions-1` · catalogue `2026-09-06-wip`.**
 
 Ce document décrit le comportement du site pour les nouvelles parties de cette version. Il sert de référence pour comparer l’application avec les prochaines versions du Drive. Il ne remplace pas les règles du créateur : les points encore provisoires sont indiqués explicitement.
 
@@ -11,34 +11,43 @@ Sources : PDF « PAFF 2026 – Règles », huit captures du Drive du 6 septembre
 | Référence | Comportement appliqué |
 | --- | --- |
 | CAT-01 | Le catalogue public possède quatre factions. Les listes Gobelins et Sephosi utilisent les 12 unités ci-dessous. Orcs et Gaeli conservent leurs anciennes cartes et leurs profils estimés. |
-| CAT-02 | Une unité possède un nom, un coût, un type, R (points de Régiment), un nombre de dés, un mode offensif unique A ou T, une valeur offensive, DA et DT. Le nombre de dés est indépendant de A/T. |
-| CAT-03 | Types disponibles : Troupe, Tir, Cavalerie, Artillerie, Élite, Unique. Cavalerie et Artillerie ont désormais leurs règles de mouvement/portée ; le mode C/A ou T détermine les attaques possibles. |
+| CAT-02 | Une unité possède un nom, un coût, un type, R (points de Régiment), un nombre de dés, un mode offensif unique C ou T, une valeur offensive, DC et DT. Le nombre de dés est indépendant de C/T. L’affichage du 7 septembre remplace DA par DC et regroupe score et mode, par exemple `4C` ou `3T` ; les valeurs et calculs restent identiques. |
+| CAT-03 | Types disponibles : Troupe, Tir, Cavalerie, Artillerie, Élite, Unique. Cavalerie et Artillerie ont désormais leurs règles de mouvement/portée ; le mode C ou T détermine les attaques possibles. |
 | CAT-04 | Les capacités des nouvelles unités sont affichées avec un intitulé et une infobulle indiquant que leur effet reste à définir/implémenter. Elles n’ont aucun effet en jeu. |
 | CAT-05 | Les identifiants des cartes renommées sont conservés pour préserver les decks. Les autres anciennes cartes Gobelins/Sephosi, y compris les cartes Action, sont archivées : elles restent lisibles dans les anciens decks mais ne sont plus ajoutables ni utilisables pour sélectionner un deck dans une nouvelle partie. L’éditeur permet de les retirer. |
 | CAT-06 | Une partie conserve une copie des cartes au choix du deck. Les mises à jour ultérieures du catalogue ou du deck ne modifient pas ces copies. Les ordres sont également figés dans la partie au début du tour 1. |
+
+### Présentation des cartes — décision de Nicolas du 7 septembre
+
+- Types abrégés à droite du nom : **B** Troupe, **T** Tir, **C** Cavalerie, **A** Artillerie, **E** Élite, **U** Unique. Le nom complet reste accessible au survol et aux lecteurs d’écran. Ces lettres n’ajoutent aucun type ni effet.
+- Catalogue et decks présentent les cartes dans cet ordre de types, puis par nom ; les anciennes cartes Action viennent ensuite. Le catalogue s’ouvre sur Sephosi lorsqu’elle est publiée.
+- Profils : R, Dés, attaque score + **C/T**, **DC**, DT, capacité courte. Le type de l’unité et son mode offensif restent deux informations distinctes.
+- Le survol ou le focus d’une unité du plateau ouvre la carte complète près du pointeur, avec ses R courants. Un clic conserve la sélection pour les actions ou la correction du déploiement ; le panneau de correction reste disponible. Le coût n’est pas superposé au visuel du plateau ou à cet aperçu.
+- La réserve personnelle apparaît sous le plateau, avec les coûts sous les illustrations. Le bouton Recruter reste soumis à l’ordre et aux contrôles existants. La réserve adverse reste privée.
+- Ce lot modifie la présentation. Le mode de bataille entièrement manuel, les compteurs libres et le glisser-déposer demandés lors du retour de démo restent à réaliser dans un lot distinct ; les règles d’action ci-dessous restent appliquées.
 
 ### Valeurs du catalogue courant
 
 Le signe `+` dans DT est conservé tel que visible dans la capture ; sa valeur numérique est utilisée comme DT dans la comparaison T contre DT, sans jet de sauvegarde (arbitrage de Nicolas). `—` représente l’absence de valeur offensive des Aides de camp.
 
-| Faction | Unité | Coût | Type | R | Dés | A/T | DA | DT | Capacité |
+| Faction | Unité | Coût | Type | R | Dés | C/T | DC | DT | Capacité |
 | --- | --- | ---: | --- | ---: | ---: | --- | ---: | --- | --- |
-| Gobelins | Bande de Gobelins | 1 | Troupe | 3 | 3 | A 2 | 2 | 1 | — |
+| Gobelins | Bande de Gobelins | 1 | Troupe | 3 | 3 | C 2 | 2 | 1 | — |
 | Gobelins | Archers Gobelins | 1 | Tir | 2 | 3 | T 1 | 1 | 1 | Tir en mêlée |
 | Gobelins | Shamans Gobelins | 1 | Tir | 1 | 1 | T 3 | 1 | 1 | Tir magique |
-| Gobelins | Chevaucheurs de Skrans Gobelins | 1 | Cavalerie | 2 | 3 | A 2 | 1 | 6+ | — |
-| Gobelins | Trolls | 4 | Élite | 3 | 2 | A 6 | 3 | 2+ | Trollitude |
-| Gobelins | Bande du chef | 3 | Élite | 2 | 3 | A 3 | 3 | 5+ | — |
-| Sephosi | Lanciers Sephosiens | 3 | Troupe | 3 | 2 | A 3 | 4 | 3+ | Repli stratégique |
+| Gobelins | Chevaucheurs de Skrans Gobelins | 1 | Cavalerie | 2 | 3 | C 2 | 1 | 6+ | — |
+| Gobelins | Trolls | 4 | Élite | 3 | 2 | C 6 | 3 | 2+ | Trollitude |
+| Gobelins | Bande du chef | 3 | Élite | 2 | 3 | C 3 | 3 | 5+ | — |
+| Sephosi | Lanciers Sephosiens | 3 | Troupe | 3 | 2 | C 3 | 4 | 3+ | Repli stratégique |
 | Sephosi | Arbalétriers Sephosiens | 2 | Tir | 1 | 2 | T 3 | 2 | 5+ | — |
-| Sephosi | Cavalerie lourde Sephosienne | 2 | Cavalerie | 2 | 2 | A 3 | 3 | 4+ | Charge puissante |
+| Sephosi | Cavalerie lourde Sephosienne | 2 | Cavalerie | 2 | 2 | C 3 | 3 | 4+ | Charge puissante |
 | Sephosi | Balistes Sephosiennes | 2 | Artillerie | 1 | 1 | T 6 | 1 | 6+ | — |
-| Sephosi | Anges Protecteurs de la Sephosi | 4 | Élite | 1 | 3 | A 4 | 5 | 3+ | Vol |
-| Sephosi | Aides de camp Sephosiens | 2 | Élite | 1 | 0 | A — | 1 | 6+ | Appui stratégique |
+| Sephosi | Anges Protecteurs de la Sephosi | 4 | Élite | 1 | 3 | C 4 | 5 | 3+ | Vol |
+| Sephosi | Aides de camp Sephosiens | 2 | Élite | 1 | 0 | C — | 1 | 6+ | Appui stratégique |
 
 **Interprétations WIP du tableau :** `2C`, `3C`, etc. dans la colonne Dés donnent respectivement 2, 3 dés. Le mode T des Arbalétriers et des Balistes est déduit de leur type, malgré les `2C`/`1C` du tableau. La colonne offensive intitulée A fournit aussi la valeur T des tireurs. Aucun score de protection P supplémentaire n’a été ajouté. « Bande du Sef » est corrigé en « Bande du chef » ; « Baliste Sephosiennes » est harmonisé en « Balistes Sephosiennes ».
 
-Correspondances conservant l’identité de carte : Troupe de Gobelins → Bande de Gobelins ; Shaman Gobelin → Shamans Gobelins ; Meneurs de Troll → Trolls ; Arbalétriers avec Pavois → Arbalétriers Sephosiens. La carte Action Tirs de Balistes est archivée ; Balistes Sephosiennes est une nouvelle unité. Les illustrations existantes sont réutilisées quand disponibles ; Skrans, Bande du chef, Anges et Aides de camp ont une illustration d’attente.
+Correspondances conservant l’identité de carte : Troupe de Gobelins → Bande de Gobelins ; Shaman Gobelin → Shamans Gobelins ; Meneurs de Troll → Trolls ; Arbalétriers avec Pavois → Arbalétriers Sephosiens. La carte Action Tirs de Balistes est archivée ; Balistes Sephosiennes est une nouvelle unité. Les illustrations carrées reçues le 7 septembre remplacent celles de la Bande de Gobelins, des Archers, des Shamans, des Lanciers, des Arbalétriers et de la Cavalerie Sephosi. Les autres illustrations existantes sont conservées ; Skrans, Bande du chef, Anges et Aides de camp ont une illustration d’attente.
 
 ## 2. Decks et lobby
 
@@ -103,7 +112,7 @@ Parcours : **decks → sélection privée des unités → initiative → déploi
 | COMBAT-01 | Charges alternées, initiative en premier. Une unité non engagée choisit un ennemi adjacent ; elle gagne **+1 dé** pour le combat de ce tour. Terminer ses charges renonce aux suivantes pour ce tour. PDF p. 4. |
 | COMBAT-02 | Une charge crée un lien d’engagement entre les unités, sans déplacement de case. Être simplement adjacent ne crée pas de lien automatiquement. Les engagements persistent aux tours suivants jusqu’à destruction ou désengagement. Interprétation WIP. |
 | COMBAT-03 | Après les charges, le joueur ayant l’initiative choisit le prochain groupe d’unités reliées par des engagements. Chaque joueur attribue une cible engagée à chacune de ses unités de corps à corps ; une cible unique est présélectionnée. Les deux valident avant les jets. |
-| COMBAT-04 | A contre DA, nombre de dés du profil, +1 dé si l’unité a chargé ce tour. Les unités T ne lancent aucun dé de corps à corps mais subissent les dégâts. Toutes les attaques du groupe sont calculées avant d’appliquer simultanément les pertes de R, même si une unité est tuée. 1 R par touche. PDF p. 4–5 ; résolution en groupes précisée §7. |
+| COMBAT-04 | C contre DC (anciens intitulés A contre DA), nombre de dés du profil, +1 dé si l’unité a chargé ce tour. Les unités T ne lancent aucun dé de corps à corps mais subissent les dégâts. Toutes les attaques du groupe sont calculées avant d’appliquer simultanément les pertes de R, même si une unité est tuée. 1 R par touche. PDF p. 4–5 ; résolution en groupes précisée §7. |
 | COMBAT-05 | Surnombre si la cible a plusieurs ennemis engagés et si chacun est engagé uniquement avec elle : chaque attaquant peut relancer jusqu’à N−1 dés ratés, N étant le nombre d’ennemis de la cible. Automatique, non cumulable avec les relances du tableau. PDF p. 4. |
 | DICE-01 | Tableau p. 5 : seuil = 4 − (valeur offensive − défense), borné entre 2+ et 6+. Écart ≥ 3 : relance une fois chaque échec. Écart ≤ −4 : toute réussite doit être confirmée par une relance. Les autres cas permettent la relance de surnombre si applicable. Le serveur produit tous les dés. |
 | END-01 | Après les combats : **1 PS par zone centrale contrôlée**. Il faut au moins une unité alliée non engagée et aucune unité ennemie dans la zone. Le calcul est automatique ; il remplace la déclaration manuelle de la démo. PDF p. 5. |

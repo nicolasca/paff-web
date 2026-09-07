@@ -129,3 +129,24 @@
 .deck-summary__unit-types > div { display: flex; gap: 0.5rem; font-size: 0.75rem; }
 .deck-summary__unit-types dt { color: var(--parchment-300); }
 .deck-summary__unit-types dd { margin: 0; color: var(--bronze-400); font-weight: 600; }
+
+/* Galerie de faction : même vocabulaire que le catalogue. */
+.decks-page { background: #111112; }
+.deck-detail { padding: 0 clamp(1rem, 2vw, 2rem) 2rem; background: linear-gradient(#111112 18rem, color-mix(in srgb, var(--faction-color) 7%, #111112)); }
+.deck-detail > .faction-banner { margin-inline: calc(-1 * clamp(1rem, 2vw, 2rem)); margin-bottom: 1.5rem; min-height: 10rem; padding-block: 1.5rem; }
+.deck-detail > .faction-banner h2 { font-size: clamp(2rem, 4vw, 3rem); }
+.deck-detail .deck-breadcrumb { margin-bottom: 1.5rem; }
+.deck-detail .deck-workspace { grid-template-columns: minmax(0, 1fr) 18rem; }
+.deck-detail .deck-summary { background: #1c1c1e; border-top-color: var(--faction-accent); }
+.deck-detail .deck-faction-picker { background: #1c1c1e; }
+.deck-detail .deck-card-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: 1.75rem; }
+.deck-detail .deck-summary__title .eyebrow, .deck-detail .deck-summary__unit-types dd { color: var(--faction-accent); }
+.deck-detail .cost-curve__bars i { background: var(--faction-accent); }
+.deck-tile { border: 1px solid #050505; border-radius: 0 0 .75rem .75rem; background: color-mix(in srgb, var(--faction-surface) 24%, #1c1c1e); }
+.deck-tile__cover { height: 12rem; border-bottom: 3px solid var(--faction-surface); }
+.deck-tile__cover > img { object-position: center; border-color: #111112; }
+.deck-tile__factions { color: var(--faction-accent); }
+.deck-tile h2 { font: 600 1.5rem/1.3 var(--body); }
+.deck-tile:hover { border-color: #050505; box-shadow: 0 12px 24px #0005; }
+@media (max-width: 850px) { .deck-detail .deck-workspace { grid-template-columns: 1fr; } .deck-detail .deck-summary { position: static; grid-row: 1; } }
+@media (max-width: 600px) { .deck-detail .deck-card-grid { grid-template-columns: minmax(0, 22rem); justify-content: center; } .deck-detail { padding-inline: 0; } .deck-detail > .faction-banner { margin-inline: -1rem; } }
