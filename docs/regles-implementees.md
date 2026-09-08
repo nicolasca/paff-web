@@ -1,16 +1,18 @@
 # PAFF — règles implémentées
 
-**État du 7 septembre 2026 · version de partie `2026-09-06-actions-1` · catalogue `2026-09-06-wip`.**
+**État du 8 septembre 2026 · version de partie `2026-09-06-actions-1` · catalogue `2026-09-08-wip`.**
 
 Ce document décrit le comportement du site pour les nouvelles parties de cette version. Il sert de référence pour comparer l’application avec les prochaines versions du Drive. Il ne remplace pas les règles du créateur : les points encore provisoires sont indiqués explicitement.
 
 Sources : PDF « PAFF 2026 – Règles », huit captures du Drive du 6 septembre 2026 (12:22:29 à 12:23:34) et décisions de Nicolas : sélection privée avant initiative, placement obligatoire de toute la sélection, décors reportés, correction des placements, « Bande du chef », remplacement des Meneurs de Troll par Trolls et points stratégiques déclarés manuellement pour l’ancienne démo. Nouvelle référence : PDF « PAFF 2026 – Règles (1).pdf » transmis le 6 septembre 2026, pages 1–6. Arbitrages de Nicolas pour cette version : portée de tir en **cases**, **T contre DT, puis 1 R perdu par touche**, sans sauvegarde.
 
+Référence catalogue du 8 septembre 2026 : tableau transmis par Nicolas dans la conversation, colonnes Faction, Nom, Type, Pts déploiement, R, Dés, Cac/Tir, A, DC, DT, Capacités et Statut. Seules les lignes **OK** sont ajoutées ou actualisées. Cette révision est préparée sur la branche de travail ; elle sera appliquée aux données Convex au prochain import du catalogue.
+
 ## 1. Catalogue et profils
 
 | Référence | Comportement appliqué |
 | --- | --- |
-| CAT-01 | Le catalogue public possède quatre factions. Les listes Gobelins et Sephosi utilisent les 12 unités ci-dessous. Orcs et Gaeli conservent leurs anciennes cartes et leurs profils estimés. |
+| CAT-01 | Le catalogue possède quatre factions. Les listes Gobelins et Sephosi de cette révision comptent 15 unités (7 Gobelins, 8 Sephosi) : 11 profils OK du 8 septembre et 4 profils WIP conservés de la version précédente. Orcs et Gaeli conservent leurs anciennes cartes et leurs profils estimés. |
 | CAT-02 | Une unité possède un nom, un coût, un type, R (points de Régiment), un nombre de dés, un mode offensif unique C ou T, une valeur offensive, DC et DT. Le nombre de dés est indépendant de C/T. L’affichage du 7 septembre remplace DA par DC et regroupe score et mode, par exemple `4C` ou `3T` ; les valeurs et calculs restent identiques. |
 | CAT-03 | Types disponibles : Troupe, Tir, Cavalerie, Artillerie, Élite, Unique. Cavalerie et Artillerie ont désormais leurs règles de mouvement/portée ; le mode C ou T détermine les attaques possibles. |
 | CAT-04 | Les capacités des nouvelles unités sont affichées avec un intitulé et une infobulle indiquant que leur effet reste à définir/implémenter. Elles n’ont aucun effet en jeu. |
@@ -28,26 +30,33 @@ Sources : PDF « PAFF 2026 – Règles », huit captures du Drive du 6 septembre
 
 ### Valeurs du catalogue courant
 
-Le signe `+` dans DT est conservé tel que visible dans la capture ; sa valeur numérique est utilisée comme DT dans la comparaison T contre DT, sans jet de sauvegarde (arbitrage de Nicolas). `—` représente l’absence de valeur offensive des Aides de camp.
+Les 11 profils OK reprennent les valeurs du tableau du 8 septembre, sans `+` dans DT. Les quatre profils WIP conservent leurs anciennes valeurs, y compris le signe `+` ; la valeur numérique reste utilisée comme DT dans la comparaison T contre DT, sans jet de sauvegarde (arbitrage de Nicolas). `—` représente l’absence de valeur offensive des Aides de camp.
 
 | Faction | Unité | Coût | Type | R | Dés | C/T | DC | DT | Capacité |
 | --- | --- | ---: | --- | ---: | ---: | --- | ---: | --- | --- |
 | Gobelins | Bande de Gobelins | 1 | Troupe | 3 | 3 | C 2 | 2 | 1 | — |
 | Gobelins | Archers Gobelins | 1 | Tir | 2 | 3 | T 1 | 1 | 1 | Tir en mêlée |
 | Gobelins | Shamans Gobelins | 1 | Tir | 1 | 1 | T 3 | 1 | 1 | Tir magique |
-| Gobelins | Chevaucheurs de Skrans Gobelins | 1 | Cavalerie | 2 | 3 | C 2 | 1 | 6+ | — |
+| Gobelins | Chevaucheurs de Skrans Gobelins | 1 | Cavalerie | 2 | 2 | C 2 | 2 | 1 | — |
+| Gobelins | Katapult à gobs | 2 | Artillerie | 1 | 1 | T 5 | 1 | 1 | Pluie de gobs |
 | Gobelins | Trolls | 4 | Élite | 3 | 2 | C 6 | 3 | 2+ | Trollitude |
 | Gobelins | Bande du chef | 3 | Élite | 2 | 3 | C 3 | 3 | 5+ | — |
-| Sephosi | Lanciers Sephosiens | 3 | Troupe | 3 | 2 | C 3 | 4 | 3+ | Repli stratégique |
-| Sephosi | Arbalétriers Sephosiens | 2 | Tir | 1 | 2 | T 3 | 2 | 5+ | — |
-| Sephosi | Cavalerie lourde Sephosienne | 2 | Cavalerie | 2 | 2 | C 3 | 3 | 4+ | Charge puissante |
-| Sephosi | Balistes Sephosiennes | 2 | Artillerie | 1 | 1 | T 6 | 1 | 6+ | — |
+| Sephosi | Lanciers Sephosiens | 3 | Troupe | 3 | 2 | C 3 | 4 | 3 | Mur de lance |
+| Sephosi | Epéistes Sephosiens | 3 | Troupe | 3 | 3 | C 4 | 3 | 2 | — |
+| Sephosi | Arbalétriers Sephosiens | 2 | Tir | 2 | 2 | T 3 | 1 | 2 | — |
+| Sephosi | Cavalerie lourde Sephosienne | 3 | Cavalerie | 2 | 1 | C 4 | 3 | 2 | Charge puissante |
+| Sephosi | Arbalétriers Montés | 2 | Cavalerie | 1 | 1 | T 3 | 1 | 1 | Tir en mouvement |
+| Sephosi | Balistes Sephosiennes | 2 | Artillerie | 1 | 1 | T 6 | 1 | 1 | — |
 | Sephosi | Anges Protecteurs de la Sephosi | 4 | Élite | 1 | 3 | C 4 | 5 | 3+ | Vol |
 | Sephosi | Aides de camp Sephosiens | 2 | Élite | 1 | 0 | C — | 1 | 6+ | Appui stratégique |
 
-**Interprétations WIP du tableau :** `2C`, `3C`, etc. dans la colonne Dés donnent respectivement 2, 3 dés. Le mode T des Arbalétriers et des Balistes est déduit de leur type, malgré les `2C`/`1C` du tableau. La colonne offensive intitulée A fournit aussi la valeur T des tireurs. Aucun score de protection P supplémentaire n’a été ajouté. « Bande du Sef » est corrigé en « Bande du chef » ; « Baliste Sephosiennes » est harmonisé en « Balistes Sephosiennes ».
+**Périmètre du 8 septembre :** Katapult à gobs et Epéistes Sephosiens sont ajoutés ; les Arbalétriers Montés sont réactivés avec leur ancien identifiant. Les lignes OK existantes sont actualisées. Les nouvelles capacités « Mur de lance », « Pluie de gobs » et « Tir en mouvement » sont des intitulés affichés, sans effet supplémentaire implémenté (CAT-04).
 
-Correspondances conservant l’identité de carte : Troupe de Gobelins → Bande de Gobelins ; Shaman Gobelin → Shamans Gobelins ; Meneurs de Troll → Trolls ; Arbalétriers avec Pavois → Arbalétriers Sephosiens. La carte Action Tirs de Balistes est archivée ; Balistes Sephosiennes est une nouvelle unité. Les illustrations carrées reçues le 7 septembre remplacent celles de la Bande de Gobelins, des Archers, des Shamans, des Lanciers, des Arbalétriers et de la Cavalerie Sephosi. Les autres illustrations existantes sont conservées ; Skrans, Bande du chef, Anges et Aides de camp ont une illustration d’attente.
+**Profils WIP conservés :** Trolls, Bande du chef, Anges Protecteurs et Aides de camp restent identiques à la version du 6 septembre. En particulier, la Bande du chef reste à **2 R** : les 4 R de « Bande du Sef » sont exclus car cette ligne est « à MAJ ». Les Aides de camp ne sont pas renommés « Porte-ordres » à ce stade. Les Gros tarrés, Le Danzereu, Blop et Maréchal Deliamonte ne sont pas ajoutés ; le Régiment de la Salamandre reste archivé.
+
+**Interprétations WIP conservées :** `2C`, `3C`, etc. des anciens profils donnent respectivement 2, 3 dés et le mode corps à corps. Les lignes OK du 8 septembre distinguent désormais explicitement dés et mode C/T. La colonne offensive intitulée A fournit la valeur de C ou T selon le mode. Aucun score de protection P supplémentaire n’a été ajouté. « Bande du Sef » reste corrigé en « Bande du chef » ; « Baliste Sephosiennes » reste harmonisé en « Balistes Sephosiennes ».
+
+Correspondances conservant l’identité de carte : Troupe de Gobelins → Bande de Gobelins ; Shaman Gobelin → Shamans Gobelins ; Meneurs de Troll → Trolls ; Arbalétriers avec Pavois → Arbalétriers Sephosiens ; Arbalétriers Montés Sephosiens → Arbalétriers Montés. La carte Action Tirs de Balistes reste archivée ; Balistes Sephosiennes est une unité distincte. Les illustrations carrées reçues le 7 septembre remplacent celles de la Bande de Gobelins, des Archers, des Shamans, des Lanciers, des Arbalétriers et de la Cavalerie Sephosi. Celles du 8 septembre sont associées à la Bande du chef (`chef-gob.png`), aux Anges (`anges-2.png`), aux Aides de camp (`messager.png`) et aux Epéistes (`epeistes.png`). `sala-7.png` remplace seulement l’illustration de la carte archivée Régiment de la Salamandre. Skrans et Katapult utilisent l’illustration d’attente ; les Arbalétriers Montés conservent leur ancienne illustration.
 
 ## 2. Decks et lobby
 
