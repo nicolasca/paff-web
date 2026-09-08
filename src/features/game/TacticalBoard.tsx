@@ -63,6 +63,7 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
               draggable={!busy && Boolean(interaction?.canDrag(cell))}
               onDragStart={(event) => { setHovered(null); interaction?.onDrag(cell, event) }}
               onDragEnd={() => interaction?.onDragEnd()}
+              onDragEnter={(event) => { if (allowed && !busy && interaction) event.preventDefault() }}
               onDragOver={(event) => { if (allowed && !busy && interaction) { event.preventDefault(); event.dataTransfer.dropEffect = 'move' } }}
               onDrop={(event) => { event.preventDefault(); if (allowed && !busy) interaction?.onDrop(cell) }}
               onContextMenu={(event) => { if (unit && interaction) { event.preventDefault(); setHovered(null); if (!busy) interaction.onCompare(cell) } }}

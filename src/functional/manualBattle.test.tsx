@@ -50,6 +50,8 @@ describe('manual tabletop across two real clients', () => {
       const dataTransfer = { setData: vi.fn(), effectAllowed: '', dropEffect: '' }
       fireEvent.dragStart(element, { dataTransfer })
       const target = await p(user).findByRole('button', { name: destination })
+      // Native browsers may enter and drop before sending a dragover.
+      expect(fireEvent.dragEnter(target, { dataTransfer })).toBe(false)
       fireEvent.dragOver(target, { dataTransfer })
       fireEvent.drop(target, { dataTransfer })
       fireEvent.dragEnd(element)

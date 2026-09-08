@@ -67,6 +67,7 @@
 .manual-reserve header p { margin: 0; color: #9fae93; font-size: .65rem; }
 .manual-reserve-cards { display: flex; gap: 1rem; overflow-x: auto; padding: .3rem .2rem 1rem; align-items: stretch; }
 .manual-reserve-card { width: 11.5rem; flex-shrink: 0; cursor: grab; }
+.manual-reserve-card img { pointer-events: none; -webkit-user-drag: none; }
 .manual-reserve-card .unit-card__header h2 { font-size: .85rem; }
 .manual-reserve-card .unit-card__type { min-width: 1.2rem; height: 1.2rem; font-size: .65rem; }
 .manual-reserve-card .unit-card__body { padding: .6rem; }
