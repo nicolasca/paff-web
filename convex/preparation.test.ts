@@ -5,7 +5,8 @@ const code = (code: string) => ({ data: { code } })
 afterEach(() => vi.restoreAllMocks())
 
 async function preparation() {
-  const h = createGameHarness({ legacyDemo: true })
+  const h = createGameHarness()
+  h.tables.cards[0].cost = 1
   // A second unit type lets tests distinguish the chosen subset from the deck.
   h.tables.cards.push({ ...h.tables.cards[0], _id: 'other-unit', stableId: 'lanciers', name: 'Lanciers' })
   h.tables.deckCards.push({ _id: 'lanciers-1', deckId: 'deck-1', cardId: 'other-unit', quantity: 3 })
@@ -76,7 +77,7 @@ describe('unit selection before initiative', () => {
   })
   it('opens an empty preparation after both decks and waits for both confirmations', async () => {
     const { run, gameId, read, choose, validate } = await preparation()
-    expect(await read()).toMatchObject({ phase: 'preparation', setup: { version: 3 }, players: [{ preparationReady: false, preparationCount: 0, deploymentCount: 0, drawPileCount: 10 }, { preparationReady: false, preparationCount: 0 }] })
+    expect(await read()).toMatchObject({ phase: 'preparation', setup: { version: 3 }, players: [{ preparationReady: false, preparationCount: 0, deploymentCount: 0, drawPileCount: 8 }, { preparationReady: false, preparationCount: 0 }] })
     await expect(run('rollInitiative', 1, { gameId, round: 1 })).rejects.toMatchObject(code('WRONG_GAME_PHASE'))
     await choose(1, 2)
     await validate(1)
@@ -100,7 +101,7 @@ describe('unit selection before initiative', () => {
     await choose(1, 2)
     await run('updatePreparation', 1, { gameId, cardStableId: 'archers', change: { delta: 1 } })
     await run('updatePreparation', 1, { gameId, cardStableId: 'archers', change: { delta: -1 } })
-    expect((await read()).players[0]).toMatchObject({ preparationCount: 2, deploymentCount: 0, drawPileCount: 8 })
+    expect((await read()).players[0]).toMatchObject({ preparationCount: 2, deploymentCount: 0, drawPileCount: 6 })
   })
   it('reveals only the selected count, then only individual units as they are placed', async () => {
     const { choose, read, initiative, deploy } = await preparation()
@@ -135,7 +136,7 @@ describe('unit selection before initiative', () => {
     await finish(1)
     const game = await read()
     expect(game.phase).toBe('battle')
-    expect(game.players.map((player) => [player.preparationCount, player.deploymentCount, player.drawPileCount])).toEqual([[2, 2, 8], [1, 1, 6]])
+    expect(game.players.map((player) => [player.preparationCount, player.deploymentCount, player.drawPileCount])).toEqual([[2, 2, 6], [1, 1, 4]])
     expect(game.setup!.units).toHaveLength(3)
   })
   it('allows zero selected units even in a nonempty deck', async () => {
@@ -143,12 +144,12 @@ describe('unit selection before initiative', () => {
     await initiative()
     await finish(1)
     await finish(2)
-    expect((await read()).players.map((player) => player.drawPileCount)).toEqual([10, 7])
+    expect((await read()).players.map((player) => player.drawPileCount)).toEqual([8, 5])
     expect((await read()).phase).toBe('battle')
   })
   it('refuses selections that cannot fit the board before locking them', async () => {
     const { tables, choose, validate, read } = await preparation()
-    for (const card of tables.gameCards) card.quantity = 25
+    for (const card of tables.gameCards) { card.quantity = 25; card.cost = 0 }
     await choose(1, 19)
     await expect(validate(1)).rejects.toMatchObject(code('PREPARATION_TOO_LARGE'))
     expect((await read()).players[0].preparationReady).toBe(false)

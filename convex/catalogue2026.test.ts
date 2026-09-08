@@ -6,7 +6,7 @@ import { catalogue2026, CATALOGUE_VERSION } from '../shared/catalogue2026'
 function setup() {
   const h = createGameHarness()
   h.tables.factions.push({ ...h.tables.factions[0], _id: 'sephosi', stableId: 'sephosi', name: 'Céphosi' }, { ...h.tables.factions[0], _id: 'orcs', stableId: 'orcs' })
-  h.tables.cards.push({ ...h.tables.cards[0], _id: 'troll', stableId: 'gobelins-meneurs-de-troll', name: 'Meneurs de Troll', dataVersion: 'paff-v100' }, { ...h.tables.cards[0], _id: 'orc', stableId: 'orc', factionId: 'orcs' })
+  h.tables.cards.push({ ...h.tables.cards[0], _id: 'troll', stableId: 'gobelins-meneurs-de-troll', name: 'Meneurs de Troll', dataVersion: 'paff-v100', profile: { unitType: 'elite', regiment: 3, dice: 2, offense: { kind: 'melee', score: 6 }, defenseMelee: 3, defenseRanged: 2, source: 'defined' } }, { ...h.tables.cards[0], _id: 'orc', stableId: 'orc', factionId: 'orcs' })
   h.tables.deckCards.push({ _id: 'troll-deck', deckId: 'deck-1', cardId: 'troll', quantity: 3 })
   const apply = () => h.invoke('catalogue2026', 'apply', 0)
   return { ...h, apply }
@@ -31,7 +31,7 @@ describe('authoritative WIP roster', () => {
   })
   it('preserves frozen game profiles and offers a repair path for decks containing retired cards', async () => {
     const { tables, run, readyFor, invoke, apply } = setup()
-    await readyFor('deployment')
+    await readyFor('preparation')
     const frozen = structuredClone(tables.gameCards)
     await apply()
     expect(tables.gameCards).toEqual(frozen)

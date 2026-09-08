@@ -1,7 +1,7 @@
 import { createContext } from 'react'
 import { createGameHarness } from './gameHarness'
 
-type Entry = { module: 'games' | 'decks' | 'players' | 'actions'; name: string; user: number; args: Record<string, unknown>; value?: unknown; error?: unknown; listeners: Set<() => void> }
+type Entry = { module: 'games' | 'decks' | 'players' | 'manual'; name: string; user: number; args: Record<string, unknown>; value?: unknown; error?: unknown; listeners: Set<() => void> }
 
 // Only the transport/database are replaced. Queries, mutations, routes and screens
 // are the application's real code; the test never assigns game phases itself.
@@ -23,7 +23,7 @@ export function createFunctionalTransport(harness = createGameHarness()) {
   }
   function parse(reference: string): Pick<Entry, 'module' | 'name'> {
     const [module, name] = reference.split(':')
-    if (module !== 'games' && module !== 'decks' && module !== 'players' && module !== 'actions') throw new Error(`Unexpected API request: ${reference}`)
+    if (module !== 'games' && module !== 'decks' && module !== 'players' && module !== 'manual') throw new Error(`Unexpected API request: ${reference}`)
     return { module, name }
   }
   return {

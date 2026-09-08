@@ -1,6 +1,10 @@
 import { ConvexError } from 'convex/values'
 
 const messages: Record<string, string> = {
+  CELL_OCCUPIED: 'Cette case vient d’être occupée. Choisissez une case libre.',
+  INVALID_MANUAL_COUNTER: 'Le compteur a atteint sa limite.',
+  INVALID_DICE_COUNT: 'Choisissez entre 1 et 100 dés à six faces.',
+  INVALID_DUEL: 'Choisissez deux unités de camps différents sur le plateau.',
   ALREADY_IN_GAME: 'Vous êtes déjà dans une partie. Reprenez-la depuis le lobby.',
   GAME_NOT_AVAILABLE: 'Cette partie n’est plus disponible.',
   GAME_FULL: 'La dernière place vient d’être prise.',
@@ -17,17 +21,7 @@ const messages: Record<string, string> = {
   DEPLOYMENT_BUDGET_EXCEEDED: 'Choisissez au maximum 21 points à déployer.',
   RESERVE_BUDGET_EXCEEDED: 'La réserve ne peut pas dépasser 12 points. Choisissez davantage d’unités à déployer.',
   INVALID_MOVEMENT: 'Cette destination est inaccessible pour cette unité.',
-  INVALID_SHOT: 'Cette cible ne peut pas être visée par cette unité.',
-  INVALID_CHARGE: 'Choisissez une unité libre et un ennemi adjacent.',
-  ORDER_ZONE_MISMATCH: 'Cet ordre concerne les unités d’une même zone.',
-  UNIT_ALREADY_ACTED: 'Cette unité a déjà agi pour cet ordre.',
-  NOT_ENOUGH_STRATEGY: 'Vous n’avez pas assez de points stratégiques.',
-  NOT_ENOUGH_RECRUITMENT: 'Le budget de recrutement est insuffisant.',
-  INVALID_RECRUITMENT_CELL: 'Choisissez une case libre dans une zone autorisée de votre camp.',
   RESERVE_EMPTY: 'Cet exemplaire n’est plus disponible dans votre réserve.',
-  COMBAT_TARGETS_MISSING: 'Choisissez une cible pour chacune de vos unités de corps à corps.',
-  INITIATIVE_PLAYER_ONLY: 'Le joueur ayant l’initiative choisit le combat à résoudre.',
-  BASE_ORDERS_REMAINING: 'Jouez vos trois ordres avant de terminer.',
   STALE_GAME_ACTION: 'La partie a évolué. Consultez les informations actualisées avant de rejouer.',
   NOT_YOUR_TURN: 'C’est à votre adversaire de déployer une unité.',
   INITIATIVE_PENDING: 'Les deux joueurs doivent lancer leur dé avant de continuer.',
@@ -38,13 +32,8 @@ const messages: Record<string, string> = {
   DEPLOYMENT_INCOMPLETE: 'Placez toutes les unités choisies avant de terminer le déploiement.',
   UNIT_NOT_PREPARED: 'Cet exemplaire ne fait pas partie des unités choisies avant l’initiative.',
   UNIT_NOT_OWNED: 'Choisissez une de vos unités déjà placées.',
-  WRONG_BATTLE_PHASE: 'La phase du tour a changé. Les informations vont se mettre à jour.',
-  NOT_YOUR_ORDER_TURN: 'C’est à votre adversaire de choisir ou de passer un ordre.',
+  WRONG_BATTLE_PHASE: 'Le plateau n’est pas disponible à cette étape de la partie.',
   ORDER_NOT_AVAILABLE: 'Cet ordre n’est pas disponible pour vous.',
-  ORDER_EXHAUSTED: 'Vous avez déjà utilisé tous les exemplaires de cet ordre.',
-  ORDER_QUOTA_REACHED: 'Vous avez choisi tous vos ordres pour ce tour.',
-  ROUND_ALREADY_CONFIRMED: 'Vos points sont déjà validés pour ce tour.',
-  INVALID_STRATEGY_POINTS: 'Déclarez un nombre entier de 0 à 3 points stratégiques.',
 }
 export const gameErrorMessage = (code: string) => messages[code] ?? 'La modification n’a pas été enregistrée. Réessayez.'
 export function gameError(error: unknown) {
