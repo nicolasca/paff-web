@@ -6,20 +6,21 @@ import { catalogue2026, CATALOGUE_VERSION } from '../shared/catalogue2026'
 function setup() {
   const h = createGameHarness()
   h.tables.factions.push({ ...h.tables.factions[0], _id: 'sephosi', stableId: 'sephosi', name: 'Céphosi' }, { ...h.tables.factions[0], _id: 'orcs', stableId: 'orcs' })
-  h.tables.cards.push({ ...h.tables.cards[0], _id: 'troll', stableId: 'gobelins-meneurs-de-troll', name: 'Meneurs de Troll', dataVersion: 'paff-v100' }, { ...h.tables.cards[0], _id: 'orc', stableId: 'orc', factionId: 'orcs' })
+  h.tables.cards.push({ ...h.tables.cards[0], _id: 'troll', stableId: 'gobelins-meneurs-de-troll', name: 'Meneurs de Troll', dataVersion: 'paff-v100', profile: { unitType: 'elite', regiment: 3, dice: 2, offense: { kind: 'melee', score: 6 }, defenseMelee: 3, defenseRanged: 2, source: 'defined' } }, { ...h.tables.cards[0], _id: 'orc', stableId: 'orc', factionId: 'orcs' })
   h.tables.deckCards.push({ _id: 'troll-deck', deckId: 'deck-1', cardId: 'troll', quantity: 3 })
   const apply = () => h.invoke('catalogue2026', 'apply', 0)
   return { ...h, apply }
 }
 
 describe('authoritative WIP roster', () => {
-  it('publishes six units per faction, renames Trolls in place and archives removed cards without deleting deck entries', async () => {
+  it('publishes seven Goblin and eight Sephosi units and preserves existing deck references', async () => {
     const { tables, apply } = setup()
     const entries = structuredClone(tables.deckCards)
     const orc = structuredClone(tables.cards.find((card) => card._id === 'orc'))
-    expect(await apply()).toEqual({ created: 11, updated: 1, archived: 2 })
+    expect(await apply()).toEqual({ created: 14, updated: 1, archived: 2 })
     expect(tables.cards.find((card) => card._id === 'troll')).toMatchObject({ name: 'Trolls', cost: 4, profile: { regiment: 3, dice: 2, defenseRangedFormat: 'threshold', defenseRanged: 2 }, dataVersion: CATALOGUE_VERSION, deckLimit: undefined })
-    for (const faction of ['faction', 'sephosi']) expect(tables.cards.filter((card) => card.factionId === faction && card.status === 'published')).toHaveLength(6)
+    expect(tables.cards.filter((card) => card.factionId === 'faction' && card.status === 'published')).toHaveLength(7)
+    expect(tables.cards.filter((card) => card.factionId === 'sephosi' && card.status === 'published')).toHaveLength(8)
     expect(tables.cards.find((card) => card._id === 'unit')?.status).toBe('archived')
     expect(tables.deckCards).toEqual(entries)
     expect(tables.cards.find((card) => card._id === 'orc')).toEqual(orc)
@@ -31,7 +32,7 @@ describe('authoritative WIP roster', () => {
   })
   it('preserves frozen game profiles and offers a repair path for decks containing retired cards', async () => {
     const { tables, run, readyFor, invoke, apply } = setup()
-    await readyFor('deployment')
+    await readyFor('preparation')
     const frozen = structuredClone(tables.gameCards)
     await apply()
     expect(tables.gameCards).toEqual(frozen)
@@ -49,8 +50,23 @@ describe('authoritative WIP roster', () => {
     expect(me.cards).toHaveLength(1)
     expect(me.cards[0]).toMatchObject({ name: 'Trolls', quantity: 3, profile: { offense: { score: 6 } } })
   })
-  it('keeps the screenshot’s unusual values and supplies an existing image for every current unit', () => {
-    expect(catalogue2026.find((unit) => unit.name === 'Bande du chef')).toBeDefined()
+  it('reactivates mounted crossbowmen in place without publishing the WIP Salamander regiment', async () => {
+    const { tables, apply } = setup()
+    const base = tables.cards[0]
+    tables.cards.push(
+      { ...base, _id: 'mounted', factionId: 'sephosi', stableId: 'sephosi-arbaletriers-montes-sephosiens', status: 'archived', dataVersion: 'paff-v100' },
+      { ...base, _id: 'salamander', factionId: 'sephosi', stableId: 'sephosi-regiment-de-la-salamandre', status: 'archived', dataVersion: 'paff-v100' },
+    )
+    tables.deckCards.push({ _id: 'mounted-deck', deckId: 'deck-2', cardId: 'mounted', quantity: 2 })
+    const entries = structuredClone(tables.deckCards)
+    await apply()
+    expect(tables.cards.filter((card) => card.stableId === 'sephosi-arbaletriers-montes-sephosiens')).toHaveLength(1)
+    expect(tables.cards.find((card) => card._id === 'mounted')).toMatchObject({ status: 'published', name: 'Arbalétriers Montés', profile: { unitType: 'cavalry', offense: { kind: 'ranged' } } })
+    expect(tables.cards.find((card) => card._id === 'salamander')?.status).toBe('archived')
+    expect(tables.deckCards).toEqual(entries)
+  })
+  it('preserves excluded WIP values and supplies an existing image for every current unit', () => {
+    expect(catalogue2026.find((unit) => unit.name === 'Bande du chef')?.profile.regiment).toBe(2)
     expect(catalogue2026.some((unit) => unit.name.includes('Sef'))).toBe(false)
     expect(catalogue2026.find((unit) => unit.name === 'Aides de camp Sephosiens')?.profile).toMatchObject({ dice: 0, offense: { score: null }, defenseRanged: 6, defenseRangedFormat: 'threshold' })
     expect(catalogue2026.find((unit) => unit.name === 'Archers Gobelins')?.profile).toMatchObject({ regiment: 2, dice: 3, offense: { kind: 'ranged', score: 1 }, defenseRanged: 1 })

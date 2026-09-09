@@ -1,0 +1,103 @@
+.game-page--manual { padding-top: 1rem; }
+.game-page--manual .game-shell { width: min(100% - 3rem, 1580px); }
+.game-page--manual .game-page-heading--room { padding: 1.1rem 0 1.4rem; }
+.game-page--manual .game-page-heading h1 { font-size: clamp(1.4rem, 2.4vw, 2rem); }
+.game-page--manual .game-page-heading .eyebrow { display: none; }
+.manual-battle { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 1rem; align-items: start; }
+.manual-toolbar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.2rem; background: #1c211d; border: 1px solid #b39c6340; border-radius: .5rem; }
+.manual-toolbar h2 { margin: 0; font: 500 1.2rem var(--display); }
+.manual-toolbar .eyebrow { margin: 0 0 .3rem; font-size: .55rem; }
+.manual-turn, .manual-strategy { display: flex; align-items: center; gap: .85rem; font-size: .85rem; }
+.manual-turn > span { color: #c4b58f; }
+.manual-strategy small { display: block; margin-top: .25rem; color: #acb4a9; font-size: .6rem; }
+.manual-strategy--opponent > output { font: 600 1.3rem var(--body); color: #ddbcb0; }
+.manual-main { min-width: 0; }
+.manual-instructions { margin: 0 0 .8rem; font-size: .75rem; line-height: 1.6; color: #d4c9ae; }
+.manual-instructions > span { display: block; font-size: .65rem; color: #939d90; }
+.manual-placement { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .4rem .75rem; margin-bottom: .6rem; border: 1px solid #cfb87b66; border-radius: .25rem; color: #e0cfa0; font-size: .75rem; }
+.manual-placement button, .manual-text-button { border: none; padding: .25rem 0; background: transparent; color: #cbbb91; font: inherit; font-size: .72rem; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
+.manual-sidebar { display: grid; gap: .8rem; min-width: 0; }
+.manual-panel { min-width: 0; padding: 1rem; border: 1px solid #a6a08835; border-radius: .5rem; background: #1a1d19; }
+.manual-panel > header, .manual-reserve > header { display: flex; justify-content: space-between; align-items: center; gap: .6rem; margin-bottom: .85rem; }
+.manual-panel h3, .manual-reserve h3 { margin: 0; font: 500 1rem var(--display); }
+.manual-panel > header > span { color: #a7a58f; font-size: .6rem; }
+.manual-counter { display: inline-flex; align-items: center; border: 1px solid #9c98744d; border-radius: .3rem; background: #111511; flex-shrink: 0; }
+.manual-counter button { width: 1.85rem; min-height: 1.85rem; padding: 0; border: 0; background: transparent; color: #ddcfac; font: 500 1rem var(--body); cursor: pointer; }
+.manual-counter output { min-width: 1.65rem; text-align: center; color: #f1e9d6; font-size: .82rem; font-variant-numeric: tabular-nums; }
+.manual-counter button:hover:not(:disabled) { background: #bdac7840; }
+.manual-battle button:disabled { opacity: .4; cursor: default; }
+.manual-battle button:focus-visible, .manual-battle select:focus-visible, .manual-battle input:focus-visible, .manual-order-info:focus-visible { outline: 2px solid #d6bc7d; outline-offset: 2px; }
+.manual-icon-button { flex-shrink: 0; border: 0; background: transparent; color: #c7c1ac; font-size: 1.3rem; line-height: 1; padding: .3rem; cursor: pointer; }
+.manual-selected { border-color: #a9996099; }
+.manual-selected h3 { font-size: .8rem; line-height: 1.5; }
+.manual-selected-r { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .5rem; font-size: .75rem; color: #b9b8a5; }
+.manual-duel label { display: block; margin-bottom: .65rem; font-size: .65rem; color: #b7b5a1; }
+.manual-duel select { display: block; margin-top: .3rem; width: 100%; min-width: 0; padding: .55rem .4rem; color: #e6e1d2; background: #10140f; border: 1px solid #8c8f734d; border-radius: .2rem; font: .72rem var(--body); }
+.manual-hit { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-block: .8rem; }
+.manual-hit > div { padding: .75rem .3rem; border-radius: .25rem; background: #323c2b; text-align: center; }
+.manual-hit > div + div { background: #453b29; }
+.manual-hit span { display: block; font-size: .6rem; color: #d6d0b7; }
+.manual-hit strong { display: block; margin-top: .35rem; font: 500 2.1rem var(--display); color: #f0e4ba; }
+.manual-hit small { font: .8rem var(--body); }
+.manual-note, .manual-reroll { margin: .6rem 0; color: #a5aa99; font-size: .68rem; line-height: 1.5; }
+.manual-reroll { color: #e1c78b; }
+.manual-duel > .ui-button { width: 100%; padding: .6rem .4rem; font-size: .7rem; }
+.manual-engaged-button { border-color: #c36c66; color: #e2a39c; background: #7b292933; }
+.manual-orders { padding: 0; margin: 0; list-style: none; }
+.manual-orders > li { display: flex; align-items: center; justify-content: space-between; gap: .4rem; min-height: 2.45rem; border-top: 1px solid #8f947529; font-size: .76rem; }
+.manual-orders .manual-counter button { width: 1.6rem; min-height: 1.6rem; }
+.manual-orders .manual-counter output { min-width: 1.3rem; }
+.manual-unlimited { color: #a9ac98; font-size: 1.25rem; padding-inline: .5rem; }
+.manual-order-info { position: relative; cursor: help; padding-block: .5rem; }
+.manual-order-info > [role=tooltip] { display: none; position: absolute; right: 0; bottom: calc(100% + .3rem); z-index: 100; width: min(19rem, 75vw); padding: .8rem; background: #ece7d5; color: #242820; border: 1px solid #10140f; box-shadow: 0 8px 24px #0007; border-radius: .3rem; font: .75rem/1.5 var(--body); pointer-events: none; }
+.manual-order-info:hover > [role=tooltip], .manual-order-info:focus > [role=tooltip] { display: block; }
+.manual-opponent-orders { margin-top: .7rem; padding-top: .7rem; border-top: 1px solid #8f947544; }
+.manual-battle summary { cursor: pointer; color: #c3b994; font-size: .7rem; }
+.manual-dice-controls { display: flex; align-items: end; gap: .65rem; }
+.manual-dice-controls label { flex: 1; font-size: .65rem; color: #b7b5a1; }
+.manual-dice-controls input { display: block; width: 100%; padding: .5rem; margin-top: .3rem; border: 1px solid #8c8f734d; border-radius: .2rem; background: #10140f; color: #eee6cf; font: .9rem var(--body); }
+.manual-dice-controls button { min-height: 2.35rem; padding: .5rem 1rem; font-size: .75rem; }
+.manual-roll p { margin: .8rem 0 .3rem; font-size: .65rem; color: #c5bba0; }
+.manual-dice { display: flex; flex-wrap: wrap; gap: .3rem; max-height: 11rem; overflow-y: auto; }
+.manual-die { display: grid; width: 2.1rem; height: 2.1rem; place-content: center; background: #ece8dc; color: #22291f; border-radius: .3rem; font: 2rem/1 sans-serif; box-shadow: 0 2px 0 #b1ac97; animation: manual-dice-in 240ms ease-out; }
+.manual-dice-history { margin-top: .7rem; }
+.manual-dice-history ol { padding-left: 1rem; color: #b9b8a5; font-size: .65rem; line-height: 1.8; max-height: 9rem; overflow-y: auto; }
+.manual-reserve { margin-top: 1rem; padding: 1rem; border: 1px solid #71886b66; border-radius: .5rem; background: linear-gradient(145deg, #26302188, #151915); }
+.manual-reserve h3 span { margin-left: .3rem; padding: .15rem .45rem; border-radius: .25rem; background: #54644055; font: .8rem var(--body); color: #d0dabb; }
+.manual-reserve header p { margin: 0; color: #9fae93; font-size: .65rem; }
+.manual-reserve-cards { display: flex; gap: 1rem; overflow-x: auto; padding: .3rem .2rem 1rem; align-items: stretch; }
+.manual-reserve-card { width: 11.5rem; flex-shrink: 0; cursor: grab; }
+.manual-reserve-card img { pointer-events: none; -webkit-user-drag: none; }
+.manual-reserve-card .unit-card__header h2 { font-size: .85rem; }
+.manual-reserve-card .unit-card__type { min-width: 1.2rem; height: 1.2rem; font-size: .65rem; }
+.manual-reserve-card .unit-card__body { padding: .6rem; }
+.manual-reserve-card .unit-card__stats { margin-top: .25rem; gap: .18rem; }
+.manual-reserve-card .unit-card__stats dt { font-size: .5rem; }
+.manual-reserve-card .unit-card__stats dd { font-size: 1rem; }
+.manual-reserve-card .unit-card__abilities { min-height: 1.8rem; }
+.manual-reserve-card .unit-card__recruitment, .manual-reserve-card .unit-card__footer { padding: .5rem .6rem; font-size: .65rem; }
+.manual-reserve-card .unit-card__footer button { padding: .4rem .5rem; font-size: .65rem; }
+.manual-empty { margin: .5rem; color: #9fae93; font-size: .8rem; }
+.manual-enemy-reserve { margin: .3rem 0 0; color: #c0b5a0; font-size: .68rem; }
+.manual-enemy-reserve span { margin-left: .6rem; color: #90805a; letter-spacing: -.1rem; }
+.manual-discard, .manual-journal { margin-top: 1rem; padding: .8rem 1rem; border: 1px solid #767b6433; border-radius: .3rem; background: #191d18; }
+.manual-discard p { font-size: .7rem; color: #b9b8a5; }
+.manual-discard .ui-button { margin: .25rem; font-size: .7rem; cursor: grab; }
+.manual-journal ol { padding-left: 1rem; font-size: .7rem; color: #b9b8a5; line-height: 1.7; }
+.manual-journal small { color: #c2ab71; }
+.manual-battle .board-surface { position: relative; }
+.manual-battle .board-cell { aspect-ratio: auto; height: clamp(3.25rem, 7svh, 5.5rem); min-height: 0; }
+.manual-battle .board-unit[draggable=true] { cursor: grab; }
+.manual-battle .board-unit[draggable=true]:active { cursor: grabbing; }
+.manual-engagement-lines { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; overflow: visible; }
+.manual-engagement-lines line { stroke: #ef6565; stroke-width: 3; stroke-dasharray: 5 4; opacity: .7; filter: drop-shadow(0 0 3px #5b0000); }
+.manual-battle .board-unit--engaged { border: 2px solid #ef6565; box-shadow: 0 0 8px #ef656566, inset 0 0 0 1px #ff9393; }
+.manual-battle .board-unit--attacker { outline: 2px solid #7ebeff; outline-offset: -3px; }
+.manual-battle .board-unit--defender { outline: 2px solid #f2b466; outline-offset: -3px; }
+.board-unit__role { position: absolute; top: .25rem; right: .15rem; padding: .2rem; background: #16354bed; color: #b9dcff; border-radius: .2rem; font-size: .5rem; }
+.board-unit--defender .board-unit__role { background: #553814ed; color: #ffdeae; }
+@keyframes manual-dice-in { from { transform: translateY(-4px) rotate(-10deg); opacity: .4; } to { transform: none; opacity: 1; } }
+@media (min-width: 1400px) { .manual-battle { grid-template-columns: minmax(0, 1fr) 22rem; gap: 1.4rem; } }
+@media (max-width: 1000px) { .manual-battle { grid-template-columns: minmax(0, 1fr); } .manual-sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)); } .manual-instructions > span { max-width: 36rem; } }
+@media (max-width: 600px) { .game-page--manual .game-shell { width: calc(100% - 1.2rem); } .manual-toolbar { padding: .85rem; } .manual-toolbar > div:first-child { width: calc(100% - 9rem); } .manual-strategy { font-size: .75rem; gap: .5rem; } .manual-sidebar { grid-template-columns: minmax(0, 1fr); } .manual-reserve > header { align-items: start; flex-direction: column; } .manual-reserve { padding: .8rem; } .manual-order-info > [role=tooltip] { left: 0; right: auto; } }
+@media (prefers-reduced-motion: reduce) { .manual-die { animation: none; } }

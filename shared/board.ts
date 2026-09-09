@@ -3,7 +3,7 @@ import type { UnitProfile } from './unitProfile'
 export type Seat = 0 | 1
 export type PlacedUnit = { seat: number; cardStableId: string; cell: number }
 export type GameSetup = {
-  version: 2 | 3
+  version: 3
   revision: number
   initiativeRound: number
   initiativeRolls: { seat: number; result: number; round: number }[]
@@ -17,8 +17,8 @@ export function initialSetup(): GameSetup {
   return { version: 3, revision: 0, initiativeRound: 1, initiativeRolls: [], initiativeReady: [], deploymentTurn: 0, units: [] }
 }
 
-export function deploymentLimit(card: { kind: string; quantity: number; selectedQuantity?: number }, setup: GameSetup) {
-  return card.kind === 'unit' ? setup.version === 3 ? card.selectedQuantity ?? 0 : card.quantity : 0
+export function deploymentLimit(card: { kind: string; quantity: number; selectedQuantity?: number }) {
+  return card.kind === 'unit' ? card.selectedQuantity ?? 0 : 0
 }
 
 // Each camp has 18 cells, of which 9 are in the rear (the only artillery positions).
@@ -47,7 +47,7 @@ export function canDeployUnit(cell: number, seat: number, profile: UnitProfile, 
   // In that case the first artillery piece starts in the rear as well.
   if (profile.unitType === 'artillery') return isRear(cell, seat) && (!first || artilleryOnly)
   // Every chosen unit must fit: leave enough rear cells for unplaced artillery.
-  if (setup.version === 3 && isRear(cell, seat) && 9 - setup.units.filter((unit) => isRear(unit.cell, seat)).length <= artilleryRemaining) return false
+  if (isRear(cell, seat) && 9 - setup.units.filter((unit) => isRear(unit.cell, seat)).length <= artilleryRemaining) return false
   return !first || isCenterBase(cell, seat)
 }
 

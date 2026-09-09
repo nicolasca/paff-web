@@ -25,14 +25,6 @@ export async function liveGame(h = createGameHarness()) {
   for (const user of [1, 2]) await h.run('confirmInitiative', user, { gameId })
   for (const [user, cell, cardStableId] of [[1, 40, 'lanciers'], [2, 13, 'lanciers'], [1, 41, 'archers'], [2, 14, 'archers']] as const) await h.run('deployUnit', user, { gameId, cell, cardStableId, revision: (await read()).setup!.revision })
   for (const user of [1, 2]) await h.run('finishDeployment', user, { gameId, revision: (await read()).setup!.revision })
-  const act = async (name: string, user = 1, args: Record<string, unknown> = {}) => h.invoke('actions', name, user, { gameId, revision: (await read()).battle!.revision, ...args })
   const unit = async (seat: number, stableId: string) => (await read()).battle!.engine!.units.find((unit) => unit.seat === seat && unit.cardStableId === stableId)!
-  const skipOrders = async () => {
-    while ((await read()).battle!.phase === 'orders') {
-      const battle = (await read()).battle!
-      if (!battle.engine!.activeOrder) await act('chooseOrder', battle.actingSeat + 1, { orderId: 'movement' })
-      await act('finishOrder', battle.actingSeat + 1)
-    }
-  }
-  return { ...h, gameId, read, act, unit, stored, skipOrders }
+  return { ...h, gameId, read, unit, stored }
 }

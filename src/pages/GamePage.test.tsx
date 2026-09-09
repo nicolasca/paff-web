@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { getFunctionName } from 'convex/server'
 import { ConvexError } from 'convex/values'
@@ -11,7 +11,7 @@ import { GameRoom } from './GamePage'
 import { LobbyContent } from './LobbyPage'
 import { initialSetup } from '../../shared/board'
 
-const mutations = vi.hoisted(() => ({ create: vi.fn(), join: vi.fn(), start: vi.fn(), selectDeck: vi.fn(), updateDeployment: vi.fn(), finishDeployment: vi.fn(), leave: vi.fn(), rollInitiative: vi.fn(), confirmInitiative: vi.fn(), deployUnit: vi.fn(), updatePreparation: vi.fn(), finishPreparation: vi.fn(), repositionUnit: vi.fn(), chooseOrder: vi.fn(), passOrder: vi.fn(), setStrategyPoints: vi.fn(), confirmBattlePhase: vi.fn() }))
+const mutations = vi.hoisted(() => ({ create: vi.fn(), join: vi.fn(), start: vi.fn(), selectDeck: vi.fn(), finishDeployment: vi.fn(), leave: vi.fn(), rollInitiative: vi.fn(), confirmInitiative: vi.fn(), deployUnit: vi.fn(), updatePreparation: vi.fn(), finishPreparation: vi.fn(), repositionUnit: vi.fn() }))
 vi.mock('convex/react', () => ({
   useQuery: vi.fn(), useConvexConnectionState: () => ({ isWebSocketConnected: true }),
   useMutation: (reference: unknown) => mutations[getFunctionName(reference as never).split(':')[1] as keyof typeof mutations],
@@ -23,7 +23,7 @@ const me: GamePlayer = { id: 'member-1' as Id<'gamePlayers'>, displayName: 'Nico
 const opponent: GamePlayer = { ...me, id: 'member-2' as Id<'gamePlayers'>, displayName: 'Nicolas 2', seat: 1, isMe: false, drawPileCount: null, deploymentCount: null }
 const game: Game = { id: gameId, name: 'Partie de Nicolas', phase: 'waiting', isHost: true, battleStartedAt: null, setup: null, players: [me, opponent] }
 const deck: Deck = { id: 'deck-1' as Id<'decks'>, name: 'Embuscade', faction: card.faction, cards: [card], updatedAt: 1 }
-const deployment: Game = { ...game, phase: 'deployment', players: [{ ...me, deckChosen: true, deckName: deck.name, factionName: 'Gobelins', cards: [card, { ...card, stableId: 'action', name: 'Piège', kind: 'action', quantity: 2, deploymentQuantity: 0 }], deploymentCount: 2, drawPileCount: 5 }, { ...opponent, deckChosen: true }] }
+const deployment: Game = { ...game, phase: 'preparation', setup: initialSetup(), players: [{ ...me, deckChosen: true, deckName: deck.name, factionName: 'Gobelins', cards: [card, { ...card, stableId: 'action', name: 'Piège', kind: 'action', quantity: 2, deploymentQuantity: 0 }], deploymentCount: 2, drawPileCount: 5 }, { ...opponent, deckChosen: true }] }
 function room(value: Game = game, decks: Deck[] = [deck]) {
   const onLeave = vi.fn()
   const result = render(<MemoryRouter><GameRoom game={value} decks={decks} onLeave={onLeave} /></MemoryRouter>)
@@ -42,7 +42,7 @@ beforeEach(() => {
 })
 
 describe('2026 preparation screens', () => {
-  const modern: Game = { ...deployment, setup: { ...initialSetup(), version: 2, initiativeWinner: 0, initiativeReady: [0, 1], revision: 4 }, players: [{ ...deployment.players[0], cards: [{ ...card, deploymentQuantity: 0 }], deployedCards: [], deploymentCount: 0, drawPileCount: 5 }, deployment.players[1]] }
+  const modern: Game = { ...deployment, phase: 'deployment', setup: { ...initialSetup(), initiativeWinner: 0, initiativeReady: [0, 1], revision: 4 }, players: [{ ...deployment.players[0], cards: [{ ...card, selectedQuantity: 5, deploymentQuantity: 0 }], deployedCards: [], deploymentCount: 0, drawPileCount: 5 }, deployment.players[1]] }
   it('rolls once, displays both results and waits for both confirmations', async () => {
     const value: Game = { ...modern, phase: 'initiative', setup: initialSetup() }
     const { rerender } = room(value)
@@ -84,32 +84,6 @@ describe('2026 preparation screens', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Sélectionner Archers, 5 disponibles' }))
     await userEvent.click(screen.getByRole('button', { name: 'E2 · Déployer ici' }))
     expect(mutations.deployUnit).toHaveBeenCalledWith({ gameId, cardStableId: 'archers', cell: 13, revision: 5 })
-  })
-  it('confirms finishing with remaining cards and locks placement while a request is pending', async () => {
-    let resolve!: () => void
-    mutations.deployUnit.mockReturnValueOnce(new Promise<void>((done) => { resolve = done }))
-    room(modern)
-    await userEvent.click(screen.getByRole('button', { name: 'Sélectionner Archers, 5 disponibles' }))
-    await userEvent.click(screen.getByRole('button', { name: 'E5 · Déployer ici' }))
-    expect(screen.getByRole('button', { name: 'Terminer mon déploiement' })).toBeDisabled()
-    await act(async () => resolve())
-    await userEvent.click(screen.getByRole('button', { name: 'Terminer mon déploiement' }))
-    expect(mutations.finishDeployment).not.toHaveBeenCalled()
-    await userEvent.click(screen.getByRole('button', { name: 'Confirmer le déploiement' }))
-    expect(mutations.finishDeployment).toHaveBeenCalledWith({ gameId, revision: 4 })
-  })
-  it('retains positioned units on the battle screen and exposes their profile', async () => {
-    room({ ...modern, phase: 'battle', setup: { ...modern.setup!, units: [{ seat: 0, cardStableId: 'archers', cell: 40 }] }, players: [{ ...modern.players[0], deployedCards: [{ ...card, quantity: 1 }], deploymentCount: 1 }, modern.players[1]] })
-    const unit = screen.getByRole('button', { name: 'E5 · Archers · Nicolas' })
-    await userEvent.hover(unit)
-    expect(screen.getByRole('tooltip', { name: 'Détails de Archers' })).toBeVisible()
-    expect(screen.queryByLabelText('Coût de recrutement 2')).not.toBeInTheDocument()
-    await userEvent.keyboard('{Escape}')
-    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
-    await userEvent.click(unit)
-    expect(screen.getByLabelText('Détails de Archers')).toBeVisible()
-    expect(screen.queryByRole('button', { name: /Déployer ici/ })).not.toBeInTheDocument()
-    expect(screen.getByText(/Cette partie utilise une ancienne version/)).toBeVisible()
   })
 })
 
@@ -171,16 +145,16 @@ describe('synchronized preparation screens', () => {
   })
   it('deploys only units, caps copies and saves quantities before enabling validation', async () => {
     let resolve!: () => void
-    mutations.updateDeployment.mockReturnValueOnce(new Promise<void>((done) => { resolve = done }))
+    mutations.updatePreparation.mockReturnValueOnce(new Promise<void>((done) => { resolve = done }))
     room(deployment)
     expect(screen.queryByRole('heading', { name: 'Piège' })).not.toBeInTheDocument()
     expect(screen.getByRole('spinbutton')).toHaveAttribute('max', '5')
     await userEvent.click(screen.getByRole('button', { name: 'Ajouter Archers' }))
-    expect(mutations.updateDeployment).toHaveBeenCalledWith({ gameId, cardStableId: 'archers', change: { delta: 1 } })
-    expect(screen.getByRole('button', { name: 'J’ai fini' })).toBeDisabled()
+    expect(mutations.updatePreparation).toHaveBeenCalledWith({ gameId, cardStableId: 'archers', change: { delta: 1 } })
+    expect(screen.getByRole('button', { name: 'Valider mes unités' })).toBeDisabled()
     await act(async () => resolve())
-    await userEvent.click(screen.getByRole('button', { name: 'J’ai fini' }))
-    expect(mutations.finishDeployment).toHaveBeenCalledWith({ gameId })
+    await userEvent.click(screen.getByRole('button', { name: 'Valider mes unités' }))
+    expect(mutations.finishPreparation).toHaveBeenCalledWith({ gameId })
     expect(screen.queryByRole('region', { name: 'Aire de jeu' })).not.toBeInTheDocument()
   })
   it('rejects more copies than the deck contains without sending the invalid choice', async () => {
@@ -190,34 +164,22 @@ describe('synchronized preparation screens', () => {
     await user.clear(input)
     await user.type(input, '6{Enter}')
     expect(screen.getByRole('alert')).toHaveTextContent('5 exemplaire')
-    expect(mutations.updateDeployment).not.toHaveBeenCalled()
+    expect(mutations.updatePreparation).not.toHaveBeenCalled()
     await user.clear(input)
     await user.type(input, '5{Enter}')
-    expect(mutations.updateDeployment).toHaveBeenCalledWith({ gameId, cardStableId: 'archers', change: { quantity: 5 } })
+    expect(mutations.updatePreparation).toHaveBeenCalledWith({ gameId, cardStableId: 'archers', change: { quantity: 5 } })
   })
   it('restores a validated preparation with locked controls', () => {
-    room({ ...deployment, players: [{ ...deployment.players[0], deploymentReady: true }, deployment.players[1]] })
+    room({ ...deployment, players: [{ ...deployment.players[0], preparationReady: true }, deployment.players[1]] })
     expect(screen.getByRole('spinbutton')).toBeDisabled()
-    expect(screen.getByRole('button', { name: /Préparation terminée/ })).toBeDisabled()
-    expect(screen.getByText(/Vos choix sont validés/)).toBeVisible()
+    expect(screen.getByRole('button', { name: /Sélection validée/ })).toBeDisabled()
+    expect(screen.getByText(/Votre sélection est enregistrée/)).toBeVisible()
   })
   it('allows a zero-unit preparation', async () => {
     room({ ...deployment, players: [{ ...deployment.players[0], cards: [], deploymentCount: 0, drawPileCount: 0 }, deployment.players[1]] })
     expect(screen.getByText('Aucune unité dans ce deck.')).toBeVisible()
-    await userEvent.click(screen.getByRole('button', { name: 'J’ai fini' }))
-    expect(mutations.finishDeployment).toHaveBeenCalledWith({ gameId })
-  })
-  it('shows both camps, reserves and piles on the initialized board', () => {
-    room({ ...deployment, phase: 'battle', players: [{ ...deployment.players[0], deploymentReady: true, deployedCards: [{ ...card, quantity: 2 }] }, { ...opponent, deckName: 'La garde', factionName: 'Gobelins', deploymentReady: true, deploymentCount: 1, drawPileCount: 4, deployedCards: [{ ...card, quantity: 1 }] }] })
-    const board = screen.getByRole('region', { name: 'Aire de jeu' })
-    const camps = within(board).getAllByRole('region')
-    expect(camps[0]).toHaveAccessibleName('Camp de Nicolas 2')
-    expect(camps[1]).toHaveAccessibleName('Camp de Nicolas')
-    expect(within(camps[0]).getByText('×1')).toBeVisible()
-    expect(within(camps[1]).getByText('×2')).toBeVisible()
-    expect(screen.getByLabelText('Pioche de Nicolas : 5 cartes')).toBeVisible()
-    expect(screen.getByLabelText('Pioche de Nicolas 2 : 4 cartes')).toBeVisible()
-    expect(within(board).queryByRole('button')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Valider mes unités' }))
+    expect(mutations.finishPreparation).toHaveBeenCalledWith({ gameId })
   })
   it('keeps the room open after a failed leave and allows retry', async () => {
     mutations.leave.mockRejectedValueOnce(new Error('Offline'))

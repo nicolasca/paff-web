@@ -37,9 +37,10 @@ vi.mock('../auth/authSession', async () => {
 afterEach(() => vi.restoreAllMocks())
 
 describe('functional two-player journey with real game handlers', () => {
-  it('keeps private preparation, corrects deployment, and synchronizes orders and manual points across two turns', async () => {
-    const transport = createFunctionalTransport(createGameHarness({ legacyDemo: true }))
+  it('keeps private preparation, corrects deployment, and opens the shared manual board', async () => {
+    const transport = createFunctionalTransport(createGameHarness())
     const { tables } = transport.harness
+    tables.cards[0].cost = 1
     tables.cards.push({ ...tables.cards[0], _id: 'lancers', stableId: 'lanciers', name: 'Lanciers' })
     tables.deckCards.push({ _id: 'lancers-1', deckId: 'deck-1', cardId: 'lancers', quantity: 4 })
     const paths = new Map<number, string>()
@@ -133,48 +134,12 @@ describe('functional two-player journey with real game handlers', () => {
     await click(1, 'Terminer mon déploiement')
     await click(1, 'Confirmer le déploiement')
     for (const user of [1, 2]) {
-      expect(await p(user).findByRole('region', { name: 'Aire de jeu' })).toBeVisible()
-      expect(p(user).getByLabelText('Pioche de Joueur 1 : 9 cartes')).toBeVisible()
-      expect(p(user).getByLabelText('Pioche de Joueur 2 : 6 cartes')).toBeVisible()
-      expect(p(user).getByRole('button', { name: 'F5 · Archers · Joueur 1' })).toBeVisible()
-      expect(p(user).getByRole('button', { name: 'A6 · Archers · Joueur 1' })).toBeVisible()
-      expect(p(user).getByRole('button', { name: 'E2 · Archers · Joueur 2' })).toBeVisible()
+      expect(await p(user).findByRole('region', { name: 'Plateau manuel' })).toBeVisible()
+      for (const name of ['F5 · Archers · Joueur 1', 'A6 · Archers · Joueur 1', 'E2 · Archers · Joueur 2']) expect(p(user).getByRole('button', { name })).toBeVisible()
+      expect(p(user).getByRole('button', { name: 'Augmenter Tour' })).toBeEnabled()
+      expect(p(user).queryByRole('button', { name: 'Choisir Mouvement' })).not.toBeInTheDocument()
     }
-
-    await stage('Ordres')
-    expect(p(2).getByRole('button', { name: 'Choisir Mouvement' })).toBeDisabled()
-    await click(1, 'Choisir WAAAGGGHHH !')
-    expect(within(p(2).getByRole('region', { name: 'Ordres de Joueur 1' })).getByText('WAAAGGGHHH !')).toBeVisible()
     await reload()
-    await stage('Ordres')
-    expect(p(1).getByRole('button', { name: 'WAAAGGGHHH ! épuisé' })).toBeDisabled()
-    for (const [user, name] of [[2, 'Tir'], [1, 'Mouvement'], [2, 'Réserve'], [1, 'Défense'], [2, 'Assaut']] as const) await click(user, `Choisir ${name}`)
-    await stage('Actions')
-    expect(p(2).getByRole('button', { name: 'Passer Tir (démo)' })).toBeDisabled()
-    // Resolve in a different order from the draft, then alternate.
-    for (const [user, name] of [[1, 'Défense'], [2, 'Assaut'], [1, 'WAAAGGGHHH !'], [2, 'Réserve'], [1, 'Mouvement'], [2, 'Tir']] as const) await click(user, `Passer ${name} (démo)`)
-    await stage('Combats')
-    await click(1, 'Passer les combats (démo)')
-    expect(p(1).queryByRole('group', { name: 'Vos points stratégiques' })).not.toBeInTheDocument()
-    await click(2, 'Passer les combats (démo)')
-    await stage('Fin du tour')
-    await userEvent.click(p(1).getByRole('radio', { name: '3' }))
-    await userEvent.click(p(2).getByRole('radio', { name: '1' }))
-    await click(1, 'Valider la fin du tour')
-    await reload()
-    await stage('Fin du tour')
-    expect(p(1).getByRole('radio', { name: '3' })).toBeChecked()
-    expect(p(1).getByRole('radio', { name: '0' })).toBeDisabled()
-    await click(2, 'Valider la fin du tour')
-    await stage('Ordres')
-    expect(p(1).getByRole('button', { name: 'Choisir Mouvement' })).toBeDisabled()
-    expect(p(2).getByRole('button', { name: 'Choisir Mouvement' })).toBeEnabled()
-    for (const user of [1, 2]) {
-      const flow = within(p(user).getByRole('region', { name: 'Déroulement du tour' }))
-      expect(flow.getByText(/Tour 2 \/ 8/)).toBeVisible()
-      expect(within(p(user).getByRole('region', { name: 'Ordres de Joueur 1' })).getByText('0 / 6')).toBeVisible()
-      expect(within(p(user).getByRole('region', { name: 'Ordres de Joueur 2' })).getByText('0 / 4')).toBeVisible()
-      expect(p(user).getByRole('button', { name: 'F5 · Archers · Joueur 1' })).toBeVisible()
-    }
+    for (const user of [1, 2]) expect(await p(user).findByRole('region', { name: 'Plateau manuel' })).toBeVisible()
   }, 30000)
 })
