@@ -10,6 +10,7 @@ import type { Deck } from '../features/decks/deckStats'
 import { GameRoom } from './GamePage'
 import { LobbyContent } from './LobbyPage'
 import { initialSetup } from '../../shared/board'
+import { catalogue2026 } from '../../shared/catalogue2026'
 
 const mutations = vi.hoisted(() => ({ create: vi.fn(), join: vi.fn(), start: vi.fn(), selectDeck: vi.fn(), finishDeployment: vi.fn(), leave: vi.fn(), rollInitiative: vi.fn(), confirmInitiative: vi.fn(), deployUnit: vi.fn(), updatePreparation: vi.fn(), finishPreparation: vi.fn(), repositionUnit: vi.fn() }))
 vi.mock('convex/react', () => ({
@@ -118,6 +119,14 @@ describe('lobby', () => {
 })
 
 describe('synchronized preparation screens', () => {
+  it('explains Blop’s reserve-only rule and prevents selecting him for initial deployment', () => {
+    const blop = catalogue2026.find((unit) => unit.name === 'Blop, le Meuteur')!
+    room({ ...deployment, players: [{ ...deployment.players[0], cards: [{ ...card, ...blop, faction: card.faction, quantity: 1, selectedQuantity: 0, deploymentQuantity: 0 }] }, deployment.players[1]] })
+    expect(screen.getByText('Commence en réserve · Meuteur !')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Ajouter Blop, le Meuteur' })).toBeDisabled()
+    expect(screen.getByRole('spinbutton')).toHaveAttribute('max', '0')
+    expect(screen.getByRole('button', { name: 'Valider mes unités' })).toBeEnabled()
+  })
   it('waits for two seats before the host can start', async () => {
     const { rerender } = room({ ...game, players: [me] })
     expect(screen.getByRole('button', { name: /Lancer/ })).toBeDisabled()

@@ -12,15 +12,15 @@ function setup() {
   return { ...h, apply }
 }
 
-describe('authoritative WIP roster', () => {
-  it('publishes seven Goblin and eight Sephosi units and preserves existing deck references', async () => {
+describe('September 10 PDF roster', () => {
+  it('publishes ten units per faction and preserves existing deck references', async () => {
     const { tables, apply } = setup()
     const entries = structuredClone(tables.deckCards)
     const orc = structuredClone(tables.cards.find((card) => card._id === 'orc'))
-    expect(await apply()).toEqual({ created: 14, updated: 1, archived: 2 })
-    expect(tables.cards.find((card) => card._id === 'troll')).toMatchObject({ name: 'Trolls', cost: 4, profile: { regiment: 3, dice: 2, defenseRangedFormat: 'threshold', defenseRanged: 2 }, dataVersion: CATALOGUE_VERSION, deckLimit: undefined })
-    expect(tables.cards.filter((card) => card.factionId === 'faction' && card.status === 'published')).toHaveLength(7)
-    expect(tables.cards.filter((card) => card.factionId === 'sephosi' && card.status === 'published')).toHaveLength(8)
+    expect(await apply()).toEqual({ created: 19, updated: 1, archived: 2 })
+    expect(tables.cards.find((card) => card._id === 'troll')).toMatchObject({ name: 'Trolls', cost: 3, profile: { regiment: 2, dice: 2, defenseRanged: 5 }, dataVersion: CATALOGUE_VERSION, deckLimit: undefined })
+    expect(tables.cards.filter((card) => card.factionId === 'faction' && card.status === 'published')).toHaveLength(10)
+    expect(tables.cards.filter((card) => card.factionId === 'sephosi' && card.status === 'published')).toHaveLength(10)
     expect(tables.cards.find((card) => card._id === 'unit')?.status).toBe('archived')
     expect(tables.deckCards).toEqual(entries)
     expect(tables.cards.find((card) => card._id === 'orc')).toEqual(orc)
@@ -48,9 +48,9 @@ describe('authoritative WIP roster', () => {
     await run('selectDeck', 1, { gameId, deckId: 'deck-1' })
     const me = (await run('get', 1, { gameId }))!.players[0]
     expect(me.cards).toHaveLength(1)
-    expect(me.cards[0]).toMatchObject({ name: 'Trolls', quantity: 3, profile: { offense: { score: 6 } } })
+    expect(me.cards[0]).toMatchObject({ name: 'Trolls', quantity: 3, profile: { offense: { score: 4 } } })
   })
-  it('reactivates mounted crossbowmen in place without publishing the WIP Salamander regiment', async () => {
+  it('reactivates mounted crossbowmen and the Salamander regiment without duplicating their IDs', async () => {
     const { tables, apply } = setup()
     const base = tables.cards[0]
     tables.cards.push(
@@ -62,15 +62,37 @@ describe('authoritative WIP roster', () => {
     await apply()
     expect(tables.cards.filter((card) => card.stableId === 'sephosi-arbaletriers-montes-sephosiens')).toHaveLength(1)
     expect(tables.cards.find((card) => card._id === 'mounted')).toMatchObject({ status: 'published', name: 'Arbalétriers Montés', profile: { unitType: 'cavalry', offense: { kind: 'ranged' } } })
-    expect(tables.cards.find((card) => card._id === 'salamander')?.status).toBe('archived')
+    expect(tables.cards.find((card) => card._id === 'salamander')).toMatchObject({ status: 'published', cost: 4, profile: { unitType: 'unique', regiment: 3, dice: 3, offense: { kind: 'melee', score: 4 }, defenseMelee: 4, defenseRanged: 4 } })
     expect(tables.deckCards).toEqual(entries)
   })
-  it('preserves excluded WIP values and supplies an existing image for every current unit', () => {
-    expect(catalogue2026.find((unit) => unit.name === 'Bande du chef')?.profile.regiment).toBe(2)
+  it('replaces WIP values and represents Vallardi and the Porte-ordres without an attack', () => {
+    expect(catalogue2026.find((unit) => unit.name === 'Bande du chef')?.profile).toMatchObject({ regiment: 5, dice: 4, defenseRanged: 2 })
     expect(catalogue2026.some((unit) => unit.name.includes('Sef'))).toBe(false)
-    expect(catalogue2026.find((unit) => unit.name === 'Aides de camp Sephosiens')?.profile).toMatchObject({ dice: 0, offense: { score: null }, defenseRanged: 6, defenseRangedFormat: 'threshold' })
+    expect(catalogue2026.find((unit) => unit.name === 'Porte-ordres Sephosiens')).toMatchObject({ stableId: 'sephosi-aides-de-camp-sephosiens', profile: { dice: 0, offense: { kind: 'none', score: null }, defenseRanged: 1 } })
+    expect(catalogue2026.find((unit) => unit.name === 'Maréchal Vallardi')?.profile).toMatchObject({ dice: 0, offense: { kind: 'none', score: null }, ability: { name: 'Stratège' } })
+    expect(catalogue2026.find((unit) => unit.name === 'Bande de Gobelins')?.profile.regiment).toBe(2)
+    expect(catalogue2026.find((unit) => unit.name === 'Anges Protecteurs de la Sephosi')?.profile).toMatchObject({ regiment: 2, dice: 2, defenseMelee: 3, defenseRanged: 2 })
+    expect(catalogue2026.every((unit) => unit.profile.defenseRangedFormat === undefined)).toBe(true)
     expect(catalogue2026.find((unit) => unit.name === 'Archers Gobelins')?.profile).toMatchObject({ regiment: 2, dice: 3, offense: { kind: 'ranged', score: 1 }, defenseRanged: 1 })
     expect(catalogue2026.find((unit) => unit.name === 'Balistes Sephosiennes')?.profile).toMatchObject({ unitType: 'artillery', offense: { kind: 'ranged', score: 6 } })
     for (const unit of catalogue2026) expect(existsSync(`public${unit.imagePath}`), unit.imagePath).toBe(true)
+  })
+  it('renames aides and reactivates the old goblin elite in place while replacing provisional ability descriptions', async () => {
+    const { tables, apply } = setup()
+    const base = tables.cards[0]
+    tables.cards.push(
+      { ...base, _id: 'aide', factionId: 'sephosi', stableId: 'sephosi-aides-de-camp-sephosiens', name: 'Aides de camp Sephosiens' },
+      { ...base, _id: 'mad-goblin', stableId: 'gobelins-bon-gros-tarre-de-gobelin', status: 'archived' },
+    )
+    tables.deckCards.push({ _id: 'aide-deck', deckId: 'deck-2', cardId: 'aide', quantity: 1 }, { _id: 'mad-deck', deckId: 'deck-1', cardId: 'mad-goblin', quantity: 1 })
+    const entries = structuredClone(tables.deckCards)
+    await apply()
+    expect(tables.cards.find((card) => card._id === 'aide')).toMatchObject({ name: 'Porte-ordres Sephosiens', profile: { ability: { id: 'strategic-support', description: expect.stringContaining('autre axe') } } })
+    expect(tables.cards.find((card) => card._id === 'mad-goblin')).toMatchObject({ status: 'published', name: 'Gros tarrés de gobelins', cost: 2, profile: { unitType: 'elite', regiment: 1, dice: 1, offense: { score: 5 } } })
+    expect(tables.deckCards).toEqual(entries)
+    for (const unit of catalogue2026) if (unit.profile.ability) {
+      expect(unit.profile.ability.id).toBeTruthy()
+      expect(unit.profile.ability.description).not.toMatch(/en cours de définition|pas encore appliqué/)
+    }
   })
 })

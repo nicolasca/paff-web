@@ -1,4 +1,5 @@
 import type { UnitProfile } from './unitProfile'
+import { hasUnitAbility } from './unitAbilities'
 
 export type Seat = 0 | 1
 export type PlacedUnit = { seat: number; cardStableId: string; cell: number }
@@ -23,6 +24,7 @@ export function deploymentLimit(card: { kind: string; quantity: number; selected
 
 // Each camp has 18 cells, of which 9 are in the rear (the only artillery positions).
 export function preparationCapacityError(cards: { selectedQuantity?: number; profile?: UnitProfile }[]) {
+  if (cards.some((card) => (card.selectedQuantity ?? 0) > 0 && !canInitiallyDeploy(card.profile))) return 'RESERVE_ONLY_UNIT'
   if (cards.reduce((sum, card) => sum + (card.selectedQuantity ?? 0), 0) > 18) return 'PREPARATION_TOO_LARGE'
   if (cards.filter((card) => card.profile?.unitType === 'artillery').reduce((sum, card) => sum + (card.selectedQuantity ?? 0), 0) > 9) return 'TOO_MUCH_ARTILLERY'
   return null
@@ -40,7 +42,9 @@ export const isRear = (cell: number, seat: number) => rowOf(cell) === (seat === 
 export const isBase = (cell: number, seat: number) => rowOf(cell) === (seat === 0 ? 4 : 1)
 export const isHome = (cell: number, seat: number) => isRear(cell, seat) || isBase(cell, seat)
 export const isCenterBase = (cell: number, seat: number) => isBase(cell, seat) && colOf(cell) >= 2 && colOf(cell) <= 6
+export const canInitiallyDeploy = (profile: UnitProfile | undefined) => !hasUnitAbility(profile, 'packmaster')
 export function canDeployUnit(cell: number, seat: number, profile: UnitProfile, setup: GameSetup, artilleryOnly = false, artilleryRemaining = 0) {
+  if (!canInitiallyDeploy(profile)) return false
   if (!isCell(cell) || !isHome(cell, seat) || setup.units.some((unit) => unit.cell === cell)) return false
   const first = !setup.units.some((unit) => unit.seat === seat)
   // A selection containing only artillery has no unit eligible for Centre Base.

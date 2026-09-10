@@ -4,7 +4,7 @@ import type { MutationCtx, QueryCtx } from './_generated/server'
 import type { Doc, Id } from './_generated/dataModel'
 import { requireActivePlayer } from './lib/auth'
 import { getUnitProfile } from '../shared/unitProfile'
-import { canDeployUnit, canRepositionUnit, deploymentLimit, initialSetup, preparationCapacityError, type GameSetup } from '../shared/board'
+import { canDeployUnit, canInitiallyDeploy, canRepositionUnit, deploymentLimit, initialSetup, preparationCapacityError, type GameSetup } from '../shared/board'
 import { deckRuleIssues, preparationBudgetError } from '../shared/armyRules'
 import { initialBattle, RULES_VERSION, type BattleState } from '../shared/battle'
 
@@ -203,6 +203,7 @@ export const updatePreparation = mutation({
     if (!card || card.kind !== 'unit') throw new ConvexError({ code: 'UNIT_REQUIRED' })
     const quantity = 'quantity' in args.change ? args.change.quantity : (card.selectedQuantity ?? 0) + args.change.delta
     if (!Number.isSafeInteger(quantity) || quantity < 0 || quantity > card.quantity) throw new ConvexError({ code: 'INVALID_DEPLOYMENT_QUANTITY' })
+    if (quantity > 0 && !canInitiallyDeploy(getUnitProfile(card))) throw new ConvexError({ code: 'RESERVE_ONLY_UNIT' })
     await ctx.db.patch(card._id, { selectedQuantity: quantity })
     await ctx.db.patch(game._id, { updatedAt: Date.now() })
   },

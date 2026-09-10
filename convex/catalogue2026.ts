@@ -19,13 +19,13 @@ export const apply = internalMutation({
       if (faction.name !== name) await ctx.db.patch(faction._id, { name })
       const units = catalogue2026.filter((unit) => unit.faction === factionStableId)
       const published = await ctx.db.query('cards').withIndex('by_faction_and_status', (q) => q.eq('factionId', faction._id).eq('status', 'published')).collect()
-      for (const [index, unit] of units.entries()) {
+      for (const unit of units) {
         const existing = await ctx.db.query('cards').withIndex('by_stable_id', (q) => q.eq('stableId', unit.stableId)).unique()
         const fields = {
           stableId: unit.stableId, factionId: faction._id, name: unit.name, cost: unit.cost,
           kind: 'unit' as const, profile: unit.profile, imagePath: unit.imagePath, abilities: unit.profile.ability ? [unit.profile.ability.name] : [],
-          dataVersion: CATALOGUE_VERSION, status: 'published' as const, sourceLine: index + 1,
-          sourceNote: 'Captures du Drive du 06/09/2026 et lignes OK du tableau transmis le 08/09/2026 ; interprétations WIP dans docs/regles-implementees.md.',
+          dataVersion: CATALOGUE_VERSION, status: 'published' as const, sourceLine: catalogue2026.indexOf(unit) + 2,
+          sourceNote: 'PAFF 2026.pdf transmis le 10/09/2026, p. 8 (unités) et p. 10 (capacités). Les x de Vallardi signifient aucune attaque, confirmé par Nicolas ; suivi dans docs/regles-implementees.md.',
         }
         if (!existing) { await ctx.db.insert('cards', fields); result.created++ }
         else if (Object.entries(fields).some(([key, value]) => !sameValue(existing[key as keyof typeof existing], value)) || existing.deckLimit !== undefined) {

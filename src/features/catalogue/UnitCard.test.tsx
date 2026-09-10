@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { CardsCatalogue } from '../../pages/CardsPage'
 import type { PublicCard, PublicFaction } from './types'
 import { UnitCard } from './UnitCard'
+import { catalogue2026 } from '../../../shared/catalogue2026'
 
 const factions: PublicFaction[] = [
   ['sephosi', 'Céphosi', 'EP'],
@@ -33,6 +34,22 @@ const card: PublicCard = {
 }
 
 describe('public card catalogue', () => {
+  it.each(['Porte-ordres Sephosiens', 'Maréchal Vallardi'])('shows %s without invented dice or an attack mode', (name) => {
+    const unit = catalogue2026.find((unit) => unit.name === name)!
+    const { container } = render(<UnitCard card={{ ...card, ...unit, faction: card.faction }} />)
+    expect(screen.getByLabelText('Aucune attaque')).toHaveTextContent('—')
+    expect(screen.getByLabelText('Nombre de dés : —')).toBeVisible()
+    expect(container.querySelector('.unit-stat__mode')).toBeNull()
+    expect(screen.queryByText(/préciser/)).not.toBeInTheDocument()
+  })
+  it('shows the finalized spell definition instead of an implementation placeholder', async () => {
+    const unit = catalogue2026.find((unit) => unit.name === 'Le Danzereu')!
+    render(<UnitCard card={{ ...card, ...unit, faction: card.faction }} />)
+    await userEvent.hover(screen.getByRole('button', { name: /Ligne Verte/ }))
+    expect(screen.getByRole('tooltip')).toHaveTextContent('quel que soit son camp')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('+1 dé et +1 A')
+    expect(screen.getByRole('tooltip')).not.toHaveTextContent('en cours de définition')
+  })
   it('shows the four factions from data and their entity', () => {
     render(
       <CardsCatalogue

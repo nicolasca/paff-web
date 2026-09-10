@@ -7,14 +7,11 @@ export type OrderDefinition = {
 }
 export const orderDefinitions: OrderDefinition[] = [
   { id: 'movement', name: 'Mouvement', faction: 'common', category: 'common', description: 'Déplacer les unités d’une zone selon les conditions de déplacement.' },
-  { id: 'defense', name: 'Défense', faction: 'common', category: 'common', description: 'Une zone alliée bénéficie d’un dé supplémentaire pour défendre jusqu’à la fin du tour.' },
-  { id: 'assault', name: 'Assaut', faction: 'common', category: 'common', description: 'Une zone alliée bénéficie d’un dé supplémentaire au corps à corps jusqu’à la fin du tour.' },
   { id: 'shooting', name: 'Tir', faction: 'common', category: 'common', description: 'Faire tirer les unités d’une même zone, hors artillerie.' },
   { id: 'artillery', name: 'Tir Artillerie', faction: 'common', category: 'common', description: 'Faire tirer les artilleries d’une même zone.' },
-  { id: 'magic', name: 'Tir Magique', faction: 'common', category: 'common', description: 'Faire tirer les unités d’une même zone possédant la capacité Magie.' },
-  { id: 'recruitment', name: 'Recrutement', faction: 'common', category: 'common', limit: 3, description: 'Faire entrer des unités de réserve dans une zone de votre camp, en payant leur coût. Trois ordres par partie.' },
-  { id: 'shamanic', name: 'Déchainement Shamanique !', faction: 'gobelins', category: 'classic', description: 'Un Shaman non engagé cible une unité alliée non élite à portée : D6, 1 = −2 R ; 2–3 = −1 R ; 4–5 = dés d’attaque doublés ; 6 = dés doublés et propagation à une unité alliée adjacente.' },
-  { id: 'waaagh', name: 'WAAAGGGHHH !', faction: 'gobelins', category: 'legendary', limit: 1, description: 'Ordre unique. Son effet sera défini avec le créateur.' },
+  { id: 'recruitment', name: 'Recrutement', faction: 'common', category: 'common', limit: 3, description: 'Recruter des unités de la réserve pour 3 points de recrutement, selon les conditions de recrutement. Elles peuvent suivre d’autres ordres ce tour-ci, mais ne peuvent pas tirer. Dans la même phase d’ordre, cumuler deux ou trois cartes Recrutement permet de disposer de 6 ou 9 points. Trois sélections par partie.' },
+  { id: 'shamanic', name: 'Déchainement Shamanique !', faction: 'gobelins', category: 'classic', description: 'À mettre à jour (PDF p. 7). Un Shaman non engagé cible une unité alliée non élite à portée : D6, 1 = −2 R ; 2–3 = −1 R ; 4–5 = dés d’attaque doublés ; 6 = dés doublés et propagation à une unité alliée adjacente.' },
+  { id: 'waaagh', name: 'WAAAGGGHHH !', faction: 'gobelins', category: 'legendary', limit: 1, description: 'Ordre unique, à mettre à jour (PDF p. 7). Son effet n’est pas encore défini.' },
 ]
 
 export type BattleState = {

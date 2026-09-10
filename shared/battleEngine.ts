@@ -1,5 +1,6 @@
 import { cells, colOf, isCell, rowOf, zoneOf } from './board'
 import type { UnitProfile } from './unitProfile'
+import { hasUnitAbility } from './unitAbilities'
 
 export type BattleUnit = { id: string; seat: number; cardStableId: string; cell: number; regiment: number }
 export type Engagement = { a: string; b: string }
@@ -15,17 +16,18 @@ export const isEngaged = (engine: EngineState, unitId: string) => enemiesOf(engi
 export const zoneName = (cell: number) => `${['Arrière nord', 'Base nord', 'Centre', 'Base sud', 'Arrière sud'][Number(zoneOf(cell).split('-')[0])]} · ${['Flanc coco', 'Centre', 'Flanc aux pommes'][axisOf(cell)]}`
 
 export function legalMoves(engine: EngineState, unit: BattleUnit, profile: UnitProfile) {
-  if (profile.unitType === 'artillery') return []
-  const max = profile.unitType === 'cavalry' ? 3 : 1
+  const flying = hasUnitAbility(profile, 'flight')
+  if (profile.unitType === 'artillery' && !flying) return []
+  const max = flying || profile.unitType === 'cavalry' ? 3 : 1
   const occupied = new Set(engine.units.filter((item) => item.id !== unit.id).map((item) => item.cell))
   const result = new Map<number, { cell: number; path: number[]; cost: number }>()
   const startZone = zoneOf(unit.cell)
   const walk = (current: number, path: number[], cost: number, leftZone: boolean) => {
     for (const next of cells.filter((cell) => adjacent(current, cell))) {
       const nextCost = cost + 1 + (axisOf(next) !== axisOf(current) ? 1 : 0)
-      if (nextCost > max || occupied.has(next) || next === unit.cell || path.includes(next) || (leftZone && zoneOf(next) === startZone)) continue
+      if (nextCost > max || (!flying && occupied.has(next)) || next === unit.cell || path.includes(next) || (leftZone && zoneOf(next) === startZone)) continue
       const nextPath = [...path, next]
-      if (!result.has(next) || result.get(next)!.cost > nextCost) result.set(next, { cell: next, path: nextPath, cost: nextCost })
+      if (!occupied.has(next) && (!result.has(next) || result.get(next)!.cost > nextCost)) result.set(next, { cell: next, path: nextPath, cost: nextCost })
       walk(next, nextPath, nextCost, leftZone || zoneOf(next) !== startZone)
     }
   }

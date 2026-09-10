@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createGameHarness } from '../src/test/gameHarness'
 import { liveGame } from '../src/test/liveGame'
 import { MANUAL_RULES_VERSION } from '../shared/manualBattle'
+import { unitAbilities } from '../shared/unitAbilities'
 
 const error = (code: string) => ({ data: { code } })
 afterEach(() => vi.restoreAllMocks())
@@ -12,6 +13,24 @@ async function table() {
 }
 
 describe('shared manual battle', () => {
+  it('enforces Vol on the server using the frozen ability, without allowing occupied landings', async () => {
+    const h = await table()
+    const angel = await h.unit(0, 'lanciers')
+    const ally = await h.unit(0, 'archers')
+    const enemy = await h.unit(1, 'archers')
+    const target = await h.unit(1, 'lanciers')
+    const card = h.tables.gameCards.find((card) => card.gamePlayerId === h.tables.gamePlayers[0]._id && card.stableId === 'lanciers')!
+    card.profile = { ...(card.profile as object), unitType: 'elite', ability: unitAbilities.flight }
+    const engine = (h.tables.games[0].battle as NonNullable<Awaited<ReturnType<typeof h.read>>['battle']>).engine
+    engine.units.find((unit) => unit.id === ally.id)!.cell = 31
+    engine.units.find((unit) => unit.id === enemy.id)!.cell = 22
+    await h.manual('moveUnit', 2, { unitId: target.id, from: 13, to: 12 })
+    await expect(h.manual('moveUnit', 1, { unitId: angel.id, from: 40, to: 22 })).rejects.toMatchObject(error('INVALID_MOVEMENT'))
+    await h.manual('moveUnit', 1, { unitId: angel.id, from: 40, to: 13 })
+    expect(await h.unit(0, 'lanciers')).toMatchObject({ cell: 13 })
+    expect(await h.unit(0, 'archers')).toMatchObject({ cell: 31 })
+    expect(await h.unit(1, 'archers')).toMatchObject({ cell: 22 })
+  })
   it('starts after the full setup and lets either player move, within movement range, without automated attacks', async () => {
     const h = await table()
     expect(await h.read()).toMatchObject({ phase: 'battle', rulesVersion: MANUAL_RULES_VERSION, battle: { manual: { dice: [], discarded: [] } } })

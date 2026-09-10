@@ -15,6 +15,7 @@ const messages: Record<string, string> = {
   INVALID_DECK: 'Ce deck contient des cartes indisponibles ou de plusieurs factions. Modifiez-le dans Mes decks.',
   FACTION_NOT_AVAILABLE: 'La faction de ce deck n’est pas disponible.',
   UNIT_REQUIRED: 'Seules les unités de votre deck peuvent être préparées.',
+  RESERVE_ONLY_UNIT: 'Blop, le Meuteur doit commencer en réserve. Sa capacité interdit le déploiement avec l’armée initiale.',
   INVALID_DEPLOYMENT_QUANTITY: 'Choisissez une quantité comprise entre zéro et le nombre d’exemplaires dans votre deck.',
   DEPLOYMENT_LOCKED: 'Votre préparation est déjà validée.',
   DECK_RULES_VIOLATION: 'Ce deck ne respecte pas le budget de 33 points ou les quotas de types. Consultez les indications sous le deck.',

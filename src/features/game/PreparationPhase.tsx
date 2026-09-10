@@ -1,7 +1,7 @@
 import { useMutation } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import { armyBudget, preparationBudgetError } from '../../../shared/armyRules'
-import { preparationCapacityError } from '../../../shared/board'
+import { canInitiallyDeploy, preparationCapacityError } from '../../../shared/board'
 import { UnitCard } from '../catalogue/UnitCard'
 import { QuantityControl } from '../decks/QuantityControl'
 import { HiddenArmy } from './HiddenArmy'
@@ -25,7 +25,7 @@ export function PreparationPhase({ game, busy, perform }: { game: Game; busy: bo
     {capacityError && <p className="game-error" role="alert">{gameErrorMessage(capacityError)}</p>}
     <p className="game-intro">21 points maximum au déploiement et 12 en réserve. Votre camp dispose de 18 cases, dont 9 à l’arrière pour l’artillerie.</p>
     {me.preparationReady && <p className="game-waiting" role="status">Votre sélection est enregistrée. Le jet d’initiative s’ouvrira quand les deux joueurs auront validé.</p>}
-    {me.cards.some((card) => card.kind === 'unit') ? <div className="deployment-grid">{me.cards.filter((card) => card.kind === 'unit').map((card) => <UnitCard key={card.stableId} card={card} footer={<div className="deployment-choice"><span>{card.selectedQuantity ?? 0} / {card.quantity} à déployer</span><QuantityControl name={card.name} quantity={card.selectedQuantity ?? 0} max={card.quantity} busy={busy || me.preparationReady}
+    {me.cards.some((card) => card.kind === 'unit') ? <div className="deployment-grid">{me.cards.filter((card) => card.kind === 'unit').map((card) => <UnitCard key={card.stableId} card={card} footer={<div className="deployment-choice"><span>{canInitiallyDeploy(card.profile) ? `${card.selectedQuantity ?? 0} / ${card.quantity} à déployer` : 'Commence en réserve · Meuteur !'}</span><QuantityControl name={card.name} quantity={card.selectedQuantity ?? 0} max={canInitiallyDeploy(card.profile) ? card.quantity : 0} busy={busy || me.preparationReady}
       onAdjust={(delta) => void perform(() => update({ gameId: game.id, cardStableId: card.stableId, change: { delta } }))}
       onSet={(quantity) => void perform(() => update({ gameId: game.id, cardStableId: card.stableId, change: { quantity } }))} /></div>} />)}</div>
       : <div className="game-empty"><h3>Aucune unité dans ce deck.</h3><p>Validez pour continuer : toutes vos cartes resteront dans la pioche.</p></div>}

@@ -6,13 +6,14 @@ Le site prépare son adaptation numérique : découvrir les cartes, construire s
 
 ## Le site aujourd’hui
 
-- Un catalogue public réparti entre quatre factions : Sephosi, Gaeli, Orcs et Gobelins, avec les nouveaux profils 2026 des Gobelins et Sephosi.
+- Un catalogue public réparti entre quatre factions, dont 10 unités Gobelins et 10 unités Sephosi avec les profils et capacités du PDF reçu le 10 septembre 2026.
 - Un espace joueur privé pour créer, consulter, renommer et supprimer ses decks.
 - Une seule faction par deck, avec des quantités de cartes libres et une sauvegarde automatique.
 - Un récapitulatif de la composition et des coûts pendant la construction.
-- Un lobby à deux joueurs, la préparation privée des unités, l’initiative et le déploiement sur 54 cases, puis huit tours avec mouvements, tirs, recrutement et combats synchronisés.
+- Un lobby à deux joueurs, la préparation privée, l’initiative et le déploiement sur 54 cases, puis un plateau manuel partagé avec déplacements, réserves, engagements, compteurs et dés synchronisés. Vol est pris en compte dans les déplacements ; Blop commence en réserve.
 
 L’état précis du jeu et les écarts encore ouverts sont suivis dans les [règles implémentées](docs/regles-implementees.md).
+Les changements du dernier PDF sont détaillés dans la [comparaison du 10 septembre](docs/differences-regles-2026-09-10.md).
 
 L’univers visuel mêle illustrations de fantasy, tons sombres et titres inspirés des inscriptions anciennes.
 

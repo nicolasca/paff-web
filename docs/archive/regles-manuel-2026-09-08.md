@@ -1,23 +1,21 @@
 # PAFF — règles implémentées
 
-**État du 10 septembre 2026 · version de partie `2026-09-10-manual-1` · catalogue `2026-09-10`.**
+**État du 8 septembre 2026 · version de partie `2026-09-08-manual-1` · catalogue `2026-09-08-wip`.**
 
 Ce document décrit le comportement du site de cette version. Il sert de référence pour comparer l’application avec les prochaines versions du Drive. Il ne remplace pas les règles du créateur : les points encore provisoires sont indiqués explicitement.
 
 Sources : PDF « PAFF 2026 – Règles », huit captures du Drive du 6 septembre 2026 (12:22:29 à 12:23:34) et décisions de Nicolas : sélection privée avant initiative, placement obligatoire de toute la sélection, décors reportés, correction des placements, « Bande du chef », remplacement des Meneurs de Troll par Trolls et points stratégiques déclarés manuellement pour l’ancienne démo. Nouvelle référence : PDF « PAFF 2026 – Règles (1).pdf » transmis le 6 septembre 2026, pages 1–6. Arbitrages de Nicolas pour cette version : portée de tir en **cases**, **T contre DT, puis 1 R perdu par touche**, sans sauvegarde.
 
-Référence catalogue du 8 septembre 2026 : tableau transmis par Nicolas dans la conversation, colonnes Faction, Nom, Type, Pts déploiement, R, Dés, Cac/Tir, A, DC, DT, Capacités et Statut. Seules les lignes **OK** sont ajoutées ou actualisées. Cette ancienne référence est conservée dans l’[état du 8 septembre](archive/regles-manuel-2026-09-08.md).
-
-Nouvelle référence du 10 septembre : **PAFF 2026.pdf**, 10 pages, fourni par Nicolas. Pages 1–6 : règles générales ; p. 7 : ordres ; p. 8 : unités et tableau des touches ; p. 10 : capacités. Les profils Gobelins et Sephosi sont annoncés terminés. Précision finale de Nicolas : les `x` du Maréchal Vallardi signifient qu’il ne possède ni dés ni attaque. La [comparaison détaillée](differences-regles-2026-09-10.md) conserve les valeurs avant/après.
+Référence catalogue du 8 septembre 2026 : tableau transmis par Nicolas dans la conversation, colonnes Faction, Nom, Type, Pts déploiement, R, Dés, Cac/Tir, A, DC, DT, Capacités et Statut. Seules les lignes **OK** sont ajoutées ou actualisées. Cette révision est appliquée à Convex dev pour la preview du plateau manuel.
 
 ## 1. Catalogue et profils
 
 | Référence | Comportement appliqué |
 | --- | --- |
-| CAT-01 | Le catalogue possède quatre factions. Les listes Gobelins et Sephosi de cette révision comptent 20 unités (10 Gobelins, 10 Sephosi), toutes marquées OK dans le PDF p. 8. Orcs et Gaeli conservent leurs anciennes cartes et leurs profils estimés. |
-| CAT-02 | Une unité possède un nom, un coût, un type, R (points de Régiment), un nombre de dés, un mode offensif C, T ou aucun, une valeur offensive éventuelle, DC et DT. Vallardi et les Porte-ordres n’ont ni dés ni attaque ; leur carte affiche « — », sans mode C/T fictif. Le nombre de dés est indépendant de C/T. L’affichage du 7 septembre remplace DA par DC et regroupe score et mode, par exemple `4C` ou `3T` ; les valeurs et calculs restent identiques. |
+| CAT-01 | Le catalogue possède quatre factions. Les listes Gobelins et Sephosi de cette révision comptent 15 unités (7 Gobelins, 8 Sephosi) : 11 profils OK du 8 septembre et 4 profils WIP conservés de la version précédente. Orcs et Gaeli conservent leurs anciennes cartes et leurs profils estimés. |
+| CAT-02 | Une unité possède un nom, un coût, un type, R (points de Régiment), un nombre de dés, un mode offensif unique C ou T, une valeur offensive, DC et DT. Le nombre de dés est indépendant de C/T. L’affichage du 7 septembre remplace DA par DC et regroupe score et mode, par exemple `4C` ou `3T` ; les valeurs et calculs restent identiques. |
 | CAT-03 | Types disponibles : Troupe, Tir, Cavalerie, Artillerie, Élite, Unique. Cavalerie et Artillerie ont leurs limites de mouvement ; le mode C ou T détermine la défense utilisée par l’aide au combat. |
-| CAT-04 | Les 12 capacités attribuées aux unités sont affichées avec leur définition du PDF p. 10. Vol est pris en compte dans la géométrie de mouvement et Meuteur ! interdit le déploiement initial de Blop. Les autres effets sont arbitrés par les joueurs sur le plateau manuel ; ils ne sont plus présentés comme des définitions manquantes. Voir CAP-01 à CAP-04 ci-dessous. |
+| CAT-04 | Les capacités des nouvelles unités sont affichées avec un intitulé et une infobulle indiquant que leur effet reste à définir/implémenter. Elles n’ont aucun effet en jeu. |
 | CAT-05 | Les identifiants des cartes renommées sont conservés pour préserver les decks. Les autres anciennes cartes Gobelins/Sephosi, y compris les cartes Action, sont archivées : elles restent lisibles dans les anciens decks mais ne sont plus ajoutables ni utilisables pour sélectionner un deck dans une nouvelle partie. L’éditeur permet de les retirer. |
 | CAT-06 | Une partie conserve une copie des cartes au choix du deck. Les mises à jour ultérieures du catalogue ou du deck ne modifient pas ces copies. Les ordres sont également figés dans la partie au début du tour 1. |
 
@@ -32,43 +30,33 @@ Nouvelle référence du 10 septembre : **PAFF 2026.pdf**, 10 pages, fourni par N
 
 ### Valeurs du catalogue courant
 
-Les valeurs viennent du PDF p. 8. Tous les DT sont numériques, sans ancien signe `+`. Les `x` de Vallardi et les tirets des Porte-ordres représentent l’absence d’attaque : zéro dé en données, score `null`, mode `none`, affichage « — ». Ils ne sont pas des profils offensifs en attente.
+Les 11 profils OK reprennent les valeurs du tableau du 8 septembre, sans `+` dans DT. Les quatre profils WIP conservent leurs anciennes valeurs, y compris le signe `+` ; la valeur numérique reste utilisée comme DT dans la comparaison T contre DT, sans jet de sauvegarde (arbitrage de Nicolas). `—` représente l’absence de valeur offensive des Aides de camp.
 
 | Faction | Unité | Coût | Type | R | Dés | C/T | DC | DT | Capacité |
-| --- | --- | ---: | --- | ---: | ---: | --- | ---: | ---: | --- |
-| Gobelins | Bande de Gobelins | 1 | Troupe | 2 | 3 | C 2 | 2 | 1 | — |
+| --- | --- | ---: | --- | ---: | ---: | --- | ---: | --- | --- |
+| Gobelins | Bande de Gobelins | 1 | Troupe | 3 | 3 | C 2 | 2 | 1 | — |
 | Gobelins | Archers Gobelins | 1 | Tir | 2 | 3 | T 1 | 1 | 1 | Tir en mêlée |
 | Gobelins | Shamans Gobelins | 1 | Tir | 1 | 1 | T 3 | 1 | 1 | Tir magique |
 | Gobelins | Chevaucheurs de Skrans Gobelins | 1 | Cavalerie | 2 | 2 | C 2 | 2 | 1 | — |
 | Gobelins | Katapult à gobs | 2 | Artillerie | 1 | 1 | T 5 | 1 | 1 | Pluie de gobs |
-| Gobelins | Trolls | 3 | Élite | 2 | 2 | C 4 | 5 | 5 | Trollitude |
-| Gobelins | Gros tarrés de gobelins | 2 | Élite | 1 | 1 | C 5 | 1 | 1 | — |
-| Gobelins | Bande du chef | 3 | Élite | 5 | 4 | C 3 | 3 | 2 | — |
-| Gobelins | Le Danzereu | 2 | Unique | 1 | 2 | T 3 | 1 | 1 | Ligne Verte |
-| Gobelins | Blop, le Meuteur | 2 | Unique | 3 | 2 | C 3 | 2 | 1 | Meuteur ! |
+| Gobelins | Trolls | 4 | Élite | 3 | 2 | C 6 | 3 | 2+ | Trollitude |
+| Gobelins | Bande du chef | 3 | Élite | 2 | 3 | C 3 | 3 | 5+ | — |
 | Sephosi | Lanciers Sephosiens | 3 | Troupe | 3 | 2 | C 3 | 4 | 3 | Mur de lance |
 | Sephosi | Epéistes Sephosiens | 3 | Troupe | 3 | 3 | C 4 | 3 | 2 | — |
 | Sephosi | Arbalétriers Sephosiens | 2 | Tir | 2 | 2 | T 3 | 1 | 2 | — |
 | Sephosi | Cavalerie lourde Sephosienne | 3 | Cavalerie | 2 | 1 | C 4 | 3 | 2 | Charge puissante |
 | Sephosi | Arbalétriers Montés | 2 | Cavalerie | 1 | 1 | T 3 | 1 | 1 | Tir en mouvement |
 | Sephosi | Balistes Sephosiennes | 2 | Artillerie | 1 | 1 | T 6 | 1 | 1 | — |
-| Sephosi | Anges Protecteurs de la Sephosi | 4 | Élite | 2 | 2 | C 4 | 3 | 2 | Vol |
-| Sephosi | Porte-ordres Sephosiens | 2 | Élite | 1 | — | — | 1 | 1 | Appui stratégique |
-| Sephosi | Maréchal Vallardi | 2 | Unique | 1 | — | — | 1 | 1 | Stratège |
-| Sephosi | Régiment de la Salamandre | 4 | Unique | 3 | 3 | C 4 | 4 | 4 | — |
+| Sephosi | Anges Protecteurs de la Sephosi | 4 | Élite | 1 | 3 | C 4 | 5 | 3+ | Vol |
+| Sephosi | Aides de camp Sephosiens | 2 | Élite | 1 | 0 | C — | 1 | 6+ | Appui stratégique |
 
-**Noms et identités conservés :** « Bande du Sef » est affichée « Bande du chef », conformément à la correction de Nicolas du 6 septembre. « Baliste Sephosiennes » est harmonisé en « Balistes Sephosiennes ». « Pluie de Gob » (p. 10) et « Pluie de gobs » (p. 8) désignent la même capacité, affichée « Pluie de gobs ». Troupe de Gobelins, Shaman Gobelin, Meneurs de Troll, Arbalétriers avec Pavois et Arbalétriers Montés conservent leurs identifiants historiques. Aides de camp devient Porte-ordres avec le même identifiant. Le Bon gros tarré et le Régiment de la Salamandre sont réactivés sur leur carte existante, sans dupliquer les références des decks.
+**Périmètre du 8 septembre :** Katapult à gobs et Epéistes Sephosiens sont ajoutés ; les Arbalétriers Montés sont réactivés avec leur ancien identifiant. Les lignes OK existantes sont actualisées. Les nouvelles capacités « Mur de lance », « Pluie de gobs » et « Tir en mouvement » sont des intitulés affichés, sans effet supplémentaire implémenté (CAT-04).
 
-**Illustrations :** les cartes révisées conservent leurs illustrations, y compris les Porte-ordres (ancienne illustration des Aides de camp). Les Gros tarrés et la Salamandre reprennent leur visuel existant. Les trois images fournies par Nicolas le 10 septembre sont intégrées : `skrans.png` pour les Chevaucheurs de Skrans, `catagob.png` pour la Katapult à gobs et `danzereux.png` pour Le Danzereu. Elles sont converties en WebP, sans recadrage. Seuls Blop et Vallardi utilisent encore l’illustration d’attente parmi les 20 profils finalisés.
+**Profils WIP conservés :** Trolls, Bande du chef, Anges Protecteurs et Aides de camp restent identiques à la version du 6 septembre. En particulier, la Bande du chef reste à **2 R** : les 4 R de « Bande du Sef » sont exclus car cette ligne est « à MAJ ». Les Aides de camp ne sont pas renommés « Porte-ordres » à ce stade. Les Gros tarrés, Le Danzereu, Blop et Maréchal Deliamonte ne sont pas ajoutés ; le Régiment de la Salamandre reste archivé.
 
-### Capacités du PDF p. 10
+**Interprétations WIP conservées :** `2C`, `3C`, etc. des anciens profils donnent respectivement 2, 3 dés et le mode corps à corps. Les lignes OK du 8 septembre distinguent désormais explicitement dés et mode C/T. La colonne offensive intitulée A fournit la valeur de C ou T selon le mode. Aucun score de protection P supplémentaire n’a été ajouté. « Bande du Sef » reste corrigé en « Bande du chef » ; « Baliste Sephosiennes » reste harmonisé en « Balistes Sephosiennes ».
 
-| Référence | Traitement dans l’application |
-| --- | --- |
-| CAP-01 | **Vol** : mouvement de cavalerie (3 points), survol des cases occupées par un allié ou un ennemi, arrivée sur une case libre seulement. Surcoût de changement d’axe et interdiction de retour dans la zone de départ conservés. Même calcul dans l’interface et au serveur. Les décors ne sont pas encore représentés. |
-| CAP-02 | **Meuteur !** : Blop doit rester en réserve pendant la préparation et ne peut pas être placé avec l’armée initiale. Contrôle à la sélection, à sa validation et au placement. Son entrée ultérieure passe par le recrutement manuel normal. Le 1D3 de Skrans gratuits est arbitré par les joueurs ; aucune unité supplémentaire n’est générée automatiquement. |
-| CAP-03 | Définitions complètes consultables pour **Appui stratégique, Charge puissante, Ligne Verte, Mur de lance, Pluie de gobs, Stratège, Tir en mêlée, Tir en mouvement, Tir magique et Trollitude**. Les joueurs appliquent les bonus, malus, cibles, relances, sacrifices, blessures et ordres supplémentaires avec les outils manuels existants. Le profil de base de l’aide au combat n’intègre pas ces modificateurs. |
-| CAP-04 | **Repli stratégique** figure dans le référentiel de capacités mais n’est attribué à aucune unité du tableau p. 8. Aucun dé P ni effet automatique ajouté. Les identifiants de capacités sont copiés avec les profils ; les anciennes copies WIP sans identifiant ne reçoivent pas rétroactivement Vol ou Meuteur !. |
+Correspondances conservant l’identité de carte : Troupe de Gobelins → Bande de Gobelins ; Shaman Gobelin → Shamans Gobelins ; Meneurs de Troll → Trolls ; Arbalétriers avec Pavois → Arbalétriers Sephosiens ; Arbalétriers Montés Sephosiens → Arbalétriers Montés. La carte Action Tirs de Balistes reste archivée ; Balistes Sephosiennes est une unité distincte. Les illustrations carrées reçues le 7 septembre remplacent celles de la Bande de Gobelins, des Archers, des Shamans, des Lanciers, des Arbalétriers et de la Cavalerie Sephosi. Celles du 8 septembre sont associées à la Bande du chef (`chef-gob.png`), aux Anges (`anges-2.png`), aux Aides de camp (`messager.png`) et aux Epéistes (`epeistes.png`). `sala-7.png` remplace seulement l’illustration de la carte archivée Régiment de la Salamandre. Skrans et Katapult utilisent l’illustration d’attente ; les Arbalétriers Montés conservent leur ancienne illustration.
 
 ## 2. Decks et lobby
 
@@ -110,10 +98,10 @@ Source : retours de démo de Nicolas, précisions sur R, autonomie et absence de
 | Référence | Comportement implémenté |
 | --- | --- |
 | MAN-TURN | Après le déploiement, plateau commun sans joueur actif, phase d’ordre ni validation de fin de tour. Les deux joueurs peuvent agir. Compteur de tour partagé, +/− accessibles aux deux joueurs, départ à 1, sans limite de huit tours ni conséquence automatique. |
-| MAN-ORD | Liste des ordres à droite, noms non cliquables et définitions au survol ou au focus. Ordres communs du PDF p. 7 : Mouvement, Tir, Tir Artillerie, Recrutement. Défense, Assaut et l’ordre Tir Magique sont retirés des nouvelles parties ; Tir magique reste une capacité du Shaman. Gobelins : Déchainement Shamanique et WAAAGGGHHH, explicitement signalés « à mettre à jour » comme dans le PDF p. 7. Pas d’ordre inventé pour les lignes sans nom du Drive. |
-| MAN-STOCK | Les ordres illimités affichent ∞. Compteurs d’exemplaires restants réglés par leur propriétaire : Recrutement commence à 3 (dernier PDF), WAAAGGGHHH à 1 (capture des ordres). Les autres joueurs voient les compteurs. Aucun stock n’est consommé automatiquement ni contrôlé pour autoriser une action. Recrutement indique 3 points par sélection, cumulables à 6 ou 9 dans la même phase, avec interdiction de tirer pour les recrues ce tour-ci. Les stocks des lignes de faction sans nom ne sont pas extrapolés ; la divergence entre p. 3 (4/2/1) et p. 7 (3/3/unique, à maj) reste ouverte. |
+| MAN-ORD | Liste des ordres à droite, noms non cliquables et définitions au survol ou au focus. Ordres communs : Mouvement, Défense, Assaut, Tir, Tir Artillerie, Tir Magique, Recrutement. Gobelins : Déchainement Shamanique et WAAAGGGHHH. Pas d’ordre inventé pour les lignes sans nom du Drive. |
+| MAN-STOCK | Les ordres illimités affichent ∞. Compteurs d’exemplaires restants réglés par leur propriétaire : Recrutement commence à 3 (dernier PDF), WAAAGGGHHH à 1 (capture des ordres). Les autres joueurs voient les compteurs. Aucun stock n’est consommé automatiquement ni contrôlé pour autoriser une action. Les limites 4/2/1 des ordres de faction incomplets ne sont pas extrapolées. |
 | MAN-MOVE | Glisser une de ses unités avec le bouton gauche éclaire les destinations possibles. L’entrée sur une case autorisée accepte immédiatement le dépôt, y compris lors d’un geste rapide. Le dépôt valide le mouvement. Annuler le geste ou lâcher hors d’une case autorisée ne déplace rien. Alternative clavier/tactile : sélectionner l’unité puis une case ; Échap annule la sélection de déplacement. |
-| MAN-RANGE | Limite par geste : Troupe, Tir, Élite, Unique = 1 point ; Cavalerie = 3 ; Artillerie = 0. Exception Vol : 3 points et survol des cases occupées (CAP-01). Déplacement orthogonal, arrivée libre, changement d’axe coûte un point supplémentaire, pas de retour dans la zone de départ après l’avoir quittée dans un même geste. Même géométrie que le moteur précédent, conformément à la demande de conserver le mouvement. |
+| MAN-RANGE | Limite par geste : Troupe, Tir, Élite, Unique = 1 point ; Cavalerie = 3 ; Artillerie = 0. Déplacement orthogonal par cases libres, changement d’axe coûte un point supplémentaire, pas de retour dans la zone de départ après l’avoir quittée dans un même geste. Même géométrie que le moteur précédent, conformément à la demande de conserver le mouvement. |
 | MAN-FREE | Pas de consommation de mouvement pour le tour, blocage après un tir, blocage d’engagement ou attaque gratuite de désengagement. Un joueur peut effectuer plusieurs gestes successifs. Le respect du nombre d’actions et des ordres appartient aux joueurs. |
 | MAN-RESERVE | Réserve personnelle visible sous son côté du plateau, avec quantité et coût sous l’illustration. Son contenu n’est jamais transmis à l’adversaire : seul le total est public. Glisser un exemplaire ou utiliser Recruter puis choisir une case vide le fait entrer. Aucun budget, paiement de PS, zone imposée ni contrainte de type pour les renforts dans ce mode. |
 | MAN-INSTANCES | Chaque exemplaire entré possède une identité. Une entrée diminue la réserve une seule fois ; déposer deux fois le même exemplaire ou sur une case devenue occupée est refusé. Un exemplaire retiré du plateau ne retourne pas en réserve. |
@@ -137,15 +125,14 @@ Les compteurs sont bornés techniquement à 0–999 (tour : 1–999), et le lanc
 - **Préparation conservée** : deck de faction unique, budgets et quotas du §2, sélection privée et placement de toutes les unités choisies du §3. Les demandes de simplification portent sur le plateau après cette préparation.
 - **Arbitrage manuel** : ordres exécutés, nombre d’actions, coûts de recrutement, points stratégiques, légalité des tirs/combats, modificateurs, relances, blessures et victoire. Le moteur automatique précédent est supprimé.
 - **Décors et événements** : toujours reportés. Pas de placement de décor, ligne de tir obstruée ou événement automatique.
-- **Capacités** : les définitions sont finalisées ; Vol et la restriction de déploiement de Blop sont appliqués. Les autres effets restent à la main des joueurs (CAP-03), conformément au plateau manuel. **Ordres de faction** : encore marqués « à maj » dans le PDF p. 7 ; les lignes sans nom restent exclues.
+- **Capacités et ordres de faction** : définitions WIP conservées pour consultation. Aucune capacité n’exécute un effet automatique. Les nouveaux ordres sans nom, effet ou stock défini restent à documenter.
 - **Réserve** : le coût est indicatif ; les joueurs choisissent eux-mêmes où et combien recruter. Seuls l’espace libre et la possession réelle de l’exemplaire sont imposés.
-- **Profils** : les 20 profils Gobelins/Sephosi sont définis, y compris l’absence d’attaque de Vallardi. Les estimations Orcs/Gaeli sont conservées. **Points de règle restant ambigus dans le PDF** : protection P de Repli stratégique, origine des Skrans de Meuteur ! (réserve ou création), détails de portée de Ligne Verte ; aucun comportement automatique n’est inventé pour ces points.
+- **Profils** : les valeurs WIP du catalogue ne sont pas arbitrées par ce lot ; se référer au §1.
 
 ## 6. Suivi de l’implémentation
 
-- Un seul fonctionnement de partie : préparation commune puis plateau manuel, identifié par `2026-09-10-manual-1` pour les nouvelles parties. Les anciennes phases, actions automatiques, schémas et écrans ont été supprimés à la demande de Nicolas le 8 septembre. Aucun mode de compatibilité n’est maintenu.
+- Un seul fonctionnement de partie : préparation commune puis plateau manuel, identifié par `2026-09-08-manual-1`. Les anciennes phases, actions automatiques, schémas et écrans ont été supprimés à la demande de Nicolas le 8 septembre. Aucun mode de compatibilité n’est maintenu.
 - La [référence précédente](archive/regles-actions-2026-09-06.md) est conservée uniquement comme historique documentaire pour comparer les règles ; elle ne décrit plus un moteur disponible.
 - Les cartes et ordres d’une partie sont copiés depuis le catalogue lors de sa préparation ; leurs profils restent stables pendant cette partie.
-- Ce document décrit la branche qui le contient, pas nécessairement la production. Le 10 septembre 2026, les fonctions et le catalogue ont été appliqués à Convex dev : 3 cartes créées, 17 mises à jour, aucune archivée. L’application est idempotente. Les parties préparées conservent leurs cartes figées et les batailles commencées leurs ordres. La production n’a pas été modifiée.
-- Validation de ce lot : 188 tests réussis, analyse statique et compilation réussies ; contrôle visuel des cartes et des capacités dans le catalogue de développement.
+- Ce document décrit la branche qui le contient, pas nécessairement la production. La preview du lot utilise Convex dev ; la production n’est pas modifiée par sa publication.
 - Vérifications : [mutations manuelles](../convex/manual.ts), [tests serveur](../convex/manual.test.ts), [parcours fonctionnel à deux joueurs](../src/functional/manualBattle.test.tsx), [parcours complet de préparation](../src/functional/gameFlow.test.tsx), [géométrie et tableau des touches](../shared/battleEngine.test.ts). Les tests propres aux anciens moteurs sont supprimés ; les tests de préparation suivent le parcours unique.

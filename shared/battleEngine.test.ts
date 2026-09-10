@@ -3,6 +3,7 @@ import { initialBattle } from './battle'
 import { adjacent, hitRule, legalMoves, type BattleUnit } from './battleEngine'
 import { meleeProfile } from '../src/test/liveGame'
 import { deckRuleIssues, preparationBudgetError } from './armyRules'
+import { unitAbilities } from './unitAbilities'
 
 const unit = (id: string, cell: number, seat = 0): BattleUnit => ({ id, cell, seat, regiment: 4, cardStableId: 'unit' })
 const state = (...units: BattleUnit[]) => ({ ...initialBattle([]).engine!, units })
@@ -24,6 +25,19 @@ describe('cell geometry and legal actions', () => {
     expect(moves.some((m) => m.cell === 40)).toBe(false)
     expect(moves.every((m) => !m.path.includes(37))).toBe(true)
     expect(legalMoves(state(u, unit('b', 38)), u, { ...meleeProfile, unitType: 'cavalry' }).some((m) => m.path.includes(38))).toBe(false)
+  })
+  it('lets Vol cross allied and enemy units with cavalry range but only land on free cells', () => {
+    const u = unit('angel', 40)
+    const e = state(u, unit('ally', 31), unit('enemy', 22, 1))
+    const flying = { ...meleeProfile, unitType: 'elite' as const, ability: unitAbilities.flight }
+    const moves = legalMoves(e, u, flying)
+    expect(moves.find((move) => move.cell === 13)).toEqual({ cell: 13, path: [31, 22, 13], cost: 3 })
+    expect(moves.some((move) => [31, 22, 4, 40].includes(move.cell))).toBe(false)
+    expect(moves.every((move) => !move.path.some((cell, index) => index > 0 && [38, 39, 40, 41, 42].includes(cell) && move.path.slice(0, index).some((previous) => previous < 36)))).toBe(true)
+    expect(legalMoves(e, u, { ...flying, ability: { name: 'Vol', description: 'Ancien effet WIP' } }).some((move) => move.cell === 13)).toBe(false)
+    const flank = unit('angel', 37)
+    expect(legalMoves(state(flank), flank, flying).find((move) => move.cell === 39)?.cost).toBe(3)
+    expect(legalMoves(state(flank), flank, flying).some((move) => move.cell === 40)).toBe(false)
   })
 })
 describe('hit-table advice and army preparation', () => {

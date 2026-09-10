@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createGameHarness } from '../src/test/gameHarness'
+import { catalogue2026 } from '../shared/catalogue2026'
 
 const code = (code: string) => ({ data: { code } })
 afterEach(() => vi.restoreAllMocks())
@@ -33,6 +34,25 @@ async function preparation() {
 }
 
 describe('unit selection before initiative', () => {
+  it('keeps Blop in reserve through selection, validation and initial placement, then allows recruitment', async () => {
+    const h = await preparation()
+    const card = h.tables.gameCards.find((card) => card.stableId === 'archers')!
+    const blop = catalogue2026.find((unit) => unit.name === 'Blop, le Meuteur')!
+    Object.assign(card, { profile: blop.profile, name: blop.name, cost: blop.cost, quantity: 1 })
+    await expect(h.choose(1, 1)).rejects.toMatchObject(code('RESERVE_ONLY_UNIT'))
+    expect((await h.read()).players[0].preparationCount).toBe(0)
+    h.tables.gameCards.find((item) => item._id === card._id)!.selectedQuantity = 1
+    await expect(h.validate(1)).rejects.toMatchObject(code('RESERVE_ONLY_UNIT'))
+    await h.choose(1, 0)
+    await h.initiative()
+    h.tables.gameCards.find((item) => item._id === card._id)!.selectedQuantity = 1
+    await expect(h.deploy(1, 40)).rejects.toMatchObject(code('INVALID_DEPLOYMENT_CELL'))
+    h.tables.gameCards.find((item) => item._id === card._id)!.selectedQuantity = 0
+    await h.finish(1)
+    await h.finish(2)
+    await h.invoke('manual', 'recruit', 1, { gameId: h.gameId, cardStableId: 'archers', entered: 0, cell: 40 })
+    expect((await h.read()).battle!.engine.units.find((unit) => unit.cell === 40)).toMatchObject({ regiment: 3 })
+  })
   it('corrects a misclick during the opponent’s turn without changing the turn or number of units', async () => {
     const { run, gameId, choose, initiative, read, deploy, finish } = await preparation()
     await choose(1, 2)

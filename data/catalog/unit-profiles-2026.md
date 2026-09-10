@@ -1,6 +1,6 @@
 # Profils historiques et estimations de compatibilité
 
-La référence courante est [Règles implémentées](../../docs/regles-implementees.md), section 1, avec les 12 profils Gobelins/Sephosi du Drive du 6 septembre. Les estimations ci-dessous concernent les anciens profils, notamment Orcs/Gaeli, et les anciennes parties.
+La référence courante est [Règles implémentées](../../docs/regles-implementees.md), section 1, avec les 20 profils Gobelins/Sephosi du PDF reçu le 10 septembre. Les estimations ci-dessous concernent les anciens profils, notamment Orcs/Gaeli, et les anciennes parties. Vallardi et les Porte-ordres possèdent explicitement zéro dé et aucun mode offensif (`none`, score `null`), affichés « — » sur les cartes.
 
 Structure confirmée par Nicolas : nom, coût de recrutement, type, R (points de Régiment), nombre de dés, un seul score offensif A ou T, DA, DT et une capacité avec intitulé court et définition. Le nombre de dés est indépendant de la valeur offensive. Les nouvelles listes Gobelins/Sephosi remplacent leurs anciennes cartes publiées ; les cartes Action des autres factions sont conservées.
 
@@ -16,6 +16,6 @@ Les valeurs initiales sont des estimations autorisées, identifiées par `profil
 - Classement, par priorité : limite individuelle de 1 → Unique ; baliste/catapulte/canon → Artillerie ; ancien C ou unité montée → Cavalerie ; tireur → Tir ; R ≥ 3 et dés ≥ 2 → Élite ; sinon Troupe. Le type ne force pas le mode offensif : une cavalerie peut tirer.
 - Les anciens textes de capacité sont conservés sous des intitulés de trois mots au maximum. Leur adaptation mécanique sera faite avec les combats.
 
-Les six types sont disponibles. Le catalogue courant comprend les Balistes Sephosiennes de type Artillerie. Les quotas du PDF restent provisoires et ne sont pas imposés ici.
+Les six types sont disponibles. Les quotas du PDF sont contrôlés au choix du deck pour une partie ; les estimations décrites ici ne changent pas ces quotas.
 
 La migration complète seulement les profils absents, par lots de 100, dans `cards` puis `gameCards`. Une partie utilise ses propres valeurs figées. Un import ultérieur du CSV conserve les profils déjà enregistrés.
