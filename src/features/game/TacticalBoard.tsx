@@ -3,13 +3,15 @@ import { useEffect, useId, useRef, useState, type DragEvent } from 'react'
 import { cellCoordinate, displayCell } from '../../../shared/board'
 import { getUnitProfile } from '../../../shared/unitProfile'
 import { CardPreview } from '../catalogue/CardPreview'
-import type { Game } from './types'
+import type { Game, GamePlayer } from './types'
+import '../catalogue/factionTheme.css'
 import './TacticalBoard.css'
 import { EngagementLines } from './EngagementLines'
 
 const bands = [[0], [1], [2, 3], [4], [5]]
 const axes = [[0, 1], [2, 3, 4, 5, 6], [7, 8]]
 const bandNames = ['Arrière adverse', 'Base adverse', 'Centre stratégique', 'Votre base', 'Votre arrière']
+const factionKey = (player: GamePlayer) => player.deployedCards[0]?.faction.stableId ?? player.cards[0]?.faction.stableId ?? player.factionName?.toLowerCase()
 
 export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, placeLabel = 'Déployer ici', busy = false, onUnit, selectedCell, interaction }: {
   onUnit?: (cell: number) => void; selectedCell?: number; game: Game; allowedCells?: number[]; onPlace?: (cell: number) => void; onReposition?: (cell: number) => void; placeLabel?: string; busy?: boolean
@@ -40,7 +42,7 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
   const previewUnit = hovered && unitAt(hovered.cell)
   const previewProfile = previewUnit && getUnitProfile(previewUnit.card)
   return <div className="tactical-board">
-    <div className="board-camp-label"><span className="board-side-dot board-side-dot--opponent" />{opponent.displayName}<span>Adversaire</span></div>
+    <div className="board-camp-label" data-faction={factionKey(opponent)}><span className="board-army-sigil" aria-hidden="true">◆</span><strong>{opponent.factionName ?? 'Armée adverse'}</strong><span>{opponent.displayName} · Adversaire</span></div>
     <p className="board-mobile-hint">↔ Faites défiler le plateau horizontalement</p>
     <div className="board-scroll" tabIndex={0} role="region" aria-label="Plateau de 54 cases et 15 zones, défilement horizontal sur petit écran">
       <div className="board-surface" ref={surface}>
@@ -56,10 +58,10 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
             const allowed = allowedCells.includes(cell)
             const engaged = Boolean(unit?.runtime && isEngaged(game.battle!.engine!, unit.runtime.id))
             const battleRole = unit?.runtime && game.battle?.manual?.duel ? unit.runtime.id === game.battle.manual.duel.attackerId ? 'attacker' : unit.runtime.id === game.battle.manual.duel.targetId ? 'defender' : undefined : undefined
-            const content = <>{unit ? <><img src={unit.card.imagePath} alt="" /><span className="board-unit__regiment">{unit.runtime?.regiment ?? getUnitProfile(unit.card)?.regiment}<small>R</small></span><strong>{unit.card.name}</strong>{unit.runtime && isEngaged(game.battle!.engine!, unit.runtime.id) && <span className="board-unit__engaged">⚔</span>}</> : <span className="board-cell__mark" aria-hidden="true">{allowed ? '+' : '·'}</span>}<span className="board-cell__coordinate" aria-hidden="true">{cellCoordinate(cell)}</span></>
+            const content = <>{unit ? <><img src={unit.card.imagePath} alt="" /><span className="board-unit__regiment" title={interaction && unit.owner.isMe ? 'Cliquez cette unité pour modifier ses R' : 'Points de régiment'}>{unit.runtime?.regiment ?? getUnitProfile(unit.card)?.regiment}<small>R</small></span><strong>{unit.card.name}</strong>{engaged && <span className="board-unit__engaged" title="Unité engagée">⚔</span>}</> : <span className="board-cell__mark" aria-hidden="true">{allowed ? '+' : '·'}</span>}<span className="board-cell__coordinate" aria-hidden="true">{cellCoordinate(cell)}</span></>
             const className = `board-cell${unit ? ` board-unit board-unit--${unit.owner.isMe ? 'you' : 'opponent'}` : ''}${allowed ? ' board-cell--allowed' : ''}${cell === (selectedCell ?? inspected) ? ' board-cell--selected' : ''}${engaged && interaction ? ' board-unit--engaged' : ''}${battleRole ? ` board-unit--${battleRole}` : ''}`
             const label = `${cellCoordinate(cell)}${allowed ? ` · ${placeLabel}` : ''}${unit ? ` · ${unit.card.name} · ${unit.owner.displayName}` : allowed ? '' : ' · Case vide'}`
-            return unit || allowed ? <button key={cell} type="button" data-cell={cell} data-unit-id={unit?.runtime?.id} data-battle-role={battleRole} className={className} aria-label={label} aria-describedby={hovered?.cell === cell ? previewId : undefined} aria-pressed={unit ? cell === (selectedCell ?? inspected) : undefined} disabled={busy && (allowed || Boolean(onUnit))}
+            return unit || allowed ? <button key={cell} type="button" data-cell={cell} data-unit-id={unit?.runtime?.id} data-faction={unit?.card.faction.stableId} data-battle-role={battleRole} className={className} aria-label={label} aria-describedby={hovered?.cell === cell ? previewId : undefined} aria-pressed={unit ? cell === (selectedCell ?? inspected) : undefined} disabled={busy && (allowed || Boolean(onUnit))}
               draggable={!busy && Boolean(interaction?.canDrag(cell))}
               onDragStart={(event) => { setHovered(null); interaction?.onDrag(cell, event) }}
               onDragEnd={() => interaction?.onDragEnd()}
@@ -87,7 +89,7 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
         </div>))}</div>
       </div>
     </div>
-    <div className="board-camp-label board-camp-label--you"><span className="board-side-dot" />{me.displayName}<span>Votre camp</span></div>
+    <div className="board-camp-label board-camp-label--you" data-faction={factionKey(me)}><span className="board-army-sigil" aria-hidden="true">◆</span><strong>{me.factionName ?? 'Votre armée'}</strong><span>{me.displayName} · Votre camp</span></div>
     {detail && onReposition && detail.owner.isMe && <div className="board-inspection" aria-label="Correction du placement">
       <div><p className="eyebrow">{detail.owner.displayName} · {cellCoordinate(inspected!)}</p><h3>{detail.card.name}</h3></div>
       <button type="button" className="ui-button" disabled={busy} onClick={() => { setHovered(null); onReposition(inspected!) }}>Changer de case</button>

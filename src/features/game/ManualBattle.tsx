@@ -94,7 +94,7 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
       <div className="manual-strategy manual-strategy--opponent"><span>{opponent.displayName}<small>Points stratégiques</small></span><output aria-label={`Points stratégiques de ${opponent.displayName}`}>{battle.strategyPoints[opponent.seat]}</output></div>
     </header>
     <div className="manual-main">
-      <p className="manual-instructions">Glissez une unité pour la déplacer. Clic droit : attaquant, puis défenseur. <span>Au clavier : sélectionnez une unité puis une case ; C pour comparer. Échap pour annuler le déplacement.</span></p>
+      <p className="manual-instructions">Glissez pour déplacer. Cliquez sur une de vos unités pour ajuster ses R, même hors combat. Clic droit : attaquant, puis défenseur.<span>Au clavier : sélectionnez une unité puis une case ; C pour comparer. Échap pour annuler le déplacement.</span></p>
       {source && !dragging && <div className="manual-placement" role="status">Choisissez une case éclairée.<button type="button" onClick={cancelDrag}>Annuler</button></div>}
       <TacticalBoard game={game} busy={locked} selectedCell={selected?.cell} allowedCells={allowed} onPlace={drop} placeLabel={source?.kind === 'reserve' ? 'Recruter ici' : source?.kind === 'discard' ? 'Remettre ici' : 'Déplacer ici'} onUnit={(cell) => {
         const unit = engine.units.find((unit) => unit.cell === cell && unit.seat === me.seat)

@@ -1,9 +1,10 @@
-import { useLayoutEffect, useState, type RefObject } from 'react'
+import { useEffect, useState, type RefObject } from 'react'
 import type { BattleUnit, Engagement } from '../../../shared/battleEngine'
 
 export function EngagementLines({ surface, units, engagements }: { surface: RefObject<HTMLDivElement | null>; units: BattleUnit[]; engagements: Engagement[] }) {
   const [lines, setLines] = useState<{ key: string; x1: number; y1: number; x2: number; y2: number }[]>([])
-  useLayoutEffect(() => {
+  // The surface belongs to the parent: its ref is attached after child layout effects.
+  useEffect(() => {
     const board = surface.current
     if (!board) return
     const measure = () => {

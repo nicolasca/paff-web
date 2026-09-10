@@ -60,6 +60,13 @@ describe('manual tabletop across two real clients', () => {
     expect(p(1).queryByRole('button', { name: 'Jouer Mouvement' })).not.toBeInTheDocument()
     expect(p(1).queryByLabelText('Étapes de la partie')).not.toBeInTheDocument()
 
+    // R can change with only one unit selected, before any combat comparison.
+    await click(1, 'E5 · Lanciers · Joueur 1')
+    expect(p(1).getByRole('combobox', { name: 'Attaquant' })).toHaveValue('')
+    await click(1, 'Diminuer R de Lanciers · E5')
+    await waitFor(() => expect(p(2).getByRole('button', { name: 'E5 · Lanciers · Joueur 1' })).toHaveTextContent('3R'))
+    expect(p(1).getByRole('combobox', { name: 'Attaquant' })).toHaveValue('')
+
     await drag(p(2).getByRole('button', { name: 'E2 · Lanciers · Joueur 2' }), 2, 'E3 · Déplacer ici')
     await waitFor(() => expect(p(1).getByRole('button', { name: 'E3 · Lanciers · Joueur 2' })).toBeVisible())
     await drag(p(1).getByRole('button', { name: 'E5 · Lanciers · Joueur 1' }), 1, 'E4 · Déplacer ici')
@@ -73,8 +80,6 @@ describe('manual tabletop across two real clients', () => {
     await click(1, 'Marquer un engagement')
     for (const user of [1, 2]) await waitFor(() => expect(p(user).getByRole('button', { name: 'F5 · Archers · Joueur 1' })).toHaveClass('board-unit--engaged'))
 
-    await click(1, 'Diminuer R de Lanciers · E4')
-    await waitFor(() => expect(p(2).getByRole('button', { name: 'E4 · Lanciers · Joueur 1' })).toHaveTextContent('3R'))
     await click(2, 'Augmenter Tour')
     await click(1, 'Augmenter Points stratégiques de Joueur 1')
     await click(1, 'Diminuer Recrutement restants')
@@ -106,10 +111,12 @@ describe('manual tabletop across two real clients', () => {
       expect(p(user).getByLabelText('Tour')).toHaveTextContent('2')
       expect(p(user).getByRole('button', { name: 'E4 · Lanciers · Joueur 1' })).toHaveTextContent('3R')
       expect(p(user).getByRole('button', { name: 'F5 · Archers · Joueur 1' })).toHaveClass('board-unit--attacker', 'board-unit--engaged')
+      await waitFor(() => expect(screen.getByTestId(`player-${user}`).querySelectorAll('.manual-engagement-lines line')).toHaveLength(1))
       expect(p(user).getByLabelText('Résultats : 6, 6, 6')).toBeVisible()
     }
     await click(2, 'Retirer l’engagement')
     await waitFor(() => expect(p(1).getByRole('button', { name: 'F5 · Archers · Joueur 1' })).not.toHaveClass('board-unit--engaged'))
+    await waitFor(() => expect(screen.getByTestId('player-1').querySelectorAll('.manual-engagement-lines line')).toHaveLength(0))
     mounted.unmount()
   }, 30000)
 })
