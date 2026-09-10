@@ -25,3 +25,16 @@ L’univers visuel mêle illustrations de fantasy, tons sombres et titres inspir
 - **Vercel** pour l’hébergement du site.
 
 Le projet est en cours de développement ; les règles et les fonctionnalités évolueront avec les essais des joueurs.
+
+## Publication
+
+Vercel exécute `npm run check` et publie l’interface lors d’un push sur `main`. Cette étape ne déploie pas les fonctions Convex et ne met pas à jour les cartes enregistrées en base.
+
+Pour publier les changements de règles et de catalogue validés, déployer également Convex en production, puis appliquer le catalogue :
+
+```sh
+npx convex deploy
+npx convex run catalogue2026:apply --prod
+```
+
+La production PAFF est `tough-gecko-249` ; le site Vercel doit utiliser `VITE_CONVEX_URL=https://tough-gecko-249.convex.cloud`. L’application du catalogue conserve les identités des cartes et les decks, ainsi que les profils déjà copiés dans les parties préparées. Vérifier ensuite les cartes sur [le site public](https://paff-web.vercel.app/cards).
