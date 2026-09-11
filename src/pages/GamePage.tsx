@@ -6,6 +6,7 @@ import type { Id } from '../../convex/_generated/dataModel'
 import { SiteHeader } from '../components/SiteHeader'
 import { getDeckStats, type Deck } from '../features/decks/deckStats'
 import { ManualBattle } from '../features/game/ManualBattle'
+import { SpectatorBattle } from '../features/game/SpectatorBattle'
 import { SetupPhases } from '../features/game/SetupPhases'
 import { PreparationPhase } from '../features/game/PreparationPhase'
 import { GameConnection } from '../features/game/GameConnection'
@@ -30,6 +31,16 @@ export function GamePage() {
 }
 
 export function GameRoom({ game, decks, onLeave }: { game: Game; decks?: Deck[]; onLeave: () => void }) {
+  if (game.isSpectator) return <>
+    <header className="game-page-heading game-page-heading--room"><div><p className="eyebrow">Spectateur</p><h1>{game.name}</h1></div>
+      <Link className="ui-button ui-button--quiet" to="/lobby">Quitter la vue spectateur</Link>
+    </header>
+    <SpectatorBattle game={game} />
+  </>
+  return <PlayerRoom game={game} decks={decks} onLeave={onLeave} />
+}
+
+function PlayerRoom({ game, decks, onLeave }: { game: Game; decks?: Deck[]; onLeave: () => void }) {
   const start = useMutation(api.games.start)
   const selectDeck = useMutation(api.games.selectDeck)
   const leave = useMutation(api.games.leave)

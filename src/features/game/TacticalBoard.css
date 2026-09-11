@@ -31,6 +31,8 @@
 .board-unit .board-cell__coordinate { color: #e8dcc197; }
 .board-unit.board-cell--selected, .board-unit:hover { filter: brightness(1.2); box-shadow: 0 3px 10px #000a, 0 0 14px #fff4d24d; }
 .board-unit:focus-visible { outline: 2px solid #fff5df; outline-offset: 2px; filter: brightness(1.2); }
+.board-unit--spectator { cursor: help; }
+.board-unit--spectator img { pointer-events: none; -webkit-user-drag: none; }
 .board-caption { display: flex; justify-content: center; gap: 1.5rem; margin: 0; padding: 0.7rem 1rem; border-top: 1px solid #b49a6330; color: #a5a590; font-size: 0.6rem; }
 .board-caption span { color: #c6ae75; }
 .board-inspection { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.7rem 1.5rem; padding: 1rem; border-block: 1px solid #bda5776b; background: #20291d; }

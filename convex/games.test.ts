@@ -102,7 +102,7 @@ describe('two-player lobby and access', () => {
     await run('join', 2, { gameId })
     await run('leave', 1, { gameId })
     expect((await run('get', 2, { gameId }))?.phase).toBe('cancelled')
-    expect(await run('listLobby', 2)).toEqual({ currentGame: null, rooms: [] })
+    expect(await run('listLobby', 2)).toEqual({ currentGame: null, rooms: [], watchable: [] })
     await expect(run('create', 2)).resolves.toBeTruthy()
   })
   it('closes an ongoing preparation if either player leaves', async () => {

@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type DragEvent } from 'react'
+import { useEffect, useState, type DragEvent } from 'react'
 import { useConvexConnectionState, useMutation } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import { cells, cellCoordinate } from '../../../shared/board'
@@ -7,6 +7,7 @@ import { manualMoves } from '../../../shared/manualBattle'
 import { getUnitProfile } from '../../../shared/unitProfile'
 import { UnitCard } from '../catalogue/UnitCard'
 import { TacticalBoard } from './TacticalBoard'
+import { OrderInfo } from './OrderInfo'
 import type { BattleControls } from './types'
 import type { Game } from './types'
 import './ManualBattle.css'
@@ -146,8 +147,4 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
 
 function Counter({ label, value, onChange, busy, minimum = 0 }: { label: string; value: number; onChange: (delta: -1 | 1) => void; busy: boolean; minimum?: number }) {
   return <div className="manual-counter"><button type="button" aria-label={`Diminuer ${label}`} disabled={busy || value <= minimum} onClick={() => onChange(-1)}>−</button><output aria-label={label}>{value}</output><button type="button" aria-label={`Augmenter ${label}`} disabled={busy || value >= 999} onClick={() => onChange(1)}>+</button></div>
-}
-function OrderInfo({ name, description }: { name: string; description: string }) {
-  const id = useId()
-  return <span className="manual-order-info" tabIndex={0} aria-describedby={id}>{name}<span id={id} role="tooltip">{description}</span></span>
 }

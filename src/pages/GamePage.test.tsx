@@ -22,7 +22,7 @@ const gameId = 'game-1' as Id<'games'>
 const card = { stableId: 'archers', name: 'Archers', kind: 'unit' as const, cost: 2, life: 1, attack: 1, abilities: [], profile: undefined, imagePath: '/archers.webp', faction: { stableId: 'gobelins', name: 'Gobelins', themeKey: 'gobelins' }, quantity: 5, deploymentQuantity: 2 }
 const me: GamePlayer = { id: 'member-1' as Id<'gamePlayers'>, displayName: 'Nicolas', seat: 0, isMe: true, deckChosen: false, deploymentReady: false, preparationReady: false, preparationCount: 0, deckId: null, deckName: null, factionName: null, cards: [], deployedCards: [], drawPileCount: 0, deploymentCount: 0 }
 const opponent: GamePlayer = { ...me, id: 'member-2' as Id<'gamePlayers'>, displayName: 'Nicolas 2', seat: 1, isMe: false, drawPileCount: null, deploymentCount: null }
-const game: Game = { id: gameId, name: 'Partie de Nicolas', phase: 'waiting', isHost: true, battleStartedAt: null, setup: null, players: [me, opponent] }
+const game: Game = { id: gameId, name: 'Partie de Nicolas', phase: 'waiting', isHost: true, isSpectator: false, battleStartedAt: null, setup: null, players: [me, opponent] }
 const deck: Deck = { id: 'deck-1' as Id<'decks'>, name: 'Embuscade', faction: card.faction, cards: [card], updatedAt: 1 }
 const deployment: Game = { ...game, phase: 'preparation', setup: initialSetup(), players: [{ ...me, deckChosen: true, deckName: deck.name, factionName: 'Gobelins', cards: [card, { ...card, stableId: 'action', name: 'Piège', kind: 'action', quantity: 2, deploymentQuantity: 0 }], deploymentCount: 2, drawPileCount: 5 }, { ...opponent, deckChosen: true }] }
 function room(value: Game = game, decks: Deck[] = [deck]) {
@@ -30,7 +30,7 @@ function room(value: Game = game, decks: Deck[] = [deck]) {
   const result = render(<MemoryRouter><GameRoom game={value} decks={decks} onLeave={onLeave} /></MemoryRouter>)
   return { ...result, onLeave }
 }
-function lobby(value: Lobby | undefined = { currentGame: null, rooms: [] }) {
+function lobby(value: Lobby | undefined = { currentGame: null, watchable: [], rooms: [] }) {
   const onEnter = vi.fn()
   render(<MemoryRouter><LobbyContent lobby={value} onEnter={onEnter} /></MemoryRouter>)
   return onEnter
@@ -96,7 +96,7 @@ describe('lobby', () => {
     expect(onEnter).toHaveBeenCalledWith(gameId)
   })
   it('joins an open table and disables a full one', async () => {
-    const onEnter = lobby({ currentGame: null, rooms: [{ id: gameId, name: 'Table ouverte', playerCount: 1, createdAt: 1 }, { id: 'full' as Id<'games'>, name: 'Table complète', playerCount: 2, createdAt: 2 }] })
+    const onEnter = lobby({ currentGame: null, watchable: [], rooms: [{ id: gameId, name: 'Table ouverte', playerCount: 1, createdAt: 1 }, { id: 'full' as Id<'games'>, name: 'Table complète', playerCount: 2, createdAt: 2 }] })
     const buttons = screen.getAllByRole('button', { name: /Rejoindre/ })
     expect(buttons[1]).toBeDisabled()
     await userEvent.click(buttons[0])
@@ -104,13 +104,13 @@ describe('lobby', () => {
     expect(onEnter).toHaveBeenCalledWith(gameId)
   })
   it('resumes an existing game instead of opening a second one', () => {
-    lobby({ currentGame: { id: gameId, name: game.name, phase: 'deployment' }, rooms: [] })
+    lobby({ currentGame: { id: gameId, name: game.name, phase: 'deployment' }, watchable: [], rooms: [] })
     expect(screen.getByRole('button', { name: /Créer une partie/ })).toBeDisabled()
     expect(screen.getByRole('link', { name: /Reprendre/ })).toHaveAttribute('href', '/lobby/game-1')
   })
   it('reports a race for the last seat and allows retry', async () => {
     mutations.join.mockRejectedValueOnce(new ConvexError({ code: 'GAME_FULL' }))
-    const onEnter = lobby({ currentGame: null, rooms: [{ id: gameId, name: game.name, playerCount: 1, createdAt: 1 }] })
+    const onEnter = lobby({ currentGame: null, watchable: [], rooms: [{ id: gameId, name: game.name, playerCount: 1, createdAt: 1 }] })
     await userEvent.click(screen.getByRole('button', { name: /Rejoindre/ }))
     expect(screen.getByRole('alert')).toHaveTextContent('dernière place')
     expect(onEnter).not.toHaveBeenCalled()

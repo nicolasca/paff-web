@@ -17,8 +17,10 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
   onUnit?: (cell: number) => void; selectedCell?: number; game: Game; allowedCells?: number[]; onPlace?: (cell: number) => void; onReposition?: (cell: number) => void; placeLabel?: string; busy?: boolean
   interaction?: { canDrag: (cell: number) => boolean; onDrag: (cell: number, event: DragEvent<HTMLButtonElement>) => void; onDragEnd: () => void; onDrop: (cell: number) => void; onCompare: (cell: number) => void; dragging: boolean }
 }) {
-  const me = game.players.find((player) => player.isMe)!
-  const opponent = game.players.find((player) => !player.isMe)!
+  const readOnly = game.isSpectator
+  const me = game.players.find((player) => player.isMe) ?? game.players.find((player) => player.seat === 0)!
+  const opponent = game.players.find((player) => player.seat !== me.seat)!
+  const zoneNames = readOnly ? ['Arrière nord', 'Base nord', 'Centre stratégique', 'Base sud', 'Arrière sud'] : bandNames
   const [inspected, setInspected] = useState<number | null>(null)
   const previewId = useId()
   const surface = useRef<HTMLDivElement>(null)
@@ -42,7 +44,7 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
   const previewUnit = hovered && unitAt(hovered.cell)
   const previewProfile = previewUnit && getUnitProfile(previewUnit.card)
   return <div className="tactical-board">
-    <div className="board-camp-label" data-faction={factionKey(opponent)}><span className="board-army-sigil" aria-hidden="true">◆</span><strong>{opponent.factionName ?? 'Armée adverse'}</strong><span>{opponent.displayName} · Adversaire</span></div>
+    <div className="board-camp-label" data-faction={factionKey(opponent)}><span className="board-army-sigil" aria-hidden="true">◆</span><strong>{opponent.factionName ?? 'Armée adverse'}</strong><span>{opponent.displayName} · {readOnly ? 'Camp nord' : 'Adversaire'}</span></div>
     <p className="board-mobile-hint">↔ Faites défiler le plateau horizontalement</p>
     <div className="board-scroll" tabIndex={0} role="region" aria-label="Plateau de 54 cases et 15 zones, défilement horizontal sur petit écran">
       <div className="board-surface" ref={surface}>
@@ -50,17 +52,24 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
         <div className="board-axis"><span>Flanc coco</span><span>Centre</span><span>Flanc aux pommes</span></div>
         <div className="board-zones">{bands.flatMap((rows, band) => axes.map((columns, axis) => <div
           key={`${band}-${axis}`} className={`board-zone board-zone--${band < 2 ? 'opponent' : band === 2 ? 'strategic' : 'you'}`}
-          role="group" aria-label={`${bandNames[band]} · ${['Flanc coco', 'Centre', 'Flanc aux pommes'][axis]}`}>
-          <span className="board-zone__label">{axis === 1 ? bandNames[band] : band === 2 ? '✦' : band === 0 || band === 4 ? 'Arrière' : 'Base'}</span>
+          role="group" aria-label={`${zoneNames[band]} · ${['Flanc coco', 'Centre', 'Flanc aux pommes'][axis]}`}>
+          <span className="board-zone__label">{axis === 1 ? zoneNames[band] : band === 2 ? '✦' : band === 0 || band === 4 ? 'Arrière' : 'Base'}</span>
           <div className="board-zone__cells" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}>{rows.flatMap((row) => columns.map((column) => {
             const cell = displayCell(row * 9 + column, me.seat)
             const unit = unitAt(cell)
-            const allowed = allowedCells.includes(cell)
+            const allowed = !readOnly && allowedCells.includes(cell)
             const engaged = Boolean(unit?.runtime && isEngaged(game.battle!.engine!, unit.runtime.id))
             const battleRole = unit?.runtime && game.battle?.manual?.duel ? unit.runtime.id === game.battle.manual.duel.attackerId ? 'attacker' : unit.runtime.id === game.battle.manual.duel.targetId ? 'defender' : undefined : undefined
             const content = <>{unit ? <><img src={unit.card.imagePath} alt="" /><span className="board-unit__regiment" title={interaction && unit.owner.isMe ? 'Cliquez cette unité pour modifier ses R' : 'Points de régiment'}>{unit.runtime?.regiment ?? getUnitProfile(unit.card)?.regiment}<small>R</small></span><strong>{unit.card.name}</strong>{engaged && <span className="board-unit__engaged" title="Unité engagée">⚔</span>}</> : <span className="board-cell__mark" aria-hidden="true">{allowed ? '+' : '·'}</span>}<span className="board-cell__coordinate" aria-hidden="true">{cellCoordinate(cell)}</span></>
-            const className = `board-cell${unit ? ` board-unit board-unit--${unit.owner.isMe ? 'you' : 'opponent'}` : ''}${allowed ? ' board-cell--allowed' : ''}${cell === (selectedCell ?? inspected) ? ' board-cell--selected' : ''}${engaged && interaction ? ' board-unit--engaged' : ''}${battleRole ? ` board-unit--${battleRole}` : ''}`
+            const className = `board-cell${unit ? ` board-unit board-unit--${unit.owner.seat === me.seat ? 'you' : 'opponent'}` : ''}${allowed ? ' board-cell--allowed' : ''}${!readOnly && cell === (selectedCell ?? inspected) ? ' board-cell--selected' : ''}${engaged && (interaction || readOnly) ? ' board-unit--engaged' : ''}${battleRole ? ` board-unit--${battleRole}` : ''}`
             const label = `${cellCoordinate(cell)}${allowed ? ` · ${placeLabel}` : ''}${unit ? ` · ${unit.card.name} · ${unit.owner.displayName}` : allowed ? '' : ' · Case vide'}`
+            if (readOnly && unit) return <div key={cell} role="img" tabIndex={0} data-cell={cell} data-unit-id={unit.runtime?.id} data-faction={unit.card.faction.stableId} data-battle-role={battleRole} className={`${className} board-unit--spectator`} aria-label={`${label} · ${unit.runtime?.regiment ?? getUnitProfile(unit.card)?.regiment} R`} aria-describedby={hovered?.cell === cell ? previewId : undefined}
+              onMouseEnter={(event) => setHovered({ cell, x: event.clientX, y: event.clientY })}
+              onMouseMove={(event) => hovered?.cell === cell && setHovered({ cell, x: event.clientX, y: event.clientY })}
+              onMouseLeave={() => setHovered(null)}
+              onFocus={(event) => { const rect = event.currentTarget.getBoundingClientRect(); setHovered({ cell, x: rect.right, y: rect.top }) }}
+              onBlur={() => setHovered(null)}
+            >{content}{battleRole && <span className="board-unit__role">{battleRole === 'attacker' ? 'Att.' : 'Déf.'}</span>}</div>
             return unit || allowed ? <button key={cell} type="button" data-cell={cell} data-unit-id={unit?.runtime?.id} data-faction={unit?.card.faction.stableId} data-battle-role={battleRole} className={className} aria-label={label} aria-describedby={hovered?.cell === cell ? previewId : undefined} aria-pressed={unit ? cell === (selectedCell ?? inspected) : undefined} disabled={busy && (allowed || Boolean(onUnit))}
               draggable={!busy && Boolean(interaction?.canDrag(cell))}
               onDragStart={(event) => { setHovered(null); interaction?.onDrag(cell, event) }}
@@ -89,8 +98,8 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
         </div>))}</div>
       </div>
     </div>
-    <div className="board-camp-label board-camp-label--you" data-faction={factionKey(me)}><span className="board-army-sigil" aria-hidden="true">◆</span><strong>{me.factionName ?? 'Votre armée'}</strong><span>{me.displayName} · Votre camp</span></div>
-    {detail && onReposition && detail.owner.isMe && <div className="board-inspection" aria-label="Correction du placement">
+    <div className="board-camp-label board-camp-label--you" data-faction={factionKey(me)}><span className="board-army-sigil" aria-hidden="true">◆</span><strong>{me.factionName ?? 'Votre armée'}</strong><span>{me.displayName} · {readOnly ? 'Camp sud' : 'Votre camp'}</span></div>
+    {!readOnly && detail && onReposition && detail.owner.isMe && <div className="board-inspection" aria-label="Correction du placement">
       <div><p className="eyebrow">{detail.owner.displayName} · {cellCoordinate(inspected!)}</p><h3>{detail.card.name}</h3></div>
       <button type="button" className="ui-button" disabled={busy} onClick={() => { setHovered(null); onReposition(inspected!) }}>Changer de case</button>
       <button type="button" className="ui-button ui-button--quiet" onClick={() => setInspected(null)}>Fermer</button>

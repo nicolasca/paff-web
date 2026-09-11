@@ -11,6 +11,7 @@
 .manual-turn > span { color: #c4b58f; }
 .manual-strategy small { display: block; margin-top: .25rem; color: #acb4a9; font-size: .6rem; }
 .manual-strategy--opponent > output { font: 600 1.3rem var(--body); color: #ddbcb0; }
+.manual-battle--spectator .manual-toolbar output { font: 600 1.3rem var(--body); color: #f0e4ba; font-variant-numeric: tabular-nums; }
 .manual-main { min-width: 0; }
 .manual-instructions { margin: 0 0 .8rem; font-size: .75rem; line-height: 1.6; color: #d4c9ae; }
 .manual-instructions > span { display: block; font-size: .65rem; color: #939d90; }
