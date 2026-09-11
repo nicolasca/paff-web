@@ -13,6 +13,35 @@ async function table() {
 }
 
 describe('shared manual battle', () => {
+  it('starts Sephosi battles with their own order stocks and synchronizes only the owner’s corrections', async () => {
+    const setup = createGameHarness()
+    setup.tables.factions[0].stableId = 'sephosi'
+    setup.tables.factions[0].name = 'Sephosi'
+    const h = await liveGame(setup)
+    const battle = (await h.read()).battle!
+    expect(battle.catalog.filter((order) => order.faction === 'sephosi').map((order) => order.name)).toEqual(['Repli stratégique', 'Tir concentré', 'Fureur divine', 'Protéger la Salamandre !'])
+    expect(battle.catalog.some((order) => order.faction === 'gobelins')).toBe(false)
+    await h.invoke('manual', 'adjustOrderStock', 1, { gameId: h.gameId, orderId: 'concentrated-fire', delta: -1 })
+    const stocks = (await h.read(2)).battle!.manual.stocks
+    expect(stocks.find((stock) => stock.seat === 0 && stock.orderId === 'concentrated-fire')?.remaining).toBe(3)
+    expect(stocks.find((stock) => stock.seat === 1 && stock.orderId === 'concentrated-fire')?.remaining).toBe(4)
+    await expect(h.invoke('manual', 'adjustOrderStock', 1, { gameId: h.gameId, orderId: 'shamanic-invocation', delta: -1 })).rejects.toMatchObject(error('ORDER_NOT_AVAILABLE'))
+  })
+  it('preserves the catalog and spent stocks of battles that started before the order revision', async () => {
+    const h = await table()
+    const battle = h.stored.battle as NonNullable<Awaited<ReturnType<typeof h.read>>['battle']>
+    h.stored.rulesVersion = '2026-09-10-manual-1'
+    battle.catalog = [{ id: 'waaagh', name: 'WAAAGGGHHH !', faction: 'gobelins', category: 'legendary', limit: 1, description: 'Ancienne définition figée.', seats: [0, 1] }]
+    battle.manual.stocks = [{ seat: 0, orderId: 'waaagh', remaining: 0 }, { seat: 1, orderId: 'waaagh', remaining: 1 }]
+    const frozen = structuredClone({ catalog: battle.catalog, stocks: battle.manual.stocks })
+    await h.manual('adjustTurn', 2, { delta: 1 })
+    const after = await h.read()
+    expect(after.rulesVersion).toBe('2026-09-10-manual-1')
+    expect(after.battle!.catalog).toEqual(frozen.catalog)
+    expect(after.battle!.manual.stocks).toEqual(frozen.stocks)
+    await h.manual('adjustOrderStock', 1, { orderId: 'waaagh', delta: 1 })
+    expect((await h.read(2)).battle!.manual.stocks[0].remaining).toBe(1)
+  })
   it('enforces Vol on the server using the frozen ability, without allowing occupied landings', async () => {
     const h = await table()
     const angel = await h.unit(0, 'lanciers')

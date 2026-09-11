@@ -83,6 +83,13 @@ describe('manual tabletop across two real clients', () => {
     await click(2, 'Augmenter Tour')
     await click(1, 'Augmenter Points stratégiques de Joueur 1')
     await click(1, 'Diminuer Recrutement restants')
+    expect(p(1).getByLabelText('Invokation shamanique restants')).toHaveTextContent('4')
+    expect(p(1).getByLabelText('Pause-déjeuner restants')).toHaveTextContent('2')
+    expect(p(1).getByLabelText('La gross Invokation ! restants')).toHaveTextContent('1')
+    expect(p(1).getAllByText('Invokation shamanique', { exact: true })[0]).toHaveAccessibleDescription(expect.stringContaining('Après le tir, lancez 1D6'))
+    await click(1, 'Diminuer Invokation shamanique restants')
+    await waitFor(() => expect(p(1).getByLabelText('Invokation shamanique restants')).toHaveTextContent('3'))
+    expect(p(2).getByLabelText('Invokation shamanique restants')).toHaveTextContent('4')
     await waitFor(() => expect(p(2).getByLabelText('Tour')).toHaveTextContent('2'))
     await waitFor(() => expect(p(2).getByLabelText('Points stratégiques de Joueur 1')).toHaveTextContent('1'))
 
@@ -109,6 +116,7 @@ describe('manual tabletop across two real clients', () => {
     for (const user of [1, 2]) {
       expect(await p(user).findByRole('heading', { name: 'À vous de jouer' })).toBeVisible()
       expect(p(user).getByLabelText('Tour')).toHaveTextContent('2')
+      expect(p(user).getByLabelText('Invokation shamanique restants')).toHaveTextContent(user === 1 ? '3' : '4')
       expect(p(user).getByRole('button', { name: 'E4 · Lanciers · Joueur 1' })).toHaveTextContent('3R')
       expect(p(user).getByRole('button', { name: 'F5 · Archers · Joueur 1' })).toHaveClass('board-unit--attacker', 'board-unit--engaged')
       await waitFor(() => expect(screen.getByTestId(`player-${user}`).querySelectorAll('.manual-engagement-lines line')).toHaveLength(1))

@@ -253,7 +253,7 @@ export const finishDeployment = mutation({
     }
     await ctx.db.patch(game._id, {
       phase: ready ? 'battle' : 'deployment', updatedAt: now,
-      ...(ready ? { battleStartedAt: now } : {}),
+      ...(ready ? { battleStartedAt: now, rulesVersion: RULES_VERSION } : {}),
       ...(battle ? { battle } : {}),
       setup: { ...setup, revision: setup.revision + 1, deploymentTurn: 1 - member.seat },
     })

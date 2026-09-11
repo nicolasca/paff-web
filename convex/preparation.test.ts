@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createGameHarness } from '../src/test/gameHarness'
 import { catalogue2026 } from '../shared/catalogue2026'
+import { RULES_VERSION } from '../shared/battle'
 
 const code = (code: string) => ({ data: { code } })
 afterEach(() => vi.restoreAllMocks())
@@ -34,6 +35,18 @@ async function preparation() {
 }
 
 describe('unit selection before initiative', () => {
+  it('records the current rules with the new order catalog when an older preparation becomes a battle', async () => {
+    const h = await preparation()
+    h.tables.games[0].rulesVersion = '2026-09-10-manual-1'
+    await h.initiative()
+    await h.finish(1)
+    expect((await h.read()).rulesVersion).toBe('2026-09-10-manual-1')
+    await h.finish(2)
+    const game = await h.read()
+    expect(game.rulesVersion).toBe(RULES_VERSION)
+    expect(game.battle!.catalog.find((order) => order.id === 'shamanic-invocation')).toMatchObject({ limit: 4, seats: [0, 1] })
+    expect(game.battle!.catalog.some((order) => order.id === 'waaagh')).toBe(false)
+  })
   it('keeps Blop in reserve through selection, validation and initial placement, then allows recruitment', async () => {
     const h = await preparation()
     const card = h.tables.gameCards.find((card) => card.stableId === 'archers')!

@@ -1,6 +1,6 @@
 # PAFF — règles implémentées
 
-**État du 10 septembre 2026 · version de partie `2026-09-10-manual-1` · catalogue `2026-09-10`.**
+**État du 11 septembre 2026 · version de partie `2026-09-11-manual-1` · catalogue d’unités `2026-09-10`.**
 
 Ce document décrit le comportement du site de cette version. Il sert de référence pour comparer l’application avec les prochaines versions du Drive. Il ne remplace pas les règles du créateur : les points encore provisoires sont indiqués explicitement.
 
@@ -10,6 +10,8 @@ Référence catalogue du 8 septembre 2026 : tableau transmis par Nicolas dans la
 
 Nouvelle référence du 10 septembre : **PAFF 2026.pdf**, 10 pages, fourni par Nicolas. Pages 1–6 : règles générales ; p. 7 : ordres ; p. 8 : unités et tableau des touches ; p. 10 : capacités. Les profils Gobelins et Sephosi sont annoncés terminés. Précision finale de Nicolas : les `x` du Maréchal Vallardi signifient qu’il ne possède ni dés ni attaque. La [comparaison détaillée](differences-regles-2026-09-10.md) conserve les valeurs avant/après.
 
+Référence courante du 11 septembre : **PAFF 2026 (1).pdf**, 10 pages. Les huit ordres de faction sont finalisés p. 7 ; le calendrier des recrutements est ajouté p. 3. Les unités p. 8 sont inchangées ; les capacités passent de la p. 10 à la p. 9 sans changement de texte. La note d’attente occupe désormais la p. 10. Voir la [comparaison du 11 septembre](differences-regles-2026-09-11.md). Les choix de plateau manuel restent en vigueur.
+
 ## 1. Catalogue et profils
 
 | Référence | Comportement appliqué |
@@ -17,7 +19,7 @@ Nouvelle référence du 10 septembre : **PAFF 2026.pdf**, 10 pages, fourni par N
 | CAT-01 | Le catalogue possède quatre factions. Les listes Gobelins et Sephosi de cette révision comptent 20 unités (10 Gobelins, 10 Sephosi), toutes marquées OK dans le PDF p. 8. Orcs et Gaeli conservent leurs anciennes cartes et leurs profils estimés. |
 | CAT-02 | Une unité possède un nom, un coût, un type, R (points de Régiment), un nombre de dés, un mode offensif C, T ou aucun, une valeur offensive éventuelle, DC et DT. Vallardi et les Porte-ordres n’ont ni dés ni attaque ; leur carte affiche « — », sans mode C/T fictif. Le nombre de dés est indépendant de C/T. L’affichage du 7 septembre remplace DA par DC et regroupe score et mode, par exemple `4C` ou `3T` ; les valeurs et calculs restent identiques. |
 | CAT-03 | Types disponibles : Troupe, Tir, Cavalerie, Artillerie, Élite, Unique. Cavalerie et Artillerie ont leurs limites de mouvement ; le mode C ou T détermine la défense utilisée par l’aide au combat. |
-| CAT-04 | Les 12 capacités attribuées aux unités sont affichées avec leur définition du PDF p. 10. Vol est pris en compte dans la géométrie de mouvement et Meuteur ! interdit le déploiement initial de Blop. Les autres effets sont arbitrés par les joueurs sur le plateau manuel ; ils ne sont plus présentés comme des définitions manquantes. Voir CAP-01 à CAP-04 ci-dessous. |
+| CAT-04 | Les 12 capacités attribuées aux unités sont affichées avec leur définition du PDF p. 9 (ancien export : p. 10). Vol est pris en compte dans la géométrie de mouvement et Meuteur ! interdit le déploiement initial de Blop. Les autres effets sont arbitrés par les joueurs sur le plateau manuel ; ils ne sont plus présentés comme des définitions manquantes. Voir CAP-01 à CAP-04 ci-dessous. |
 | CAT-05 | Les identifiants des cartes renommées sont conservés pour préserver les decks. Les autres anciennes cartes Gobelins/Sephosi, y compris les cartes Action, sont archivées : elles restent lisibles dans les anciens decks mais ne sont plus ajoutables ni utilisables pour sélectionner un deck dans une nouvelle partie. L’éditeur permet de les retirer. |
 | CAT-06 | Une partie conserve une copie des cartes au choix du deck. Les mises à jour ultérieures du catalogue ou du deck ne modifient pas ces copies. Les ordres sont également figés dans la partie au début du tour 1. |
 
@@ -61,7 +63,7 @@ Les valeurs viennent du PDF p. 8. Tous les DT sont numériques, sans ancien sign
 
 **Illustrations :** les Porte-ordres conservent l’ancienne illustration des Aides de camp ; les Gros tarrés et la Salamandre reprennent leur visuel existant. Les images `catagob.png` et `danzereux.png` fournies le 10 septembre illustrent la Katapult à gobs et Le Danzereu. Après validation du nouveau plateau, Nicolas a remplacé les illustrations des Shamans (`gobelins-shaman-gobelin-2.jpg`), des Chevaucheurs de Skrans (`nouveaux-skrans.png`, qui remplace `skrans.png`) et de la Bande de Gobelins (`troupe-gobelins.png`). Elles sont converties en WebP sans recadrage, aux mêmes chemins pour actualiser aussi les cartes déjà présentes dans les decks et les parties. Seuls Blop et Vallardi utilisent encore l’illustration d’attente parmi les 20 profils finalisés.
 
-### Capacités du PDF p. 10
+### Capacités du PDF p. 9 (p. 10 dans l’export du 10 septembre)
 
 | Référence | Traitement dans l’application |
 | --- | --- |
@@ -110,8 +112,9 @@ Source : retours de démo de Nicolas, précisions sur R, autonomie et absence de
 | Référence | Comportement implémenté |
 | --- | --- |
 | MAN-TURN | Après le déploiement, plateau commun sans joueur actif, phase d’ordre ni validation de fin de tour. Les deux joueurs peuvent agir. Compteur de tour partagé, +/− accessibles aux deux joueurs, départ à 1, sans limite de huit tours ni conséquence automatique. |
-| MAN-ORD | Liste des ordres à droite, noms non cliquables et définitions au survol ou au focus. Ordres communs du PDF p. 7 : Mouvement, Tir, Tir Artillerie, Recrutement. Défense, Assaut et l’ordre Tir Magique sont retirés des nouvelles parties ; Tir magique reste une capacité du Shaman. Gobelins : Déchainement Shamanique et WAAAGGGHHH, explicitement signalés « à mettre à jour » comme dans le PDF p. 7. Pas d’ordre inventé pour les lignes sans nom du Drive. |
-| MAN-STOCK | Les ordres illimités affichent ∞. Compteurs d’exemplaires restants réglés par leur propriétaire : Recrutement commence à 3 (dernier PDF), WAAAGGGHHH à 1 (capture des ordres). Les autres joueurs voient les compteurs. Aucun stock n’est consommé automatiquement ni contrôlé pour autoriser une action. Recrutement indique 3 points par sélection, cumulables à 6 ou 9 dans la même phase, avec interdiction de tirer pour les recrues ce tour-ci. Les stocks des lignes de faction sans nom ne sont pas extrapolés ; la divergence entre p. 3 (4/2/1) et p. 7 (3/3/unique, à maj) reste ouverte. |
+| MAN-ORD | Liste des ordres à droite, noms non cliquables et définitions au survol ou au focus. Quatre ordres communs : Mouvement, Tir, Tir Artillerie, Recrutement, et quatre ordres propres à chaque faction Gobelins/Sephosi, tous issus du PDF du 11 septembre p. 7 et détaillés ci-dessous. Déchainement Shamanique et WAAAGGGHHH sont retirés des nouveaux catalogues de bataille. Les définitions et compteurs déjà copiés dans les batailles commencées sont conservés. |
+| MAN-STOCK | Les ordres illimités affichent ∞. Compteurs réglés par leur propriétaire et visibles par l’adversaire : Recrutement commence à 3 ; chaque faction a un ordre avancé à 4, un rare à 2 et un unique à 1. Les deux joueurs d’une même faction possèdent des stocks distincts. Aucun stock n’est consommé automatiquement ni contrôlé pour autoriser une action. Les limites p. 3 et p. 7 concordent désormais. |
+| MAN-RECRUIT-TIMING | La définition de Recrutement précise le calendrier du PDF p. 3 : première sélection accessible à partir du tour 3, deuxième à partir du tour 4, troisième à partir du tour 5. Les 3 points par sélection, le cumul à 6 ou 9 et l’interdiction de tirer pour les recrues ce tour-ci restent indiqués. Le compteur représente les trois sélections restantes sur la partie ; il ne représente pas le nombre actuellement débloqué. Le calendrier reste arbitré par les joueurs, comme les effets des ordres : les outils de réserve et de correction ne sont pas bloqués par le tour. |
 | MAN-MOVE | Glisser une de ses unités avec le bouton gauche éclaire les destinations possibles. L’entrée sur une case autorisée accepte immédiatement le dépôt, y compris lors d’un geste rapide. Le dépôt valide le mouvement. Annuler le geste ou lâcher hors d’une case autorisée ne déplace rien. Alternative clavier/tactile : sélectionner l’unité puis une case ; Échap annule la sélection de déplacement. |
 | MAN-RANGE | Limite par geste : Troupe, Tir, Élite, Unique = 1 point ; Cavalerie = 3 ; Artillerie = 0. Exception Vol : 3 points et survol des cases occupées (CAP-01). Déplacement orthogonal, arrivée libre, changement d’axe coûte un point supplémentaire, pas de retour dans la zone de départ après l’avoir quittée dans un même geste. Même géométrie que le moteur précédent, conformément à la demande de conserver le mouvement. |
 | MAN-FREE | Pas de consommation de mouvement pour le tour, blocage après un tir, blocage d’engagement ou attaque gratuite de désengagement. Un joueur peut effectuer plusieurs gestes successifs. Le respect du nombre d’actions et des ordres appartient aux joueurs. |
@@ -133,20 +136,35 @@ Source : retours de démo de Nicolas, précisions sur R, autonomie et absence de
 
 Les compteurs sont bornés techniquement à 0–999 (tour : 1–999), et le lanceur à 100 dés par jet. Ce sont des limites d’interface et de stockage, pas des quotas de jeu.
 
+### Ordres de faction — PDF du 11 septembre p. 7
+
+| Faction | Ordre | Limite par partie | Définition consultable ; application manuelle |
+| --- | --- | --- | --- |
+| Gobelins | Tiens, des gobelins... | Illimité | Recruter gratuitement une Bande de Gobelins. |
+| Gobelins | Invokation shamanique | 4 · Avancé | Tir d’un Shaman avec un dé ajouté par unité de Shamans à portée, puis 1D6 : 1, défausser deux Shamans ; 2–3, défausser une unité de Shamans ; 4–5, aucun effet supplémentaire ; 6, répéter l’attaque sur la même cible, sans effet si elle est détruite. Correction transmise par Nicolas le 11 septembre : « 2–3 » remplace « 3–4 » du PDF, et 4–5 ne produit aucun effet supplémentaire. |
+| Gobelins | Pause-déjeuner | 2 · Rare | Sacrifier une unité de gobelins adjacente à une unité de Trolls (même engagée) pour lui ajouter 1 R ; manœuvre possible pour chaque unité de Trolls présente. |
+| Gobelins | La gross Invokation ! | 1 · Unique | Shaman dans un axe requis ; 1D6 : 1, −1 R aux gobelins dans les trois axes ; 2–3, −1 R dans cet axe ; 4–5, dés d’attaque/tir doublés jusqu’à la fin du tour dans cet axe ; 6, même bonus dans les trois axes. |
+| Sephosi | Repli stratégique | Illimité | Désengager une unité sans attaque gratuite. Cet ordre est distinct de la capacité homonyme p. 9, non attribuée, qui mentionne toujours un dé P. |
+| Sephosi | Tir concentré | 4 · Avancé | Désigner une unité ennemie ; si plusieurs unités lui tirent dessus ce tour-ci, elles peuvent lancer un dé supplémentaire. |
+| Sephosi | Fureur divine | 2 · Rare | Recruter et déployer une ou plusieurs unités d’Anges Protecteurs dans n’importe quelle zone. La gratuité n’est pas mentionnée. |
+| Sephosi | Protéger la Salamandre ! | 1 · Unique | Salamandre engagée dans une zone : les autres unités gagnent +2 dés en attaquant des unités dans cette zone. |
+
 ## 5. WIP, règles laissées aux joueurs et éléments reportés
 
 - **Préparation conservée** : deck de faction unique, budgets et quotas du §2, sélection privée et placement de toutes les unités choisies du §3. Les demandes de simplification portent sur le plateau après cette préparation.
 - **Arbitrage manuel** : ordres exécutés, nombre d’actions, coûts de recrutement, points stratégiques, légalité des tirs/combats, modificateurs, relances, blessures et victoire. Le moteur automatique précédent est supprimé.
 - **Décors et événements** : toujours reportés. Pas de placement de décor, ligne de tir obstruée ou événement automatique.
-- **Capacités** : les définitions sont finalisées ; Vol et la restriction de déploiement de Blop sont appliqués. Les autres effets restent à la main des joueurs (CAP-03), conformément au plateau manuel. **Ordres de faction** : encore marqués « à maj » dans le PDF p. 7 ; les lignes sans nom restent exclues.
+- **Capacités et ordres** : les définitions sont finalisées ; Vol et la restriction de déploiement de Blop sont appliqués. Les huit ordres de faction sont intégrés, avec le dé d’Invokation shamanique corrigé par Nicolas (1 / 2–3 / 4–5 / 6). Les bonus, sacrifices, jets, soins, recrutements gratuits et calendriers restent à la main des joueurs, conformément au plateau manuel.
 - **Réserve** : le coût est indicatif ; les joueurs choisissent eux-mêmes où et combien recruter. Seuls l’espace libre et la possession réelle de l’exemplaire sont imposés.
 - **Profils** : les 20 profils Gobelins/Sephosi sont définis, y compris l’absence d’attaque de Vallardi. Les estimations Orcs/Gaeli sont conservées. **Points de règle restant ambigus dans le PDF** : protection P de Repli stratégique, origine des Skrans de Meuteur ! (réserve ou création), détails de portée de Ligne Verte ; aucun comportement automatique n’est inventé pour ces points.
 
 ## 6. Suivi de l’implémentation
 
+- **Ordres du 11 septembre, branche `codex/ordres-finalises-2026-09-11`** : huit ordres de faction, stocks 4/2/1, calendrier des recrutements aux tours 3/4/5. Aucun changement des profils, illustrations, capacités ou données de decks ; aucune migration du catalogue d’unités à lancer. Les fonctions ont été déployées sur Convex dev `grateful-warthog-543`, puis sur la production `tough-gecko-249` après accord de Nicolas, avec la correction d’Invokation shamanique (2–3 : une unité défaussée ; 4–5 : aucun effet supplémentaire). Les batailles déjà commencées conservent leurs définitions et stocks figés ; celles encore en préparation reçoivent les nouveaux ordres et leur version au début de la bataille. Validation : 194 tests, analyse statique et compilation réussis.
+
 - **Habillage du 10 septembre, validé par Nicolas sur `codex/plateau-cadres-factions`** : terrain herbeux et terre battue, encadrement de table de campagne, zones lisibles et cadres de faction permanents. Le terrain est uniquement décoratif : aucune case bloquée, aucun couvert, aucun changement de mouvement. Ce lot accompagne le remplacement des trois illustrations gobelines. Les lignes d’engagement sont également rétablies dès le premier affichage après reconnexion.
 
-- Un seul fonctionnement de partie : préparation commune puis plateau manuel, identifié par `2026-09-10-manual-1` pour les nouvelles parties. Les anciennes phases, actions automatiques, schémas et écrans ont été supprimés à la demande de Nicolas le 8 septembre. Aucun mode de compatibilité n’est maintenu.
+- Un seul fonctionnement de partie : préparation commune puis plateau manuel, identifié par `2026-09-11-manual-1` pour les nouvelles parties. Les anciennes phases, actions automatiques, schémas et écrans ont été supprimés à la demande de Nicolas le 8 septembre. Aucun mode de compatibilité n’est maintenu.
 - La [référence précédente](archive/regles-actions-2026-09-06.md) est conservée uniquement comme historique documentaire pour comparer les règles ; elle ne décrit plus un moteur disponible.
 - Les cartes et ordres d’une partie sont copiés depuis le catalogue lors de sa préparation ; leurs profils restent stables pendant cette partie.
 - Le 10 septembre 2026, les fonctions et le catalogue ont été appliqués à Convex dev, puis à la production `tough-gecko-249` après publication de l’interface sur Vercel : 3 cartes créées, 17 mises à jour, aucune archivée en production. Les 20 profils et les illustrations fournies sont publiés. L’application est idempotente. Les parties préparées conservent leurs cartes figées et les batailles commencées leurs ordres.

@@ -13,7 +13,7 @@ Le site prépare son adaptation numérique : découvrir les cartes, construire s
 - Un lobby à deux joueurs, la préparation privée, l’initiative et le déploiement sur 54 cases, puis un plateau manuel partagé avec déplacements, réserves, engagements, compteurs et dés synchronisés. Vol est pris en compte dans les déplacements ; Blop commence en réserve.
 
 L’état précis du jeu et les écarts encore ouverts sont suivis dans les [règles implémentées](docs/regles-implementees.md).
-Les changements du dernier PDF sont détaillés dans la [comparaison du 10 septembre](docs/differences-regles-2026-09-10.md).
+Les changements du dernier PDF, dont les huit ordres de faction finalisés, sont détaillés dans la [comparaison du 11 septembre](docs/differences-regles-2026-09-11.md).
 
 L’univers visuel mêle illustrations de fantasy, tons sombres et titres inspirés des inscriptions anciennes.
 
@@ -30,10 +30,15 @@ Le projet est en cours de développement ; les règles et les fonctionnalités �
 
 Vercel exécute `npm run check` et publie l’interface lors d’un push sur `main`. Cette étape ne déploie pas les fonctions Convex et ne met pas à jour les cartes enregistrées en base.
 
-Pour publier les changements de règles et de catalogue validés, déployer également Convex en production, puis appliquer le catalogue :
+Pour publier les changements de règles validés, déployer également Convex en production :
 
 ```sh
 npx convex deploy
+```
+
+Si les profils ou les cartes du catalogue ont changé, appliquer ensuite leur mise à jour. Cette étape n’est pas nécessaire pour une modification des ordres seuls :
+
+```sh
 npx convex run catalogue2026:apply --prod
 ```
 
