@@ -8,6 +8,8 @@ import type { PublicCard, PublicFaction } from '../features/catalogue/types'
 import './CardsPage.css'
 import { getUnitProfile } from '../../shared/unitProfile'
 import { sortCards } from '../features/catalogue/sortCards'
+import { CatalogueViewPicker, OrderCatalogue, type CatalogueView } from '../features/catalogue/OrderCatalogue'
+import { ordersForFaction } from '../../shared/orders'
 
 export function CardsPage() {
   const factions = useQuery(api.catalogue.listFactions) as
@@ -50,6 +52,7 @@ export function CardsCatalogue({
   selectedFactionId: string
   onSelectFaction: (stableId: string) => void
 }) {
+  const [view, setView] = useState<CatalogueView>('units')
   const activeFaction = factions?.find(
     (faction) => faction.stableId === selectedFactionId,
   )
@@ -71,6 +74,11 @@ export function CardsCatalogue({
         <CatalogueState>Aucune faction publiée.</CatalogueState>
       ) : (
         <>
+          <CatalogueViewPicker value={view} onChange={setView} unitCount={cards?.length} orderCount={activeFaction ? ordersForFaction(activeFaction.stableId).length : 0} />
+          {view === 'orders' && activeFaction ? <>
+            <div className="catalogue-heading"><h2>Les ordres</h2><span>{ordersForFaction(activeFaction.stableId).length} ordres disponibles</span></div>
+            <OrderCatalogue faction={activeFaction} />
+          </> : <>
           <div className="catalogue-heading">
             <h2>{cards?.some((card) => card.kind === 'action') ? 'Les cartes' : 'Les unités'}</h2>
             <span>{cards === undefined ? 'Chargement…' : `${cards.length} cartes disponibles`}</span>
@@ -88,6 +96,7 @@ export function CardsCatalogue({
               ))}
             </section>
           )}
+          </>}
         </>
       )}
       {activeFaction && <footer className="catalogue-footer"><span>{activeFaction.entity.name}</span><span>PAFF · Collection 2026</span></footer>}

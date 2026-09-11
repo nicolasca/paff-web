@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { CardsCatalogue } from '../../pages/CardsPage'
@@ -34,6 +34,29 @@ const card: PublicCard = {
 }
 
 describe('public card catalogue', () => {
+  it('shows full orders from the chosen faction and common orders, then returns to units', async () => {
+    const user = userEvent.setup()
+    const props = { factions, cards: [card], selectedFactionId: 'gobelins', onSelectFaction: () => undefined }
+    const { rerender } = render(<CardsCatalogue {...props} />)
+    await user.click(screen.getByRole('button', { name: 'Ordres 8' }))
+    expect(screen.getByRole('button', { name: 'Ordres 8' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getAllByRole('article')).toHaveLength(8)
+    const invocation = screen.getByRole('article', { name: 'Invokation shamanique' })
+    expect(invocation).toHaveTextContent('4 fois par partie')
+    expect(invocation).toHaveTextContent('sur 2–3, défaussez une unité de Shamans ; sur 4–5, aucun effet supplémentaire')
+    expect(within(screen.getByRole('region', { name: 'Ordres communs' })).getAllByRole('article')).toHaveLength(4)
+    expect(screen.getByRole('article', { name: 'Recrutement' })).toHaveTextContent('à partir du tour 3')
+    expect(screen.queryByRole('heading', { name: 'Archers Gobelins' })).not.toBeInTheDocument()
+    rerender(<CardsCatalogue {...props} selectedFactionId="sephosi" />)
+    expect(screen.getByRole('article', { name: 'Fureur divine' })).toHaveTextContent('2 fois par partie')
+    expect(screen.queryByRole('article', { name: 'Invokation shamanique' })).not.toBeInTheDocument()
+    rerender(<CardsCatalogue {...props} selectedFactionId="orcs" />)
+    expect(screen.getAllByRole('article')).toHaveLength(4)
+    expect(screen.queryByRole('article', { name: 'Fureur divine' })).not.toBeInTheDocument()
+    rerender(<CardsCatalogue {...props} />)
+    await user.click(screen.getByRole('button', { name: 'Unités 1' }))
+    expect(screen.getByRole('heading', { name: 'Archers Gobelins' })).toBeVisible()
+  })
   it.each(['Porte-ordres Sephosiens', 'Maréchal Vallardi'])('shows %s without invented dice or an attack mode', (name) => {
     const unit = catalogue2026.find((unit) => unit.name === name)!
     const { container } = render(<UnitCard card={{ ...card, ...unit, faction: card.faction }} />)

@@ -86,6 +86,27 @@ describe('deck library', () => {
 })
 
 describe('deck editing and viewing', () => {
+  it('lets players read faction and common orders without adding them or changing deck quantities', async () => {
+    const user = userEvent.setup()
+    renderEditor({ deck: { ...deck, cards: [{ ...card, quantity: 2 }] } })
+    const summary = screen.getByRole('complementary')
+    const before = summary.textContent
+    await user.click(screen.getByRole('button', { name: 'Ordres 8' }))
+    const reference = within(screen.getByRole('region', { name: 'Ordres de référence' }))
+    expect(reference.getAllByRole('article')).toHaveLength(8)
+    expect(reference.getByText(/ne s’ajoutent pas au deck/)).toBeVisible()
+    const invocation = reference.getByRole('article', { name: 'Invokation shamanique' })
+    await user.click(within(invocation).getByRole('heading'))
+    expect(within(invocation).queryByRole('button')).not.toBeInTheDocument()
+    expect(reference.queryByRole('spinbutton')).not.toBeInTheDocument()
+    expect(reference.queryByRole('button', { name: /^Ajouter / })).not.toBeInTheDocument()
+    expect(mutations.setCardQuantity).not.toHaveBeenCalled()
+    expect(mutations.adjustCardQuantity).not.toHaveBeenCalled()
+    expect(summary.textContent).toBe(before)
+    await user.click(screen.getByRole('button', { name: 'Unités 1' }))
+    expect(screen.getByRole('spinbutton', { name: 'Quantité de Archers Gobelins' })).toHaveValue(2)
+    expect(screen.getByRole('button', { name: 'Ajouter Archers Gobelins' })).toBeEnabled()
+  })
   it('adds beyond the printed limit and accepts an arbitrary quantity', async () => {
     const user = userEvent.setup()
     renderEditor({ deck: { ...deck, cards: [{ ...card, quantity: 2 }] } })

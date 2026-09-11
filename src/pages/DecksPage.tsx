@@ -16,6 +16,8 @@ import {
   type Deck,
 } from "../features/decks/deckStats";
 import { QuantityControl } from "../features/decks/QuantityControl";
+import { CatalogueViewPicker, OrderCatalogue, type CatalogueView } from "../features/catalogue/OrderCatalogue";
+import { ordersForFaction } from "../../shared/orders";
 import "./DecksPage.css";
 
 type DeckMode = "list" | "view" | "edit";
@@ -359,6 +361,7 @@ export function DeckWorkspace({
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [catalogueView, setCatalogueView] = useState<CatalogueView>("units");
   const editing = mode === "edit";
   const faction = factions?.find((item) => item.stableId === selectedFactionId) ?? deck.cards[0]?.faction;
   const hasMixedFactions = deck.cards.some(
@@ -514,13 +517,13 @@ export function DeckWorkspace({
       <div className="deck-workspace">
         <section
           className="deck-editor"
-          aria-label={editing ? "Ajouter des cartes" : "Contenu du deck"}
+          aria-label={editing ? catalogueView === "orders" ? "Ordres de référence" : "Ajouter des cartes" : "Contenu du deck"}
         >
           {editing ? (
             <>
               <div className="deck-catalogue-heading">
-                <h2>Ajouter des cartes</h2>
-                <span>{availableCards?.length ?? "…"} disponibles</span>
+                <h2>{catalogueView === "orders" ? "Consulter les ordres" : "Ajouter des cartes"}</h2>
+                <span>{catalogueView === "orders" ? ordersForFaction(selectedFactionId).length : availableCards?.length ?? "…"} disponibles</span>
               </div>
               <div className="deck-faction-picker">
                 <label htmlFor="deck-faction">Faction du deck</label>
@@ -548,7 +551,8 @@ export function DeckWorkspace({
                   )}
                 </select>
               </div>
-              {factions === undefined ||
+              <CatalogueViewPicker value={catalogueView} onChange={setCatalogueView} unitCount={availableCards?.length} orderCount={faction ? ordersForFaction(faction.stableId).length : 0} />
+              {catalogueView === "orders" && faction ? <OrderCatalogue faction={faction} inDeck /> : factions === undefined ||
               (factions.length > 0 && cards === undefined) ? (
                 <div className="deck-state" role="status">
                   Chargement des cartes…

@@ -1,0 +1,18 @@
+@import './factionTheme.css';
+
+.catalogue-view-picker { display: flex; gap: .4rem; margin-bottom: 1.8rem; padding-bottom: .65rem; border-bottom: 1px solid #ffffff20; }
+.catalogue-view-picker button { display: inline-flex; min-height: 2.75rem; align-items: center; gap: .75rem; padding: .6rem 1rem; border: 1px solid transparent; border-radius: .3rem; background: transparent; color: #c8c0b3; font: 600 .85rem var(--body); cursor: pointer; }
+.catalogue-view-picker button[aria-pressed=true] { border-color: color-mix(in srgb, var(--faction-color) 65%, #ddc49c); background: color-mix(in srgb, var(--faction-color) 16%, #191918); color: #fff5e5; }
+.catalogue-view-picker button:hover { background: #ffffff0c; }
+.catalogue-view-picker button span { display: grid; min-width: 1.5rem; min-height: 1.5rem; padding-inline: .2rem; place-content: center; background: #ffffff10; border-radius: .2rem; font-size: .75rem; font-variant-numeric: tabular-nums; }
+.order-catalogue__note { margin: 0 0 1.5rem; padding: .85rem 1rem; border-left: 2px solid var(--faction-accent); background: #ffffff06; color: #d7cdb9; font-size: .85rem; line-height: 1.6; }
+.order-catalogue__group + .order-catalogue__group { margin-top: 2rem; }
+.order-catalogue__group > h3 { margin: 0 0 1rem; color: #d3c6b3; font: 500 1rem var(--display); }
+.order-catalogue__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1rem; }
+.order-card { min-width: 0; padding: 1.4rem; border: 1px solid #c4ad7e35; border-top: 3px solid var(--faction-color); border-radius: .3rem; background: linear-gradient(135deg, color-mix(in srgb, var(--faction-color) 9%, #23221f), #1a1b19); box-shadow: 0 5px 18px #0003; }
+.order-card__header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; }
+.order-card__category { color: var(--faction-accent); font-size: .65rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+.order-card__limit { padding: .25rem .5rem; border: 1px solid #ead9b233; border-radius: .25rem; color: #eadcc4; background: #15181380; font-size: .7rem; }
+.order-card > h4 { margin: 1rem 0 .7rem; color: #fff0d7; font: 600 1.25rem/1.35 var(--body); overflow-wrap: anywhere; }
+.order-card > p { margin: 0; color: #d3d0c4; font: .9rem/1.7 var(--body); }
+@media (max-width: 600px) { .order-card { padding: 1.1rem; } .catalogue-view-picker button { flex: 1; justify-content: center; } }

@@ -22,6 +22,7 @@ Référence courante du 11 septembre : **PAFF 2026 (1).pdf**, 10 pages. Les huit
 | CAT-04 | Les 12 capacités attribuées aux unités sont affichées avec leur définition du PDF p. 9 (ancien export : p. 10). Vol est pris en compte dans la géométrie de mouvement et Meuteur ! interdit le déploiement initial de Blop. Les autres effets sont arbitrés par les joueurs sur le plateau manuel ; ils ne sont plus présentés comme des définitions manquantes. Voir CAP-01 à CAP-04 ci-dessous. |
 | CAT-05 | Les identifiants des cartes renommées sont conservés pour préserver les decks. Les autres anciennes cartes Gobelins/Sephosi, y compris les cartes Action, sont archivées : elles restent lisibles dans les anciens decks mais ne sont plus ajoutables ni utilisables pour sélectionner un deck dans une nouvelle partie. L’éditeur permet de les retirer. |
 | CAT-06 | Une partie conserve une copie des cartes au choix du deck. Les mises à jour ultérieures du catalogue ou du deck ne modifient pas ces copies. Les ordres sont également figés dans la partie au début du tour 1. |
+| CAT-07 | La page Cartes propose « Unités / Ordres ». Les ordres de la faction choisie et les quatre ordres communs sont consultables sans connexion, avec leurs effets complets, catégories et limites. Le référentiel est partagé avec celui utilisé au début des batailles ; les ordres ne sont pas des unités du catalogue en base. |
 
 ### Présentation des cartes — décision de Nicolas du 7 septembre
 
@@ -80,6 +81,7 @@ Les valeurs viennent du PDF p. 8. Tous les DT sont numériques, sans ancien sign
 | DECK-02 | Une seule faction par deck. Un deck peut être vide. Les exemplaires sont des quantités entières positives, sans blocage de sauvegarde pour les quotas de type ou de points. La conformité est contrôlée avant de jouer (DECK-04). Zéro retire la carte du deck. |
 | DECK-03 | Le récapitulatif indique les quantités, unités/actions, coût total et moyen et répartition par type. Les dépassements de budget et de quotas sont signalés dans le récapitulatif. |
 | DECK-04 | Pour sélectionner un deck dans une nouvelle partie : unités uniquement, au maximum **33 points** ; Cavalerie 6 / Artillerie 4 / Élite 4 / Unique 1 exemplaires maximum ; Troupe et Tir sans quota de nombre. Coûts connus exigés. Contrôles côté serveur et indications dans le choix de deck. Source : PDF p. 1. |
+| DECK-05 | L’atelier de création et de modification propose aussi « Unités / Ordres ». Les ordres sont des références en lecture seule : aucune sélection, quantité ou action d’ajout ; ils n’entrent ni dans les points ni dans la composition. Les cartes d’unité conservent leurs contrôles habituels quand on revient à l’onglet Unités. |
 | LOB-01 | Deux joueurs exactement par partie. L’hôte lance quand les deux places sont occupées. Un joueur ne peut participer qu’à une partie active. |
 | LOB-02 | Chacun choisit un de ses decks disponibles ; il peut changer tant que les deux choix ne sont pas terminés. La sélection des unités commence lorsque les deux decks sont choisis. Un deck vide doté d’une faction est accepté. |
 | LOB-03 | Les étapes et actions sont enregistrées par Convex et synchronisées. Un rechargement reprend l’état enregistré. Seuls les participants peuvent lire leur partie ou y agir. |
@@ -159,6 +161,8 @@ Les compteurs sont bornés techniquement à 0–999 (tour : 1–999), et le lanc
 - **Profils** : les 20 profils Gobelins/Sephosi sont définis, y compris l’absence d’attaque de Vallardi. Les estimations Orcs/Gaeli sont conservées. **Points de règle restant ambigus dans le PDF** : protection P de Repli stratégique, origine des Skrans de Meuteur ! (réserve ou création), détails de portée de Ligne Verte ; aucun comportement automatique n’est inventé pour ces points.
 
 ## 6. Suivi de l’implémentation
+
+- **Consultation des ordres, 11 septembre** : ajout au catalogue public et à l’éditeur de deck à la demande de Nicolas. Les mêmes définitions alimentent les deux écrans et les nouvelles batailles, y compris la correction d’Invokation shamanique. Cette présentation n’ajoute aucun effet automatique et ne modifie pas les ordres figés des parties en cours.
 
 - **Ordres du 11 septembre, branche `codex/ordres-finalises-2026-09-11`** : huit ordres de faction, stocks 4/2/1, calendrier des recrutements aux tours 3/4/5. Aucun changement des profils, illustrations, capacités ou données de decks ; aucune migration du catalogue d’unités à lancer. Les fonctions ont été déployées sur Convex dev `grateful-warthog-543`, puis sur la production `tough-gecko-249` après accord de Nicolas, avec la correction d’Invokation shamanique (2–3 : une unité défaussée ; 4–5 : aucun effet supplémentaire). Les batailles déjà commencées conservent leurs définitions et stocks figés ; celles encore en préparation reçoivent les nouveaux ordres et leur version au début de la bataille. Validation : 194 tests, analyse statique et compilation réussis.
 
