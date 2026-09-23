@@ -6,7 +6,6 @@ export type Player = {
   loginId: string
   displayName: string
   role: 'player' | 'admin'
-  canUseSimulations?: boolean
 }
 
 export type AuthSessionValue = {

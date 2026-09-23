@@ -23,13 +23,13 @@ import type * as lib_gameSetup from "../lib/gameSetup.js";
 import type * as lib_manualBattle from "../lib/manualBattle.js";
 import type * as lib_manualState from "../lib/manualState.js";
 import type * as lib_normalizeLoginId from "../lib/normalizeLoginId.js";
-import type * as lib_simulationAccess from "../lib/simulationAccess.js";
 import type * as lib_unitProfile from "../lib/unitProfile.js";
 import type * as manual from "../manual.js";
 import type * as migrations from "../migrations.js";
 import type * as players from "../players.js";
 import type * as provisioning from "../provisioning.js";
-import type * as simulations from "../simulations.js";
+import type * as voice from "../voice.js";
+import type * as voiceAccess from "../voiceAccess.js";
 
 import type {
   ApiFromModules,
@@ -53,13 +53,13 @@ declare const fullApi: ApiFromModules<{
   "lib/manualBattle": typeof lib_manualBattle;
   "lib/manualState": typeof lib_manualState;
   "lib/normalizeLoginId": typeof lib_normalizeLoginId;
-  "lib/simulationAccess": typeof lib_simulationAccess;
   "lib/unitProfile": typeof lib_unitProfile;
   manual: typeof manual;
   migrations: typeof migrations;
   players: typeof players;
   provisioning: typeof provisioning;
-  simulations: typeof simulations;
+  voice: typeof voice;
+  voiceAccess: typeof voiceAccess;
 }>;
 
 /**

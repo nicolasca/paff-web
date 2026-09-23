@@ -16,6 +16,7 @@ const mutations = vi.hoisted(() => ({ create: vi.fn(), join: vi.fn(), start: vi.
 vi.mock('convex/react', () => ({
   useQuery: vi.fn(), useConvexConnectionState: () => ({ isWebSocketConnected: true }),
   useMutation: (reference: unknown) => mutations[getFunctionName(reference as never).split(':')[1] as keyof typeof mutations],
+  useAction: () => vi.fn(),
 }))
 
 const gameId = 'game-1' as Id<'games'>

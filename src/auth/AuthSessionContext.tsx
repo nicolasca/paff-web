@@ -72,7 +72,6 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
         loginId: currentPlayer.loginId,
         displayName: currentPlayer.displayName,
         role: currentPlayer.role,
-        canUseSimulations: currentPlayer.canUseSimulations,
       },
       signIn,
       signOut,

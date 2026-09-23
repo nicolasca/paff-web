@@ -11,6 +11,7 @@ import { SpectatorBattle } from '../features/game/SpectatorBattle'
 import { SetupPhases } from '../features/game/SetupPhases'
 import { PreparationPhase } from '../features/game/PreparationPhase'
 import { GameConnection } from '../features/game/GameConnection'
+import { VoiceChat } from '../features/game/VoiceChat'
 import { gameError } from '../features/game/gameError'
 import { deckRuleIssues } from '../../shared/armyRules'
 import { phaseNames, type Game, type GamePlayer } from '../features/game/types'
@@ -36,6 +37,7 @@ export function GameRoom({ game, decks, onLeave }: { game: Game; decks?: Deck[];
     <header className="game-page-heading game-page-heading--room"><div><p className="eyebrow">Spectateur</p><h1>{game.name}</h1></div>
       <Link className="ui-button ui-button--quiet" to="/lobby">Quitter la vue spectateur</Link>
     </header>
+    <VoiceChat gameId={game.id} />
     <SpectatorBattle game={game} />
   </>
   return <PlayerRoom game={game} decks={decks} onLeave={onLeave} />
@@ -75,6 +77,7 @@ function PlayerRoom({ game, decks, onLeave }: { game: Game; decks?: Deck[]; onLe
     <header className="game-page-heading game-page-heading--room"><div><p className="eyebrow">Table à deux joueurs</p><h1>{game.name}</h1></div>
       <button type="button" className="ui-button ui-button--quiet" disabled={busy} onClick={() => setConfirmLeave(true)}>Quitter la table</button>
     </header>
+    <VoiceChat gameId={game.id} />
     {confirmLeave && <section className="game-confirm" aria-label="Quitter la table">
       <p>{game.phase === 'waiting' && !game.isHost ? 'Libérer votre place à cette table ?' : 'Quitter fermera cette partie pour les deux joueurs.'}</p>
       <button type="button" className="ui-button ui-button--danger" disabled={busy} onClick={() => void perform(async () => { await leave({ gameId: game.id }); onLeave() })}>Confirmer le départ</button>

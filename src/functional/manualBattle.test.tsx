@@ -13,6 +13,7 @@ vi.mock('convex/react', async () => {
   const { FunctionalClientContext } = await import('../test/functionalClient')
   const skip = { subscribe: () => () => {}, snapshot: () => undefined }
   return {
+    useAction: () => vi.fn(),
     useQuery(reference: Parameters<typeof getFunctionName>[0], args: Record<string, unknown> | 'skip' = {}) {
       const client = useContext(FunctionalClientContext)!
       const query = args === 'skip' ? skip : client.transport.query(client.user, getFunctionName(reference), args)

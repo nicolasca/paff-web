@@ -4,7 +4,6 @@ import type { QueryCtx } from './_generated/server'
 import type { Id } from './_generated/dataModel'
 import { getCurrentPlayer, requireActivePlayer } from './lib/auth'
 import { normalizeLoginId } from './lib/normalizeLoginId'
-import { hasSimulationAccess } from './lib/simulationAccess'
 import { badgesForPlayer, playerBadges } from '../shared/playerBadges'
 import { isPlayerAvatar, resolvePlayerAvatar } from '../shared/playerAvatars'
 
@@ -38,7 +37,6 @@ export const current = query({
       loginId: player.loginId,
       displayName: player.displayName,
       role: player.role,
-      canUseSimulations: hasSimulationAccess(player.userId),
     }
   },
 })

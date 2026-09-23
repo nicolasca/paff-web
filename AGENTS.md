@@ -33,4 +33,4 @@ Toute modification des règles ou du déroulement d’une partie doit mettre à 
 
 # Simulateur séparé
 
-Depuis le 20 septembre 2026, les bots, l’apprentissage et les campagnes se développent dans le dépôt local voisin `paff-simulator`, avec ses propres instructions. Ne pas les réintroduire ici ni fusionner les anciennes branches de simulation pour publier le site. `shared/` se synchronise explicitement entre les dépôts ; préserver les références/caches historiques. L’atelier du site conserve seulement ses rapports et relectures historiques. Voir `docs/separation-simulateur.md`.
+Depuis le 20 septembre 2026, les bots, l’apprentissage et les campagnes se développent dans le dépôt local voisin `paff-simulator`, avec ses propres instructions. Ne pas les réintroduire ici ni fusionner les anciennes branches de simulation pour publier le site. Depuis le 23 septembre, `paff-web` n’expose plus d’atelier, de route, de fonctions Convex ni de données de simulation. `shared/` se synchronise explicitement entre les dépôts ; préserver les références historiques des règles. Voir `docs/separation-simulateur.md`.

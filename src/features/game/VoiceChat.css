@@ -1,0 +1,15 @@
+.voice-chat { display: flex; align-items: center; flex-wrap: wrap; gap: 0.8rem 1.5rem; margin: 0 0 2rem; padding: 1rem 1.25rem; border: 1px solid var(--line-dark); border-radius: 0.6rem; background: var(--coal-900); }
+.voice-chat__intro { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.5rem 1.25rem; flex: 1 1 17rem; }
+.voice-chat__intro .eyebrow { margin: 0 0 0.2rem; }
+.voice-chat h2 { margin: 0; font: 500 1.4rem var(--display); }
+.voice-chat__intro > p, .voice-chat__people { margin: 0; color: var(--parchment-300); font-size: 0.8rem; }
+.voice-chat__controls { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.voice-chat__controls .ui-button { white-space: nowrap; }
+.voice-chat__people, .voice-chat__error { flex-basis: 100%; }
+.voice-chat__error { margin: 0; color: #f4b3a3; font-size: 0.85rem; }
+.voice-chat__resume { flex-basis: auto; }
+.voice-chat__audio { display: none; }
+@media (max-width: 600px) {
+  .voice-chat__controls { width: 100%; }
+  .voice-chat__controls .ui-button { flex: 1 1 auto; }
+}

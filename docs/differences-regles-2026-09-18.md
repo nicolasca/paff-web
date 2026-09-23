@@ -1,6 +1,6 @@
 # Comparaison des règles reçues le 18 septembre 2026
 
-**Mise à jour après le lot B :** les [réponses du créateur](equilibrage/arbitrages-2026-09-18.md) remplacent les quatre hypothèses ci-dessous. Ce diff conserve la chronologie ; la [référence consolidée](equilibrage/regles-consolidees.md) porte les règles courantes. Le vocal précise le départ de Ligne Verte dans la zone suivante ; les quatre questions sont résolues.
+**Mise à jour après le lot B :** les réponses du créateur remplacent les quatre hypothèses ci-dessous. Ce diff conserve la chronologie ; les arbitrages et leur référence consolidée sont conservés dans le dépôt local `paff-simulator`. Le vocal précise le départ de Ligne Verte dans la zone suivante ; les quatre questions sont résolues.
 
 **Statut : comparaison terminée, puis mise à jour du catalogue et des aides du site autorisée par Nicolas avec quatre hypothèses provisoires.** Le moteur V2 reste historique ; sa mise en conformité appartient au lot V3 suivant. Voir le bilan d’application en section 8. Travail poursuivi sur `codex/bande-du-sef-illustration-tarres`. La correction précédente du nom Bande du Sef et de l’illustration des Gros tarrés est conservée. Aucune campagne ni publication lancée.
 
@@ -8,7 +8,7 @@
 
 - Nouvelle source : **PAFF 2026 (3).pdf**, 10 pages, transmis par Nicolas le 18 septembre. SHA-256 : `7eb3b911c27c60aff60115d38dd3103c0ab55d99c0f8049c401fc793dcc0cde9`.
 - Comparaison directe : **PAFF 2026 (2).pdf**, 9 pages, reçu le 15 septembre. SHA-256 : `23e59c8767924b83861b6f57bf9cd7bd91e22ad289f247c88567846826022ae0`.
-- Comparaison avec les [arbitrages consolidés](equilibrage/regles-consolidees.md), les [comportements du site](regles-implementees.md), le catalogue partagé et le moteur de simulation.
+- Comparaison avec les arbitrages consolidés dans `paff-simulator`, les [comportements du site](regles-implementees.md), le catalogue partagé et le moteur de simulation.
 - Texte comparé en neutralisant les changements de pagination et d’espacement. Contrôle visuel des règles, des ordres, des unités, des capacités et des images du tableau des touches. Ce contrôle est nécessaire : **la ligne barrée de la Bande du Sef et le nouveau tableau des touches ne ressortent pas du seul diff textuel**.
 
 Les pages ci-dessous désignent le nouvel export, sauf mention contraire. Règles générales : p. 1–6 ; ordres : p. 7 ; unités : p. 8 ; capacités : p. 9 ; note d’attente : p. 10. La date du 18 septembre est celle de réception, pas une date de rédaction certifiée.

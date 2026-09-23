@@ -7,6 +7,7 @@ const messages: Record<string, string> = {
   INVALID_DUEL: 'Choisissez deux unités de camps différents sur le plateau.',
   ALREADY_IN_GAME: 'Vous êtes déjà dans une partie. Reprenez-la depuis le lobby.',
   GAME_NOT_AVAILABLE: 'Cette partie n’est plus disponible.',
+  AUDIO_NOT_CONFIGURED: 'Le salon vocal n’est pas encore configuré. Réessayez plus tard.',
   GAME_FULL: 'La dernière place vient d’être prise.',
   HOST_ONLY: 'Seul l’hôte peut lancer la partie.',
   NEED_TWO_PLAYERS: 'Il faut deux joueurs pour lancer la partie.',

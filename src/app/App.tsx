@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuthSession } from '../auth/authSession'
 import { RouteErrorBoundary } from '../components/RouteErrorBoundary'
@@ -12,12 +12,9 @@ import { GamePage } from '../pages/GamePage'
 import { JournalPage } from '../pages/JournalPage'
 import { PlayerProfilePage } from '../pages/PlayerProfilePage'
 
-const SimulationPage = lazy(() => import('../pages/SimulationPage').then((module) => ({ default: module.SimulationPage })))
-
 export function App() {
   return (
     <Routes>
-      <Route path="/admin/equilibrage" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<AuthLoading />}><SimulationPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
       <Route path="/" element={<Navigate replace to="/home" />} />
       <Route path="/journal" element={<JournalPage />} />
       <Route path="/players/:userId" element={<ProtectedRoute><RouteErrorBoundary><PlayerProfilePage /></RouteErrorBoundary></ProtectedRoute>} />

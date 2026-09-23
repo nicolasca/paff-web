@@ -26,7 +26,7 @@ export const apply = internalMutation({
           dataVersion: CATALOGUE_VERSION, status: 'published' as const, sourceLine: catalogue2026.indexOf(unit) + 2,
           sourceNote: unit.faction === 'gaeli'
             ? 'PAFF 2026 (4).pdf transmis le 21/09/2026, p. 8 (unités) et p. 9 (capacités). Les indications d’illustration ne sont pas des règles.'
-            : 'PAFF 2026 (3).pdf transmis le 18/09/2026, p. 8 (unités) et p. 9 (capacités), avec les réponses du créateur transmises par Nicolas, documentées dans docs/equilibrage/arbitrages-2026-09-18.md.',
+            : 'PAFF 2026 (3).pdf transmis le 18/09/2026, p. 8 (unités) et p. 9 (capacités), avec les réponses du créateur transmises par Nicolas, récapitulées dans docs/differences-regles-2026-09-18.md.',
         }
         if (!existing) { await ctx.db.insert('cards', fields); result.created++ }
         else if (Object.entries(fields).some(([key, value]) => !sameValue(existing[key as keyof typeof existing], value)) || existing.deckLimit !== undefined) {

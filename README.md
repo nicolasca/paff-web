@@ -16,7 +16,7 @@ Le [contexte de travail](docs/contexte-projet.md) rassemble le vocabulaire, les 
 - Un lobby à deux joueurs, la préparation privée, l’initiative et le déploiement sur 54 cases, puis un plateau manuel partagé avec déplacements, réserves, engagements, compteurs et dés synchronisés. Vol est pris en compte dans les déplacements ; Blop et le Grand Gardien commencent en réserve.
 
 L’état précis du jeu et les écarts encore ouverts sont suivis dans les [règles implémentées](docs/regles-implementees.md).
-Les derniers changements sont détaillés dans le [lot Gaeli du 21 septembre](docs/differences-regles-2026-09-21.md), la [comparaison du 18 septembre](docs/differences-regles-2026-09-18.md) et les [arbitrages](docs/equilibrage/arbitrages-2026-09-18.md). Djil utilise l’illustration fournie le 20 septembre ; les Gros tarrés celle du 16 septembre.
+Les derniers changements sont détaillés dans le [lot Gaeli du 21 septembre](docs/differences-regles-2026-09-21.md) et la [comparaison du 18 septembre](docs/differences-regles-2026-09-18.md). Les anciens documents d’équilibrage sont dans le dépôt local `paff-simulator`. Djil utilise l’illustration fournie le 20 septembre ; les Gros tarrés celle du 16 septembre.
 
 L’univers visuel mêle illustrations de fantasy, tons sombres et titres inspirés des inscriptions anciennes.
 
@@ -29,11 +29,19 @@ L’univers visuel mêle illustrations de fantasy, tons sombres et titres inspir
 
 Le projet est en cours de développement ; les règles et les fonctionnalités évolueront avec les essais des joueurs.
 
+## Salon vocal
+
+Chaque table propose un salon vocal aux deux joueurs et, après le lancement, aux spectateurs connectés. Chacun choisit de rejoindre l’audio ; le micro reste coupé jusqu’à son activation. Le son et le micro peuvent être coupés séparément, et l’audio se ferme lorsque l’on quitte la page ou que la partie est fermée.
+
+La voix passe par LiveKit Cloud avec l’**offre gratuite Build**, sans carte bancaire. Cette offre inclut actuellement 5 000 minutes WebRTC par mois et applique un plafond dur : l’audio n’accepte plus de nouvelles connexions une fois le quota atteint. Aucun abonnement payant n’est nécessaire pour PAFF ; vérifier les [quotas actuels](https://livekit.com/pricing) si l’usage augmente.
+
+Créer un projet LiveKit gratuit, puis renseigner **dans chaque déploiement Convex concerné** `LIVEKIT_URL` (adresse `wss://…`), `LIVEKIT_API_KEY` et `LIVEKIT_API_SECRET`. Ne pas exposer ces deux dernières valeurs dans Vite ou dans le dépôt. Le backend vérifie l’accès à la partie avant de délivrer un jeton temporaire propre à sa table. Le développement `grateful-warthog-543` et la production `tough-gecko-249` ont des variables séparées ; configurer d’abord le développement pour les essais.
+
 ## Simulateur séparé
 
 Les bots, l’apprentissage Python/TorchRL, les campagnes et leur tableau de bord sont désormais dans le dépôt local **`../paff-simulator`**, indépendant et sans dépôt GitHub. Les développer là-bas, sans les intégrer à la publication du site. Voir [la séparation](docs/separation-simulateur.md).
 
-L’atelier privé `/admin/equilibrage` conserve ses rapports historiques et ses relectures, sans recalcul ni changement d’interface. Ses données `data/simulation/` restent des instantanés consultables ; le moteur de simulation et ses commandes ne sont plus dans ce dépôt.
+Les rapports et relectures historiques sont aussi dans `paff-simulator`. Le site ne contient plus de page d’équilibrage, de fonctions Convex ou de données de simulation.
 
 `npm run check` vérifie le site (lint, tests, build). Pour Convex, compléter par `npx tsc --noEmit -p convex/tsconfig.json`. Le simulateur dispose de ses propres vérifications.
 
