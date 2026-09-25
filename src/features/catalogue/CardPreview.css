@@ -2,4 +2,4 @@
 .card-preview .unit-card { transform: none; }
 .card-preview--interactive { pointer-events: auto; }
 .card-preview .unit-card__header h2 { font-size: 1.05rem; }
-@media (max-height: 560px) { .card-preview { width: min(15rem, calc(100vw - 24px)); } .card-preview .unit-card__art { max-height: 32svh; aspect-ratio: auto; } }
+@media (max-height: 560px) { .card-preview { width: min(15rem, calc(100vw - 24px)); } .card-preview .unit-card__art { width: min(100%, 32svh); aspect-ratio: 1; align-self: center; } }

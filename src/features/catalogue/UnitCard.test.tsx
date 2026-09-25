@@ -74,21 +74,25 @@ describe('public card catalogue', () => {
     expect(screen.getByRole('tooltip')).toHaveTextContent('+1 dé et +1 A')
     expect(screen.getByRole('tooltip')).not.toHaveTextContent('en cours de définition')
   })
-  it('shows the four factions from data and their entity', () => {
+  it('shows faction buttons from data, their selection and entity', async () => {
+    const selections: string[] = []
     render(
       <CardsCatalogue
         factions={factions}
         cards={[card]}
         selectedFactionId="gobelins"
-        onSelectFaction={() => undefined}
+        onSelectFaction={(stableId) => selections.push(stableId)}
       />,
     )
 
-    expect(screen.getAllByRole('option')).toHaveLength(4)
-    expect(screen.getByRole('option', { name: 'Céphosi' })).toBeVisible()
-    expect(screen.getByRole('option', { name: 'Orcs' })).toBeVisible()
-    expect(screen.getByRole('option', { name: 'Gaeli' })).toBeVisible()
-    expect(screen.getByRole('option', { name: 'Gobelins' })).toBeVisible()
+    const choices = within(screen.getByRole('group', { name: 'Faction' }))
+    expect(choices.getAllByRole('button')).toHaveLength(4)
+    expect(choices.getByRole('button', { name: 'Céphosi' })).toBeVisible()
+    expect(choices.getByRole('button', { name: 'Orcs' })).toBeVisible()
+    expect(choices.getByRole('button', { name: 'Gaeli' })).toHaveAttribute('aria-pressed', 'false')
+    expect(choices.getByRole('button', { name: 'Gobelins' })).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(choices.getByRole('button', { name: 'Gaeli' }))
+    expect(selections).toEqual(['gaeli'])
     expect(screen.getByText('Peaux-Vertes')).toBeVisible()
   })
 

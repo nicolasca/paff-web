@@ -1,5 +1,53 @@
-[data-faction] { --faction-color: #967747; --faction-surface: #554128; --faction-ink: #fff2ea; --faction-accent: #dfc49c; }
-[data-faction=sephosi] { --faction-color: #990000; --faction-surface: #6e1110; --faction-ink: #fff2ea; --faction-accent: #e6bca2; }
-[data-faction=gobelins] { --faction-color: #78d140; --faction-surface: #78d140; --faction-ink: #172510; --faction-accent: #b9fc8e; }
-[data-faction=orcs] { --faction-color: #687c4d; --faction-surface: #35442c; --faction-accent: #b9cba2; }
-[data-faction=gaeli] { --faction-color: #497f91; --faction-surface: #244752; --faction-accent: #afd7dd; }
+[data-faction] {
+  --faction-color: #9b7949;
+  --faction-surface: #342a20;
+  --faction-ink: #f7ead3;
+  --faction-accent: #d3b57b;
+  --faction-page: #0c141a;
+  --faction-border: #8d754c;
+  --faction-display: var(--display);
+  --faction-card-paper: #e6d9bb;
+  --faction-card-text: #272119;
+}
+
+[data-faction=sephosi] {
+  --faction-color: #962b30;
+  --faction-surface: #501719;
+  --faction-ink: #fff0d8;
+  --faction-accent: #e3c184;
+  --faction-page: #11151b;
+  --faction-border: #a47c45;
+  --faction-display: var(--display);
+  --faction-card-paper: #ecdfc3;
+  --faction-card-text: #30251d;
+}
+
+[data-faction=gobelins] {
+  --faction-color: #80914b;
+  --faction-surface: #2d3625;
+  --faction-ink: #ece7cf;
+  --faction-accent: #c0cb8c;
+  --faction-page: #121610;
+  --faction-border: #747e50;
+  --faction-display: 'Barlow Condensed', 'Arial Narrow', Impact, sans-serif;
+  --faction-card-paper: #d4d0b3;
+  --faction-card-text: #262a1d;
+}
+
+[data-faction=gaeli] {
+  --faction-color: #447a77;
+  --faction-surface: #153a3b;
+  --faction-ink: #eef0dd;
+  --faction-accent: #d4c28e;
+  --faction-page: #0b1b1d;
+  --faction-border: #9e956c;
+  --faction-display: 'Cormorant Garamond', 'Palatino Linotype', Palatino, Georgia, serif;
+  --faction-card-paper: #dce2cd;
+  --faction-card-text: #1f3331;
+}
+
+[data-faction=orcs] {
+  --faction-color: #687c4d;
+  --faction-surface: #35442c;
+  --faction-accent: #b9cba2;
+}

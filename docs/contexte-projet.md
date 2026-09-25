@@ -28,6 +28,18 @@ Les cinq membres initiaux sont **Nicolas, Adrien, Bru, Pierre et Quentin**. Les 
 - Le logo apparaît dans la navigation et comme favicon ; ne pas le dupliquer dans le bloc principal de l’accueil.
 - Les futures préférences de faction/carte et les decks publics ne doivent pas apparaître comme des sections vides.
 
+## Direction Citadelle — décision du 25 septembre 2026
+
+Nicolas et les joueurs retiennent **La Citadelle, proposition 1 de la première vague du 24 septembre**, avec son identité médiévale guerrière, l'or ancien, le bleu-noir et les bannières cramoisies. Ce choix remplace les pistes plus épurées de la seconde vague. La réalisation se fait sur une branche dédiée, directement dans le projet, avec des changements non commités pour la revue.
+
+- **Conserver le contenu existant mot pour mot** : titres, descriptions, devises, noms, capacités, ordres et libellés. Les accroches inventées dans les maquettes ne constituent pas du contenu approuvé. Une refonte visuelle n'autorise ni réécriture ni nouveau slogan.
+- Les illustrations des cartes restent inchangées. La nouvelle illustration d'accueil est autorisée, ainsi que le logo et les emblèmes des factions. L'accueil utilise `/art/paff-citadelle-home.webp` ; le prompt et sa provenance sont conservés dans [le manifeste](illustration-citadelle-2026-09-25.json).
+- Chaque faction possède une ambiance de catalogue : **Sephosi** bordeaux/or/ivoire et Cinzel, soleil héraldique ; **Gobelins** fer/vert mousse/os et Barlow Condensed, masque gobelin anguleux ; **Gaeli** forêt pétrole/bronze et Cormorant Garamond, cerf celtique. Les deux nouvelles polices sont servies localement avec leurs licences OFL dans `public/fonts/`.
+- Les boutons illustrés remplacent la liste déroulante du catalogue. Les bannières d'accueil reprennent uniquement les noms existants et ouvrent `/cards?faction=gobelins`, `sephosi` ou `gaeli`. Une valeur inconnue conserve le choix par défaut Sephosi. La bascule Unités / Ordres et les capacités consultables restent disponibles.
+- Sur un portable 13 pouces, l'accueil doit tenir dans la hauteur visible avec sa navigation. Sa composition s'adapte à la hauteur disponible : titre, espacements et bannières plus compacts sur les fenêtres basses, sans cacher les textes ou les actions. Sur mobile ou avec un fort agrandissement du texte, le contenu conserve son défilement naturel.
+- Les cadres d'illustration sont carrés, sans retouche ni filtre sur les images des cartes. Les anciennes illustrations verticales sont affichées intégralement à l'intérieur du carré. Les styles de cartes réutilisés par les decks et les aperçus conservent leurs commandes ; aucune règle de jeu ni donnée de catalogue n'est modifiée.
+- Après la revue locale et la correction de hauteur sur portable 13 pouces, Nicolas autorise le push de `codex/citadelle-factions` et la publication d'une preview Vercel accessible à Adrien par lien, sans compte Vercel. Cette preview utilise le backend de développement ; cette demande ne publie pas la refonte en production. L'accueil et le catalogue restent consultables sans compte PAFF.
+
 ## Retours de partie du 15 septembre 2026
 
 - Référence précédente : `PAFF 2026 (2).pdf`, 9 pages, reçue le 15 septembre. Trois profils révisés : Bande de Gobelins 2 dés ; Archers Gobelins 1 R / 2 dés ; Epéistes Sephosiens 3 DT. Valeurs versionnées dans `shared/catalogue2026.ts`, comparaison dans `docs/differences-regles-2026-09-15.md`.

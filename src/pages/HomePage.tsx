@@ -1,21 +1,23 @@
 import { Link } from 'react-router-dom'
 import { useAuthSession } from '../auth/authSession'
 import { SiteHeader } from '../components/SiteHeader'
+import { FactionEmblem } from '../features/catalogue/FactionEmblem'
+import { catalogueFactions } from '../../shared/catalogue2026'
 import './HomePage.css'
 
 export function HomePage() {
   const { status } = useAuthSession()
   return (
-    <>
+    <div className="home-page">
       <SiteHeader overlay />
       <main className="home-hero" aria-labelledby="home-title">
 
       <div className="home-hero__media" aria-hidden="true">
         <img
-          src="/art/paff-battle-home.png"
+          src="/art/paff-citadelle-home.webp"
           alt=""
-          width="1120"
-          height="1400"
+          width="1672"
+          height="941"
           fetchPriority="high"
         />
       </div>
@@ -35,8 +37,16 @@ export function HomePage() {
           {status === 'authenticated' ? 'Retrouver mes decks' : 'Créer un deck'}
         </Link>
         </div>
+        <nav className="home-factions" aria-label="Faction">
+          {Object.entries(catalogueFactions).map(([theme, name]) => (
+            <Link key={theme} className="home-factions__banner" data-faction={theme} to={`/cards?faction=${theme}`}>
+              <FactionEmblem theme={theme} />
+              <span>{name}</span>
+            </Link>
+          ))}
+        </nav>
       </section>
       </main>
-    </>
+    </div>
   )
 }

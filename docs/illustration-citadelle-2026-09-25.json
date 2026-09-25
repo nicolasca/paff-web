@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-25",
+  "direction": "La Citadelle — première vague",
+  "tool": "Imagegen intégré",
+  "asset": "/art/paff-citadelle-home.webp",
+  "dimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "prompt": "Use case: illustration-story. Asset type: production website homepage background for PAFF, a French medieval heroic fantasy army tactics game for two friends, one versus one. Create a superb cinematic panoramic battle painting, very wide 16:9, 2560x1440 or larger. This is JUST THE PAINTING, absolutely no typography, logos, interface, frames or borders.\nArt direction: faithful to the battlefield painting in the provided approved Citadelle web concept. A monumental warm limestone gothic fortress crowns high rocky cliffs in the middle-right distance, grand arched bridges, distant smoke and golden sunbeams through heavy dramatic clouds. Human disciplined infantry in weathered steel armor and dark crimson cloaks carry red fabric heraldic SUN banners on the right foreground, seen from behind and side, with spears, shields, helmets and swords. Below them vast regiments confront an army of green goblins with crude dark banners across a broad rocky/muddy valley. Warhammer Fantasy Battle / Old World grounded painterly martial fantasy atmosphere, not sci-fi. Epic scale, dynamic very detailed classic fantasy illustration, coherent architecture and strong atmospheric perspective. Steel blue shadow, dark warm charcoal, old gold sunlight, deep crimson flags, natural pale rock.\nWebsite composition: leftmost 36 percent predominantly dark atmospheric shadow, smoky battlefield haze and subtle rock, few low-contrast distant shapes; reserve this dark space for later website text overlay (DO NOT DRAW ANY TEXT). Keep left-middle particularly calm. Important focal group of crimson-armored infantry in lower right, castle on upper right/middle, scene depth toward center, enough cloudy sky. Outer edges vignette slightly into blue-black. Sharp beautiful art in right 60 percent; do not make overall image muddy, show luminous sunlight on fortress.\nReference image is solely the approved web design/mood and battle art guide. Render ONLY a new full panoramic hero battle illustration from it, not the mockup. No UI, words, lettering, card panels, symbols outside banners, no glowing neon, no modern firearms, no futuristic armor, no transparent overlay gradient painted as obvious vertical strip. Original artwork for PAFF, no Warhammer logos.",
+  "reference": "Première planche Citadelle du 24 septembre, retenue par Nicolas et les joueurs.",
+  "conversion": "WebP qualité 88, sans recadrage ni redimensionnement.",
+  "invariants": [
+    "Textes existants conservés.",
+    "Fichiers public/cards inchangés.",
+    "Aucune génération d’illustration de carte."
+  ]
+}

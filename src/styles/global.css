@@ -8,21 +8,37 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Barlow Condensed';
+  src: url('/fonts/barlow-condensed-semibold.woff') format('woff');
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  src: url('/fonts/cormorant-garamond-variable.woff') format('woff');
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+}
+
 :root {
   color-scheme: dark;
-  --coal-950: #101211;
-  --coal-900: #191c19;
-  --coal-850: #20241f;
-  --coal-800: #282d26;
-  --coal-700: #3a4035;
+  --coal-950: #0d141a;
+  --coal-900: #151e25;
+  --coal-850: #1c2730;
+  --coal-800: #27333b;
+  --coal-700: #3a4850;
   --parchment-100: #f2eddf;
   --parchment-200: #d6c8aa;
   --parchment-300: #bcbcad;
   --parchment-700: #9a9e90;
-  --bronze-400: #d1ad70;
-  --bronze-500: #846944;
-  --oxblood-500: #8e3f34;
-  --oxblood-400: #af5547;
+  --bronze-400: #dfbb79;
+  --bronze-500: #9b7949;
+  --oxblood-500: #741f27;
+  --oxblood-400: #a63a40;
   --moss-400: #75856a;
   --ink: #1b1813;
   --line-dark: rgba(232, 223, 202, 0.12);
@@ -95,11 +111,11 @@ a {
   min-height: 2.75rem;
   padding: 0.65rem 1rem;
   border: 1px solid var(--line-dark);
-  border-radius: 0.4rem;
+  border-radius: 0.15rem;
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  background: var(--coal-850);
+  background: linear-gradient(180deg, var(--coal-850), var(--coal-900));
   color: var(--parchment-100);
   font: inherit;
   font-size: 0.875rem;
@@ -110,8 +126,8 @@ a {
 }
 
 .ui-button:hover:not(:disabled) { background: var(--coal-700); border-color: var(--bronze-500); }
-.ui-button--primary { background: var(--bronze-400); border-color: var(--bronze-400); color: var(--ink); }
-.ui-button--primary:hover:not(:disabled) { background: #e0bd81; }
+.ui-button--primary { background: linear-gradient(180deg, #8e3035, #59181f); border-color: var(--bronze-500); color: var(--parchment-100); box-shadow: inset 0 0 0 3px #210d1433, 0 3px 10px #0003; }
+.ui-button--primary:hover:not(:disabled) { background: linear-gradient(180deg, #a03b3f, #762029); border-color: var(--bronze-400); }
 .ui-button--quiet { background: transparent; }
 .ui-button--danger { color: #f4a79b; }
 .ui-button:disabled { opacity: 0.5; cursor: wait; }

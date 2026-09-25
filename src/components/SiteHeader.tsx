@@ -22,7 +22,15 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
   return (
     <header className={`site-bar${overlay ? ' site-bar--overlay' : ''}`}>
       <Link className="site-bar__brand" to="/home" aria-label="PAFF, accueil">
-        <img src="/brand/paff-logo.png" alt="" width="1942" height="809" />
+        <svg className="site-bar__sigil" viewBox="0 0 64 64" fill="none" aria-hidden="true" focusable="false">
+          <circle cx="32" cy="32" r="21" stroke="currentColor" strokeWidth="1.2" />
+          <circle cx="32" cy="32" r="17" stroke="currentColor" strokeWidth=".7" />
+          <path d="m32 2 5 23 25 7-25 6-5 24-6-24L2 32l24-7Z" stroke="currentColor" strokeWidth="1.2" />
+          <path d="m32 8 2 20 20 4-20 3-2 21-3-21-21-3 21-4Z" fill="currentColor" opacity=".65" />
+          <path d="m14 14 11 6m25-6-11 6m11 30-11-6m-25 6 11-6" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="32" cy="32" r="5" fill="#6c2027" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+        <span aria-hidden="true">PAFF</span>
       </Link>
 
       <nav className="site-bar__nav" aria-label="Navigation principale">
