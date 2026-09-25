@@ -30,7 +30,7 @@ Les cinq membres initiaux sont **Nicolas, Adrien, Bru, Pierre et Quentin**. Les 
 
 ## Direction Citadelle — décision du 25 septembre 2026
 
-Nicolas et les joueurs retiennent **La Citadelle, proposition 1 de la première vague du 24 septembre**, avec son identité médiévale guerrière, l'or ancien, le bleu-noir et les bannières cramoisies. Ce choix remplace les pistes plus épurées de la seconde vague. La réalisation se fait sur une branche dédiée, directement dans le projet, avec des changements non commités pour la revue.
+Nicolas et les joueurs retiennent **La Citadelle, proposition 1 de la première vague du 24 septembre**, avec son identité médiévale guerrière, l'or ancien, le bleu-noir et les bannières cramoisies. Ce choix remplace les pistes plus épurées de la seconde vague. La réalisation s'est faite sur une branche dédiée, directement dans le projet, avec une première revue des changements non commités.
 
 - **Conserver le contenu existant mot pour mot** : titres, descriptions, devises, noms, capacités, ordres et libellés. Les accroches inventées dans les maquettes ne constituent pas du contenu approuvé. Une refonte visuelle n'autorise ni réécriture ni nouveau slogan.
 - Les illustrations des cartes restent inchangées. La nouvelle illustration d'accueil est autorisée, ainsi que le logo et les emblèmes des factions. L'accueil utilise `/art/paff-citadelle-home.webp` ; le prompt et sa provenance sont conservés dans [le manifeste](illustration-citadelle-2026-09-25.json).
@@ -39,6 +39,7 @@ Nicolas et les joueurs retiennent **La Citadelle, proposition 1 de la première 
 - Sur un portable 13 pouces, l'accueil doit tenir dans la hauteur visible avec sa navigation. Sa composition s'adapte à la hauteur disponible : titre, espacements et bannières plus compacts sur les fenêtres basses, sans cacher les textes ou les actions. Sur mobile ou avec un fort agrandissement du texte, le contenu conserve son défilement naturel.
 - Les cadres d'illustration sont carrés, sans retouche ni filtre sur les images des cartes. Les anciennes illustrations verticales sont affichées intégralement à l'intérieur du carré. Les styles de cartes réutilisés par les decks et les aperçus conservent leurs commandes ; aucune règle de jeu ni donnée de catalogue n'est modifiée.
 - Après la revue locale et la correction de hauteur sur portable 13 pouces, Nicolas autorise le push de `codex/citadelle-factions` et la publication d'une preview Vercel accessible à Adrien par lien, sans compte Vercel. Cette preview utilise le backend de développement ; cette demande ne publie pas la refonte en production. L'accueil et le catalogue restent consultables sans compte PAFF.
+- Nicolas autorise ensuite la fusion de `codex/citadelle-factions` dans `main` et la publication du site en production. La variable Vercel de production `VITE_CONVEX_URL` pointe vers `tough-gecko-249`. Ce lot ne modifie ni les fonctions Convex, ni le catalogue partagé : aucun déploiement Convex ou réimport de données n'est nécessaire pour cette refonte visuelle.
 
 ## Retours de partie du 15 septembre 2026
 
