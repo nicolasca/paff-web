@@ -1,8 +1,8 @@
 # Branche de travail
 
-Pour toute modification, travailler sur une branche dédiée différente de `main`. Si le dépôt est sur `main`, créer une branche `codex/<sujet>` avant de modifier les fichiers.
+Pour toute modification, travailler sur une branche dédiée différente de `main`. Si le dépôt est sur `main`, créer une branche avant de modifier les fichiers. Pour les tâches Codex dans l'espace de travail de Nicolas, utiliser le préfixe `codex/<sujet>`.
 
-Travailler directement dans le dossier du projet `/Users/nicolasca/Documents/workspace/paff-web` pour que l’utilisateur puisse suivre les diffs. Ne pas déplacer le travail dans une autre copie ou un worktree sauf demande explicite. Préférer des changements non commités pendant la revue interactive demandée par l’utilisateur.
+Travailler directement dans le dossier du projet disponible dans l'environnement courant pour que l’utilisateur puisse suivre les diffs. Sur le poste de Nicolas, ce dossier est `/Users/nicolasca/Documents/workspace/paff-web`. Ne pas déplacer le travail dans une autre copie ou un worktree sauf demande explicite. Préférer des changements non commités pendant la revue interactive demandée par l’utilisateur.
 
 # Contexte à charger au démarrage
 
