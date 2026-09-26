@@ -35,15 +35,19 @@ async function preparation() {
 }
 
 describe('unit selection before initiative', () => {
-  it('takes a 33-point army into battle with only 18 deployed and 15 in reserve', async () => {
+  it('rejects a 25-point deployment, then takes a 40-point army into battle with 24 deployed and 16 in reserve', async () => {
     const h = createGameHarness()
     Object.assign(h.tables.cards[0], { cost: 3, profile: catalogue2026[0].profile })
-    for (const entry of h.tables.deckCards) entry.quantity = 11
+    for (const entry of h.tables.deckCards) entry.quantity = 13
+    h.tables.cards.push({ ...h.tables.cards[0], _id: 'one-point-unit', stableId: 'lanciers', name: 'Lanciers', cost: 1 })
+    for (const user of [1, 2]) h.tables.deckCards.push({ _id: `lanciers-${user}`, deckId: `deck-${user}`, cardId: 'one-point-unit', quantity: 1 })
     const gameId = await h.readyFor('preparation')
-    const choose = (quantity: number) => h.run('updatePreparation', 1, { gameId, cardStableId: 'archers', change: { quantity } })
+    const choose = (quantity: number, cardStableId = 'archers') => h.run('updatePreparation', 1, { gameId, cardStableId, change: { quantity } })
     await choose(8)
+    await choose(1, 'lanciers')
     await expect(h.run('finishPreparation', 1, { gameId })).rejects.toMatchObject(code('DEPLOYMENT_BUDGET_EXCEEDED'))
-    await choose(6)
+    expect((await h.run('get', 1, { gameId }))?.players[0].preparationReady).toBe(false)
+    await choose(0, 'lanciers')
     for (const user of [1, 2]) await h.run('finishPreparation', user, { gameId })
     vi.spyOn(Math, 'random').mockReturnValueOnce(.99).mockReturnValueOnce(0)
     for (const user of [1, 2]) await h.run('rollInitiative', user, { gameId, round: 1 })
@@ -52,12 +56,12 @@ describe('unit selection before initiative', () => {
     const place = async (cell: number) => h.run('deployUnit', 1, { gameId, cardStableId: 'archers', cell, revision: (await read()).setup!.revision })
     await place(40)
     await h.run('finishDeployment', 2, { gameId, revision: (await read()).setup!.revision })
-    for (const cell of [36, 37, 38, 39, 41]) await place(cell)
+    for (const cell of [36, 37, 38, 39, 41, 42, 43]) await place(cell)
     await h.run('finishDeployment', 1, { gameId, revision: (await read()).setup!.revision })
     const game = await read()
     expect(game.phase).toBe('battle')
-    expect(game.players[0]).toMatchObject({ deploymentCount: 6, drawPileCount: 5 })
-    expect(game.players[1]).toMatchObject({ deploymentCount: 0, drawPileCount: 11 })
+    expect(game.players[0]).toMatchObject({ deploymentCount: 8, drawPileCount: 6 })
+    expect(game.players[1]).toMatchObject({ deploymentCount: 0, drawPileCount: 14 })
   })
   it('records the current rules with the new order catalog when an older preparation becomes a battle', async () => {
     const h = await preparation()

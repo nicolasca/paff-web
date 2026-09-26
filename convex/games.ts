@@ -110,7 +110,7 @@ export const get = query({
           factionName: isMe || reveal ? member.factionName ?? null : null,
           cards: isMe ? cards.map(({ _id, _creationTime, gamePlayerId: _gamePlayerId, ...card }) => ({ ...card, profile: getUnitProfile(card) })) : [],
           deployedCards: reveal
-            ? cards.filter((card) => (live ? card.enteredQuantity ?? card.deploymentQuantity : card.deploymentQuantity) > 0).map(({ _id, _creationTime, gamePlayerId: _gamePlayerId, quantity: _quantity, selectedQuantity: _selectedQuantity, enteredQuantity: _enteredQuantity, ...card }) => ({ ...card, profile: getUnitProfile(card), quantity: live ? live.units.filter((unit) => unit.seat === member.seat && unit.cardStableId === card.stableId).length : card.deploymentQuantity })) : [],
+            ? cards.filter((card) => (live ? (card.enteredQuantity ?? card.deploymentQuantity) + (card.summonedQuantity ?? 0) : card.deploymentQuantity) > 0).map(({ _id, _creationTime, gamePlayerId: _gamePlayerId, quantity: _quantity, selectedQuantity: _selectedQuantity, enteredQuantity: _enteredQuantity, summonedQuantity: _summonedQuantity, ...card }) => ({ ...card, profile: getUnitProfile(card), quantity: live ? live.units.filter((unit) => unit.seat === member.seat && unit.cardStableId === card.stableId).length : card.deploymentQuantity })) : [],
           drawPileCount: live ? cards.filter((card) => card.kind === 'unit').reduce((sum, card) => sum + card.quantity - (card.enteredQuantity ?? card.deploymentQuantity), 0) : isMe || game.phase === 'battle' ? total - prepared : null,
           deploymentCount: live ? live.units.filter((unit) => unit.seat === member.seat).length : isMe || reveal ? deployed : null,
         }

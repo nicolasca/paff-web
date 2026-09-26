@@ -46,12 +46,13 @@ describe('hit-table advice and army preparation', () => {
     rows.forEach((row, d) => row.forEach((threshold, a) => expect(hitRule(a + 1, d + 1)).toEqual({ threshold })))
   })
   it('enforces deck and deployment ceilings without a minimum deployment or a separate reserve cap', () => {
-    const cards = [{ kind: 'unit' as const, cost: 2, quantity: 17, selectedQuantity: 11, profile: meleeProfile }]
-    expect(deckRuleIssues(cards)).toHaveLength(1)
+    const cards = [{ kind: 'unit' as const, cost: 1, quantity: 41, selectedQuantity: 25, profile: meleeProfile }]
+    expect(deckRuleIssues(cards)).toEqual(['41 / 40 points : dépassement du budget de deck.'])
     expect(preparationBudgetError(cards)).toBe('DEPLOYMENT_BUDGET_EXCEEDED')
-    const fullDeck = [{ ...cards[0], cost: 3, quantity: 11, selectedQuantity: 6 }]
+    const fullDeck = [{ ...cards[0], quantity: 40, selectedQuantity: 24 }]
     expect(deckRuleIssues(fullDeck)).toEqual([])
     expect(preparationBudgetError(fullDeck)).toBeNull()
+    expect(preparationBudgetError([{ ...fullDeck[0], selectedQuantity: 18 }])).toBeNull()
     expect(preparationBudgetError([{ ...fullDeck[0], selectedQuantity: 0 }])).toBeNull()
     expect(deckRuleIssues([{ ...cards[0], cost: 1, quantity: 7, profile: { ...meleeProfile, unitType: 'cavalry' } }])[0]).toContain('7 / 6')
   })

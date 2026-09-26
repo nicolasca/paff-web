@@ -38,6 +38,32 @@ vi.mock('../auth/authSession', async () => {
 afterEach(() => vi.restoreAllMocks())
 
 describe('functional two-player journey with real game handlers', () => {
+  it('shows the 40-point deck and 24-point deployment limits, allowing validation only up to 24', async () => {
+    const h = createGameHarness()
+    h.tables.cards[0].cost = 3
+    h.tables.deckCards[0].quantity = 13
+    h.tables.cards.push({ ...h.tables.cards[0], _id: 'lancers', stableId: 'lanciers', name: 'Lanciers', cost: 1 })
+    h.tables.deckCards.push({ _id: 'lancers-1', deckId: 'deck-1', cardId: 'lancers', quantity: 1 })
+    const gameId = await h.readyFor('preparation')
+    const transport = createFunctionalTransport(h)
+    const user = userEvent.setup()
+    render(<FunctionalClientContext.Provider value={{ user: 1, transport }}><MemoryRouter initialEntries={[`/lobby/${gameId}`]}><App /></MemoryRouter></FunctionalClientContext.Provider>)
+    const quantity = await screen.findByRole('spinbutton', { name: 'Quantité de Archers' })
+    expect(screen.getByText(/Déployez jusqu’à 24 points, sans minimum.*40 points du deck/)).toBeVisible()
+    await user.clear(quantity)
+    await user.type(quantity, '8{Enter}')
+    await waitFor(() => expect(screen.getByText('24 / 24')).toBeVisible())
+    expect(screen.getByRole('button', { name: 'Valider mes unités' })).toBeEnabled()
+    await user.click(screen.getByRole('button', { name: 'Ajouter Lanciers' }))
+    expect(await screen.findByText('25 / 24')).toBeVisible()
+    expect(screen.getByRole('alert')).toHaveTextContent('Choisissez au maximum 24 points à déployer.')
+    expect(screen.getByRole('button', { name: 'Valider mes unités' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Retirer Lanciers' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Valider mes unités' })).toBeEnabled())
+    await user.click(screen.getByRole('button', { name: 'Valider mes unités' }))
+    expect(await screen.findByRole('button', { name: 'Sélection validée ✓' })).toBeDisabled()
+    expect((await h.run('get', 1, { gameId }))?.players[0]).toMatchObject({ preparationReady: true, preparationCount: 8, drawPileCount: 6 })
+  })
   it('lets a spectator enter at launch and follow deployment and battle without reloading', async () => {
     const h = createGameHarness()
     const gameId = await h.readyFor('waiting')

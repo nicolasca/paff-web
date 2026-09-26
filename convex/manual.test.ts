@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createGameHarness } from '../src/test/gameHarness'
 import { liveGame } from '../src/test/liveGame'
-import { MANUAL_RULES_VERSION } from '../shared/manualBattle'
+import { GOBLIN_BAND_CARD_ID, GOBLIN_REINFORCEMENTS_ORDER_ID, MANUAL_RULES_VERSION } from '../shared/manualBattle'
+import { catalogue2026 } from '../shared/catalogue2026'
 import { unitAbilities } from '../shared/unitAbilities'
 
 const error = (code: string) => ({ data: { code } })
@@ -12,7 +13,100 @@ async function table() {
   return { ...h, manual }
 }
 
+async function goblinTable() {
+  const h = await table()
+  const band = catalogue2026.find((card) => card.stableId === GOBLIN_BAND_CARD_ID)!
+  h.tables.cards.push({ _id: 'goblin-band', stableId: band.stableId, name: band.name, kind: 'unit', cost: band.cost, profile: structuredClone(band.profile), imagePath: band.imagePath, abilities: [], factionId: 'faction', status: 'published' })
+  return h
+}
+
 describe('shared manual battle', () => {
+  it('creates goblin bands outside the deck and reserve, freezes their profile and shares them through discard and restore', async () => {
+    const h = await goblinTable()
+    const decks = structuredClone({ decks: h.tables.decks, cards: h.tables.deckCards })
+    const before = await h.read()
+    expect(before.players[0].cards.some((card) => card.stableId === GOBLIN_BAND_CARD_ID)).toBe(false)
+    await h.manual('summonGoblins', 1, { summoned: 0, cell: 0 })
+    const first = (await h.read()).battle!.engine.units.find((unit) => unit.cardStableId === GOBLIN_BAND_CARD_ID)!
+    expect(first).toMatchObject({ seat: 0, cell: 0, regiment: 2 })
+    for (const user of [1, 2, 3]) {
+      const view = await h.read(user)
+      expect(view.battle!.engine.units).toContainEqual(first)
+      expect(view.players[0].deployedCards.find((card) => card.stableId === GOBLIN_BAND_CARD_ID)).toMatchObject({ name: 'Bande de Gobelins', quantity: 1, profile: { regiment: 2 } })
+      expect(view.players[0].drawPileCount).toBe(before.players[0].drawPileCount)
+      if (user !== 1) expect(view.players[0].cards).toEqual([])
+    }
+    const row = h.tables.gameCards.find((card) => card.stableId === GOBLIN_BAND_CARD_ID)!
+    expect(row).toMatchObject({ quantity: 0, selectedQuantity: 0, deploymentQuantity: 0, enteredQuantity: 0, summonedQuantity: 1 })
+    const source = h.tables.cards.find((card) => card._id === 'goblin-band')!
+    source.profile = { ...(source.profile as object), regiment: 9 }
+    await h.manual('summonGoblins', 1, { summoned: 1, cell: 1 })
+    const bands = (await h.read()).battle!.engine.units.filter((unit) => unit.cardStableId === GOBLIN_BAND_CARD_ID)
+    expect(bands).toHaveLength(2)
+    expect(new Set(bands.map((unit) => unit.id)).size).toBe(2)
+    expect(bands.map((unit) => unit.regiment)).toEqual([2, 2])
+    await expect(h.manual('recruit', 1, { cardStableId: GOBLIN_BAND_CARD_ID, entered: 0, cell: 2 })).rejects.toMatchObject(error('RESERVE_EMPTY'))
+    await h.manual('adjustRegiment', 1, { unitId: first.id, delta: -1 })
+    await h.manual('discardUnit', 1, { unitId: first.id })
+    expect((await h.read(3)).players[0].deployedCards.find((card) => card.stableId === GOBLIN_BAND_CARD_ID)?.profile?.regiment).toBe(2)
+    await h.manual('restoreUnit', 1, { unitId: first.id, cell: 2 })
+    const after = await h.read(3)
+    expect(after.battle!.engine.units.find((unit) => unit.id === first.id)).toMatchObject({ cell: 2, regiment: 1 })
+    expect(after.players[0].drawPileCount).toBe(before.players[0].drawPileCount)
+    expect(after.battle!.manual.stocks).toEqual(before.battle!.manual.stocks)
+    expect(after.battle!.strategyPoints).toEqual(before.battle!.strategyPoints)
+    expect({ decks: h.tables.decks, cards: h.tables.deckCards }).toEqual(decks)
+  })
+  it('uses a band already frozen in the army without consuming its reserve or reusing its discarded instance', async () => {
+    const h = await goblinTable()
+    const existing = h.tables.gameCards.find((card) => card.gamePlayerId === h.tables.gamePlayers[0]._id)!
+    h.tables.gameCards.push({ ...existing, _id: 'frozen-band', stableId: GOBLIN_BAND_CARD_ID, name: 'Bande de Gobelins', quantity: 1, deploymentQuantity: 0, selectedQuantity: 0, enteredQuantity: 0, profile: { ...(existing.profile as object), regiment: 3 } })
+    const reserve = (await h.read()).players[0].drawPileCount
+    await h.manual('summonGoblins', 1, { summoned: 0, cell: 0 })
+    const summoned = (await h.read()).battle!.engine.units.find((unit) => unit.cell === 0)!
+    expect(summoned.regiment).toBe(3)
+    expect((await h.read()).players[0].drawPileCount).toBe(reserve)
+    await h.manual('recruit', 1, { cardStableId: GOBLIN_BAND_CARD_ID, entered: 0, cell: 1 })
+    const recruited = (await h.read()).battle!.engine.units.find((unit) => unit.cell === 1)!
+    expect(recruited.id).not.toBe(summoned.id)
+    await h.manual('discardUnit', 1, { unitId: recruited.id })
+    await h.manual('discardUnit', 1, { unitId: summoned.id })
+    expect((await h.read(3)).players[0].deployedCards.find((card) => card.stableId === GOBLIN_BAND_CARD_ID)).toBeDefined()
+    await h.manual('summonGoblins', 1, { summoned: 1, cell: 2 })
+    const after = await h.read()
+    expect(after.battle!.manual.discarded.map((unit) => unit.id)).toEqual([recruited.id, summoned.id])
+    expect(after.players[0].drawPileCount).toBe(reserve! - 1)
+    expect(h.tables.gameCards.find((card) => card._id === 'frozen-band')).toMatchObject({ quantity: 1, enteredQuantity: 1, summonedQuantity: 2 })
+  })
+  it('rejects duplicate, occupied or invalid summons and unauthorized users without changing the game', async () => {
+    const h = await goblinTable()
+    for (const cell of [-1, 54, 1.5, 40]) {
+      const before = structuredClone(h.tables)
+      await expect(h.manual('summonGoblins', 1, { summoned: 0, cell })).rejects.toMatchObject(error('CELL_OCCUPIED'))
+      expect(h.tables).toEqual(before)
+    }
+    await expect(h.manual('summonGoblins', 3, { summoned: 0, cell: 0 })).rejects.toMatchObject(error('GAME_NOT_AVAILABLE'))
+    await h.manual('summonGoblins', 1, { summoned: 0, cell: 0 })
+    const before = structuredClone(h.tables)
+    await expect(h.manual('summonGoblins', 1, { summoned: 0, cell: 1 })).rejects.toMatchObject(error('STALE_GAME_ACTION'))
+    expect(h.tables).toEqual(before)
+    await h.manual('summonGoblins', 2, { summoned: 0, cell: 1 })
+    expect((await h.read()).battle!.engine.units.filter((unit) => unit.cardStableId === GOBLIN_BAND_CARD_ID).map((unit) => unit.seat)).toEqual([0, 1])
+    h.tables.gamePlayers[1].factionStableId = 'sephosi'
+    await expect(h.manual('summonGoblins', 2, { summoned: 1, cell: 2 })).rejects.toMatchObject(error('ORDER_NOT_AVAILABLE'))
+    const battle = h.tables.games[0].battle as NonNullable<Awaited<ReturnType<typeof h.read>>['battle']>
+    battle.catalog = battle.catalog.filter((order) => order.id !== GOBLIN_REINFORCEMENTS_ORDER_ID)
+    await expect(h.manual('summonGoblins', 1, { summoned: 1, cell: 2 })).rejects.toMatchObject(error('ORDER_NOT_AVAILABLE'))
+  })
+  it('requires an available catalogue profile for a first summon and a battle already in progress', async () => {
+    const h = await table()
+    const before = structuredClone(h.tables)
+    await expect(h.manual('summonGoblins', 1, { summoned: 0, cell: 0 })).rejects.toMatchObject(error('SUMMON_CARD_UNAVAILABLE'))
+    expect(h.tables).toEqual(before)
+    const setup = createGameHarness()
+    const gameId = await setup.readyFor('preparation')
+    await expect(setup.invoke('manual', 'summonGoblins', 1, { gameId, summoned: 0, cell: 0 })).rejects.toMatchObject(error('WRONG_BATTLE_PHASE'))
+  })
   it('locks both recruitment counter corrections during turn one and unlocks them at turn two', async () => {
     const h = await table()
     const before = structuredClone(h.tables)

@@ -1,4 +1,5 @@
 import { ConvexError } from 'convex/values'
+import { DECK_BUDGET, DEPLOYMENT_BUDGET } from '../../../shared/armyRules'
 
 const messages: Record<string, string> = {
   CELL_OCCUPIED: 'Cette case vient d’être occupée. Choisissez une case libre.',
@@ -19,11 +20,12 @@ const messages: Record<string, string> = {
   RESERVE_ONLY_UNIT: 'Cette unité doit commencer en réserve. Sa capacité interdit le déploiement avec l’armée initiale.',
   INVALID_DEPLOYMENT_QUANTITY: 'Choisissez une quantité comprise entre zéro et le nombre d’exemplaires dans votre deck.',
   DEPLOYMENT_LOCKED: 'Votre préparation est déjà validée.',
-  DECK_RULES_VIOLATION: 'Ce deck ne respecte pas le budget de 33 points ou les quotas de types. Consultez les indications sous le deck.',
-  DEPLOYMENT_BUDGET_EXCEEDED: 'Choisissez au maximum 21 points à déployer.',
+  DECK_RULES_VIOLATION: `Ce deck ne respecte pas le budget de ${DECK_BUDGET} points ou les quotas de types. Consultez les indications sous le deck.`,
+  DEPLOYMENT_BUDGET_EXCEEDED: `Choisissez au maximum ${DEPLOYMENT_BUDGET} points à déployer.`,
   RECRUITMENT_NOT_YET_AVAILABLE: 'Les ordres Recrutement sont disponibles à partir du tour 2.',
   INVALID_MOVEMENT: 'Cette destination est inaccessible pour cette unité.',
   RESERVE_EMPTY: 'Cet exemplaire n’est plus disponible dans votre réserve.',
+  SUMMON_CARD_UNAVAILABLE: 'Le profil de la Bande de Gobelins n’est pas disponible. Réessayez après la mise à jour du catalogue.',
   STALE_GAME_ACTION: 'La partie a évolué. Consultez les informations actualisées avant de rejouer.',
   NOT_YOUR_TURN: 'C’est à votre adversaire de déployer une unité.',
   INITIATIVE_PENDING: 'Les deux joueurs doivent lancer leur dé avant de continuer.',

@@ -5,6 +5,7 @@ import { api } from '../../convex/_generated/api'
 import { SiteHeader } from '../components/SiteHeader'
 import { FactionBanner } from '../features/catalogue/FactionBanner'
 import { FactionEmblem } from '../features/catalogue/FactionEmblem'
+import { FactionVoices } from '../features/catalogue/FactionVoices'
 import { UnitCard } from '../features/catalogue/UnitCard'
 import type { PublicCard, PublicFaction } from '../features/catalogue/types'
 import './CardsPage.css'
@@ -69,7 +70,9 @@ export function CardsCatalogue({
 
   return (
     <main className="cards-page" data-faction={activeFaction?.themeKey ?? 'neutral'}>
-      <FactionBanner faction={activeFaction} />
+      <FactionBanner faction={activeFaction}>
+        {activeFaction && <FactionVoices faction={activeFaction} />}
+      </FactionBanner>
       {factions && factions.length > 0 && <div className="faction-picker" role="group" aria-label="Faction">
         <span className="faction-picker__label" aria-hidden="true">Faction</span>
         <div className="faction-picker__choices">

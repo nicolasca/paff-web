@@ -115,6 +115,17 @@ describe('two-player lobby and access', () => {
 })
 
 describe('deck snapshots and simultaneous preparation', () => {
+  it('accepts a 40-point deck and rejects 41 without replacing the accepted selection', async () => {
+    const { run, readyFor, tables } = setup()
+    tables.cards[0].cost = 1
+    tables.deckCards[0].quantity = 40
+    const gameId = await readyFor('deck_selection')
+    await run('selectDeck', 1, { gameId, deckId: 'deck-1' })
+    expect((await run('get', 1, { gameId }))?.players[0].cards[0].quantity).toBe(40)
+    tables.deckCards[0].quantity = 41
+    await expect(run('selectDeck', 1, { gameId, deckId: 'deck-1' })).rejects.toMatchObject(code('DECK_RULES_VIOLATION'))
+    expect((await run('get', 1, { gameId }))?.players[0].cards[0].quantity).toBe(40)
+  })
   it('waits for both decks and keeps each selection private', async () => {
     const { run, readyFor } = setup()
     const gameId = await readyFor('deck_selection')

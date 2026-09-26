@@ -3,7 +3,7 @@ import { useConvexConnectionState, useMutation } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import { cells, cellCoordinate } from '../../../shared/board'
 import { hitRule, type BattleUnit } from '../../../shared/battleEngine'
-import { manualMoves } from '../../../shared/manualBattle'
+import { GOBLIN_BAND_CARD_ID, GOBLIN_REINFORCEMENTS_ORDER_ID, manualMoves } from '../../../shared/manualBattle'
 import { getUnitProfile } from '../../../shared/unitProfile'
 import { UnitCard } from '../catalogue/UnitCard'
 import { TacticalBoard } from './TacticalBoard'
@@ -12,11 +12,12 @@ import type { BattleControls } from './types'
 import type { Game } from './types'
 import './ManualBattle.css'
 
-type Source = { kind: 'unit'; id: string; from: number } | { kind: 'reserve'; id: string; entered: number } | { kind: 'discard'; id: string }
+type Source = { kind: 'unit'; id: string; from: number } | { kind: 'reserve'; id: string; entered: number } | { kind: 'discard'; id: string } | { kind: 'summon'; id: string; summoned: number }
 
 export function ManualBattle({ game, busy, perform }: { game: Game } & BattleControls) {
   const move = useMutation(api.manual.moveUnit)
   const recruit = useMutation(api.manual.recruit)
+  const summon = useMutation(api.manual.summonGoblins)
   const turn = useMutation(api.manual.adjustTurn)
   const strategy = useMutation(api.manual.adjustStrategy)
   const stock = useMutation(api.manual.adjustOrderStock)
@@ -44,6 +45,8 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
   const free = cells.filter((cell) => !engine.units.some((unit) => unit.cell === cell))
   const allowed = locked || !source ? [] : source.kind === 'unit' ? moving ? manualMoves(engine, moving, getUnitProfile(cardFor(moving))!) : [] : free
   const reserves = me.cards.filter((card) => card.kind === 'unit' && card.quantity > (card.enteredQuantity ?? card.deploymentQuantity))
+  const goblinOrder = battle.catalog.find((order) => order.id === GOBLIN_REINFORCEMENTS_ORDER_ID && order.faction === 'gobelins' && order.seats.includes(me.seat))
+  const summonedGoblins = me.cards.find((card) => card.stableId === GOBLIN_BAND_CARD_ID)?.summonedQuantity ?? 0
   const attacker = engine.units.find((unit) => unit.id === manual.duel?.attackerId)
   const target = engine.units.find((unit) => unit.id === manual.duel?.targetId)
   const attackProfile = attacker && getUnitProfile(cardFor(attacker))
@@ -72,6 +75,7 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
     cancelDrag()
     if (current.kind === 'unit') run(() => move({ gameId: game.id, unitId: current.id, from: current.from, to: cell }))
     else if (current.kind === 'reserve') run(() => recruit({ gameId: game.id, cardStableId: current.id, entered: current.entered, cell }))
+    else if (current.kind === 'summon') run(() => summon({ gameId: game.id, summoned: current.summoned, cell }))
     else run(() => restore({ gameId: game.id, unitId: current.id, cell }))
   }
   function compare(cell: number) {
@@ -98,7 +102,7 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
     <div className="manual-main">
       <p className="manual-instructions">Glissez pour déplacer. Cliquez sur une de vos unités pour ajuster ses R, même hors combat. Clic droit : attaquant, puis défenseur.<span>Au clavier : sélectionnez une unité puis une case ; C pour comparer. Échap pour annuler le déplacement.</span></p>
       {source && !dragging && <div className="manual-placement" role="status">Choisissez une case éclairée.<button type="button" onClick={cancelDrag}>Annuler</button></div>}
-      <TacticalBoard game={game} busy={locked} selectedCell={selected?.cell} allowedCells={allowed} onPlace={drop} placeLabel={source?.kind === 'reserve' ? 'Recruter ici' : source?.kind === 'discard' ? 'Remettre ici' : 'Déplacer ici'} onUnit={(cell) => {
+      <TacticalBoard game={game} busy={locked} selectedCell={selected?.cell} allowedCells={allowed} onPlace={drop} placeLabel={source?.kind === 'summon' ? 'Ajouter la Bande ici' : source?.kind === 'reserve' ? 'Recruter ici' : source?.kind === 'discard' ? 'Remettre ici' : 'Déplacer ici'} onUnit={(cell) => {
         const unit = engine.units.find((unit) => unit.cell === cell && unit.seat === me.seat)
         setSelectedId(unit?.id)
         setSource(unit ? { kind: 'unit', id: unit.id, from: unit.cell } : null)
@@ -106,6 +110,10 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
         canDrag: (cell) => { const unit = engine.units.find((unit) => unit.cell === cell && unit.seat === me.seat); return Boolean(unit && manualMoves(engine, unit, getUnitProfile(cardFor(unit))!).length) },
         onDrag: (cell, event) => { const unit = engine.units.find((unit) => unit.cell === cell && unit.seat === me.seat); if (unit) { setSelectedId(unit.id); beginDrag({ kind: 'unit', id: unit.id, from: cell }, event) } else event.preventDefault() },
       }} />
+      {goblinOrder && <section className="manual-reinforcements" aria-label="Renforts gobelins">
+        <div><h3>{goblinOrder.name}</h3><p>Ajoutez gratuitement une Bande de Gobelins, même sans exemplaire en réserve ou en défausse.</p></div>
+        <button type="button" className="ui-button" disabled={locked || !free.length} aria-pressed={source?.kind === 'summon'} onClick={() => { setSelectedId(undefined); setSource({ kind: 'summon', id: GOBLIN_BAND_CARD_ID, summoned: summonedGoblins }) }}>Ajouter une Bande de Gobelins</button>
+      </section>}
       <section className="manual-reserve" aria-label="Votre réserve">
         <header><h3>Votre réserve <span>{me.drawPileCount}</span></h3><p>Vous seul voyez ces cartes · Glissez pour recruter</p></header>
         <div className="manual-reserve-cards">{reserves.map((card) => {

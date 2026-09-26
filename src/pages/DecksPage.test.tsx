@@ -86,6 +86,14 @@ describe('deck library', () => {
 })
 
 describe('deck editing and viewing', () => {
+  it.each([40, 41])('shows the 40-point budget for a %s-point draft without blocking edits', (quantity) => {
+    renderEditor({ deck: { ...deck, cards: [{ ...card, quantity }] } })
+    const summary = within(screen.getByRole('complementary'))
+    expect(summary.getByText(/Bataille 2026 : 40 points maximum/)).toBeVisible()
+    if (quantity === 40) expect(summary.queryByLabelText('Règles à respecter pour jouer')).not.toBeInTheDocument()
+    else expect(summary.getByLabelText('Règles à respecter pour jouer')).toHaveTextContent('41 / 40 points : dépassement du budget de deck.')
+    expect(screen.getByRole('button', { name: 'Ajouter Archers Gobelins' })).toBeEnabled()
+  })
   it('lets players read faction and common orders without adding them or changing deck quantities', async () => {
     const user = userEvent.setup()
     renderEditor({ deck: { ...deck, cards: [{ ...card, quantity: 2 }] } })

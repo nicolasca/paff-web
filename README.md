@@ -9,11 +9,14 @@ Le [contexte de travail](docs/contexte-projet.md) rassemble le vocabulaire, les 
 ## Le site aujourd’hui
 
 - Un catalogue public de trois factions, avec 10 unités chacune : Gobelins, Sephosi et Gaeli. Gaeli reprend les unités, ordres et capacités du PDF reçu le 21 septembre 2026, avec dix illustrations carrées celtiques et druidiques. Les arbitrages du 18 septembre restent appliqués aux Gobelins et Sephosi. Les Orcs sont masqués et leurs cartes retirées des decks.
+- Deux répliques audio par faction, à découvrir avec les petites icônes du catalogue. Lecture au clic, un seul extrait à la fois ; attribution ElevenLabs et [provenance des fichiers](docs/audio-factions.md).
 - Un journal public et des profils communautaires, avec deux avatars de faction, le nombre de decks total et par faction, et le badge « Premier jour » pour les cinq membres initiaux ; voir la [mise en service](docs/journal-profils.md).
 - Un espace joueur privé pour créer, consulter, renommer et supprimer ses decks.
 - Une seule faction par deck, avec des quantités de cartes libres et une sauvegarde automatique.
+- Pour jouer : deck de 40 points maximum, dont 24 points maximum au déploiement initial, sans minimum ; le reste forme la réserve.
 - Un récapitulatif de la composition et des coûts pendant la construction.
 - Un lobby à deux joueurs, la préparation privée, l’initiative et le déploiement sur 54 cases, puis un plateau manuel partagé avec déplacements, réserves, engagements, compteurs et dés synchronisés. Vol est pris en compte dans les déplacements ; Blop et le Grand Gardien commencent en réserve.
+- L’ordre « Tiens, des gobelins... » permet d’ajouter une Bande de Gobelins hors deck sur une case libre. Les petites tuiles affichent les R actuels ; la carte au survol conserve les R initiaux.
 
 L’état précis du jeu et les écarts encore ouverts sont suivis dans les [règles implémentées](docs/regles-implementees.md).
 Les derniers changements sont détaillés dans le [lot Gaeli du 21 septembre](docs/differences-regles-2026-09-21.md) et la [comparaison du 18 septembre](docs/differences-regles-2026-09-18.md). Les anciens documents d’équilibrage sont dans le dépôt local `paff-simulator`. Djil utilise l’illustration fournie le 20 septembre ; les Gros tarrés celle du 16 septembre.

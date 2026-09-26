@@ -67,7 +67,6 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
   }
   const detail = inspected === null ? undefined : unitAt(inspected)
   const previewUnit = hovered && unitAt(hovered.cell)
-  const previewProfile = previewUnit && getUnitProfile(previewUnit.card)
   return <div className="tactical-board">
     <div className="board-camp-label" data-faction={factionKey(opponent)}><span className="board-army-sigil" aria-hidden="true">◆</span><strong>{opponent.factionName ?? 'Armée adverse'}</strong><span>{opponent.displayName} · {readOnly ? 'Camp nord' : 'Adversaire'}</span></div>
     <p className="board-mobile-hint">↔ Faites défiler le plateau horizontalement</p>
@@ -126,7 +125,7 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
       <button type="button" className="ui-button" disabled={busy} onClick={() => { setHovered(null); onReposition(inspected!) }}>Changer de case</button>
       <button type="button" className="ui-button ui-button--quiet" onClick={() => setInspected(null)}>Fermer</button>
     </div>}
-    {previewUnit && hovered && !interaction?.dragging && <CardPreview id={previewId} x={hovered.x} y={hovered.y} interactive onEnter={keepPreview} onLeave={hidePreviewSoon} card={{ ...previewUnit.card, ...(previewProfile ? { profile: { ...previewProfile, regiment: previewUnit.runtime?.regiment ?? previewProfile.regiment } } : {}) }} />}
+    {previewUnit && hovered && !interaction?.dragging && <CardPreview id={previewId} x={hovered.x} y={hovered.y} interactive onEnter={keepPreview} onLeave={hidePreviewSoon} card={previewUnit.card} />}
     <p className="board-caption">3 axes · 15 zones · 54 cases <span>✦ Zones stratégiques</span></p>
   </div>
 }

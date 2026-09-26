@@ -6,6 +6,8 @@ import { liveGame } from '../test/liveGame'
 import { createGameHarness } from '../test/gameHarness'
 import { App } from '../app/App'
 import { createFunctionalTransport, FunctionalClientContext } from '../test/functionalClient'
+import { catalogue2026 } from '../../shared/catalogue2026'
+import { GOBLIN_BAND_CARD_ID } from '../../shared/manualBattle'
 
 vi.mock('convex/react', async () => {
   const { useContext, useSyncExternalStore } = await import('react')
@@ -38,6 +40,52 @@ vi.mock('../auth/authSession', async () => {
 afterEach(() => vi.restoreAllMocks())
 
 describe('manual tabletop across two real clients', () => {
+  it('adds a goblin band without a reserve copy, shares it with spectators and keeps it after reconnecting', async () => {
+    const h = await liveGame(createGameHarness())
+    const band = catalogue2026.find((card) => card.stableId === GOBLIN_BAND_CARD_ID)!
+    h.tables.cards.push({ _id: 'goblin-band', stableId: band.stableId, name: band.name, kind: 'unit', cost: band.cost, profile: band.profile, imagePath: band.imagePath, abilities: [], factionId: 'faction', status: 'published' })
+    const transport = createFunctionalTransport(h)
+    function Clients() {
+      return <>{[1, 2, 3].map((user) => <div key={user} data-testid={`player-${user}`}><FunctionalClientContext.Provider value={{ user, transport }}><MemoryRouter initialEntries={[`/lobby/${h.gameId}`]}><App /></MemoryRouter></FunctionalClientContext.Provider></div>)}</>
+    }
+    let mounted = render(<Clients />)
+    const p = (user: number) => within(screen.getByTestId(`player-${user}`))
+    const reserveBefore = (await h.read()).players[0].drawPileCount
+    const add = await p(1).findByRole('button', { name: 'Ajouter une Bande de Gobelins' })
+    expect(p(3).queryByRole('button', { name: 'Ajouter une Bande de Gobelins' })).not.toBeInTheDocument()
+    expect(p(1).queryByRole('button', { name: 'Recruter Bande de Gobelins' })).not.toBeInTheDocument()
+    await userEvent.click(add)
+    expect(p(1).getByRole('button', { name: 'A1 · Ajouter la Bande ici' })).toBeEnabled()
+    await userEvent.click(p(1).getByRole('button', { name: 'Annuler' }))
+    expect((await h.read()).battle!.engine.units.some((unit) => unit.cardStableId === GOBLIN_BAND_CARD_ID)).toBe(false)
+    await userEvent.click(add)
+    await userEvent.click(p(1).getByRole('button', { name: 'A1 · Ajouter la Bande ici' }))
+    for (const user of [1, 2]) expect(await p(user).findByRole('button', { name: 'A1 · Bande de Gobelins · Joueur 1' })).toHaveTextContent('2R')
+    expect(await p(3).findByRole('img', { name: 'A1 · Bande de Gobelins · Joueur 1 · 2 R' })).toBeVisible()
+    expect((await h.read()).players[0].drawPileCount).toBe(reserveBefore)
+    expect(p(1).queryByRole('button', { name: 'Recruter Bande de Gobelins' })).not.toBeInTheDocument()
+    await userEvent.click(p(1).getByRole('button', { name: 'A1 · Bande de Gobelins · Joueur 1' }))
+    await userEvent.click(p(1).getByRole('button', { name: 'Diminuer R de Bande de Gobelins · A1' }))
+    await userEvent.click(p(1).getByRole('button', { name: 'Retirer du plateau' }))
+    await waitFor(() => expect(p(3).queryByRole('img', { name: /A1 · Bande de Gobelins/ })).not.toBeInTheDocument())
+    await userEvent.click(p(1).getByText('Votre défausse · 1'))
+    await userEvent.click(p(1).getByRole('button', { name: 'Remettre Bande de Gobelins · 1 R' }))
+    await userEvent.click(p(1).getByRole('button', { name: 'B1 · Remettre ici' }))
+    expect(await p(3).findByRole('img', { name: 'B1 · Bande de Gobelins · Joueur 1 · 1 R' })).toBeVisible()
+    mounted.unmount()
+    await transport.reconnect()
+    mounted = render(<Clients />)
+    expect(await p(3).findByRole('img', { name: 'B1 · Bande de Gobelins · Joueur 1 · 1 R' })).toBeVisible()
+    await userEvent.click(await p(1).findByRole('button', { name: 'Ajouter une Bande de Gobelins' }))
+    await userEvent.click(p(1).getByRole('button', { name: 'A1 · Ajouter la Bande ici' }))
+    expect(await p(3).findByRole('img', { name: 'A1 · Bande de Gobelins · Joueur 1 · 2 R' })).toBeVisible()
+    const bands = (await h.read()).battle!.engine.units.filter((unit) => unit.cardStableId === GOBLIN_BAND_CARD_ID)
+    expect(bands).toHaveLength(2)
+    expect(new Set(bands.map((unit) => unit.id)).size).toBe(2)
+    expect((await h.read()).players[0].drawPileCount).toBe(reserveBefore)
+    mounted.unmount()
+  }, 30000)
+
   it('lets a third client watch live without selecting, mutating, taking a seat or closing the battle', async () => {
     const h = await liveGame(createGameHarness())
     const transport = createFunctionalTransport(h)

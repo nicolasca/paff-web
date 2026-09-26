@@ -16,6 +16,28 @@ async function board(spectator = false) {
 }
 
 describe('interactive battlefield card preview', () => {
+  it.each([false, true])('keeps the initial R in the preview while manual changes update the tile (spectator: %s)', async (spectator) => {
+    const h = await liveGame()
+    const user = spectator ? 3 : 1
+    const { rerender } = render(<TacticalBoard game={await h.read(user)} />)
+    const unit = screen.getByRole(spectator ? 'img' : 'button', { name: /^E5 · Lanciers · Joueur 1/ })
+    const regiment = unit.querySelector('.board-unit__regiment')
+    const unitId = (await h.unit(0, 'lanciers')).id
+    fireEvent.mouseEnter(unit)
+    let current = 4
+    expect(regiment).toHaveTextContent(/^4R$/)
+
+    for (const delta of [-1, 1, 1]) {
+      await h.invoke('manual', 'adjustRegiment', 1, { gameId: h.gameId, unitId, delta })
+      current += delta
+      rerender(<TacticalBoard game={await h.read(user)} />)
+      expect(regiment).toHaveTextContent(new RegExp(`^${current}R$`))
+      if (spectator) expect(unit).toHaveAccessibleName(`E5 · Lanciers · Joueur 1 · ${current} R`)
+      const preview = screen.getByRole('dialog', { name: 'Détails de Lanciers' })
+      expect(within(preview).getByLabelText('Points de Régiment : 4')).toHaveTextContent('4')
+    }
+  })
+
   it.each([false, true])('keeps the card and its ability open when crossing from the board (spectator: %s)', async (spectator) => {
     const unit = await board(spectator)
     vi.useFakeTimers()

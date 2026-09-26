@@ -64,6 +64,11 @@
 .manual-dice-history { margin-top: .7rem; }
 .manual-dice-history ol { padding-left: 1rem; color: #b9b8a5; font-size: .65rem; line-height: 1.8; max-height: 9rem; overflow-y: auto; }
 .manual-reserve { margin-top: 1rem; padding: 1rem; border: 1px solid #71886b66; border-radius: .5rem; background: linear-gradient(145deg, #26302188, #151915); }
+.manual-reinforcements { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem 1rem; margin-top: 1rem; padding: 1rem; border: 1px solid #71886b66; border-radius: .5rem; background: #26302188; }
+.manual-reinforcements > div { flex: 1 1 16rem; }
+.manual-reinforcements h3 { margin: 0; font: 500 1rem var(--display); }
+.manual-reinforcements p { margin: .4rem 0 0; color: #b9c3ae; font-size: .72rem; line-height: 1.5; }
+.manual-reinforcements .ui-button { max-width: 100%; white-space: normal; font-size: .75rem; }
 .manual-reserve h3 span { margin-left: .3rem; padding: .15rem .45rem; border-radius: .25rem; background: #54644055; font: .8rem var(--body); color: #d0dabb; }
 .manual-reserve header p { margin: 0; color: #9fae93; font-size: .65rem; }
 .manual-reserve-cards { display: flex; gap: 1rem; overflow-x: auto; padding: .3rem .2rem 1rem; align-items: stretch; }

@@ -126,6 +126,7 @@ export default defineSchema({
     deploymentQuantity: v.number(),
     selectedQuantity: v.optional(v.number()),
     enteredQuantity: v.optional(v.number()),
+    summonedQuantity: v.optional(v.number()),
   })
     .index('by_player', ['gamePlayerId'])
     .index('by_player_and_card', ['gamePlayerId', 'stableId']),

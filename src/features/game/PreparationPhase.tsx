@@ -1,6 +1,6 @@
 import { useMutation } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
-import { armyBudget, preparationBudgetError } from '../../../shared/armyRules'
+import { armyBudget, DECK_BUDGET, DEPLOYMENT_BUDGET, preparationBudgetError } from '../../../shared/armyRules'
 import { canInitiallyDeploy, preparationCapacityError } from '../../../shared/board'
 import { UnitCard } from '../catalogue/UnitCard'
 import { QuantityControl } from '../decks/QuantityControl'
@@ -19,11 +19,11 @@ export function PreparationPhase({ game, busy, perform }: { game: Game; busy: bo
     <div className="game-section-heading"><div><p className="eyebrow">Avant l’initiative · {me.deckName}</p><h2>Choisissez vos unités à déployer</h2></div></div>
     <p className="game-intro">Préparez les exemplaires qui commenceront sur le plateau. Les autres unités restent dans votre réserve. Votre adversaire voit seulement le nombre d’unités choisies.</p>
     <div className="deployment-summary">
-      <dl><div><dt>Unités choisies</dt><dd>{me.preparationCount}</dd></div><div><dt>Unités en réserve</dt><dd>{me.drawPileCount}</dd></div><div><dt>Points déployés</dt><dd>{budget.deployed} / 21</dd></div><div><dt>Points en réserve</dt><dd>{budget.reserve}</dd></div></dl>
+      <dl><div><dt>Unités choisies</dt><dd>{me.preparationCount}</dd></div><div><dt>Unités en réserve</dt><dd>{me.drawPileCount}</dd></div><div><dt>Points déployés</dt><dd>{budget.deployed} / {DEPLOYMENT_BUDGET}</dd></div><div><dt>Points en réserve</dt><dd>{budget.reserve}</dd></div></dl>
       <div><button type="button" className="ui-button ui-button--primary" disabled={busy || me.preparationReady || Boolean(capacityError)} onClick={() => void perform(() => finish({ gameId: game.id }))}>{me.preparationReady ? 'Sélection validée ✓' : 'Valider mes unités'}</button><p>{me.preparationReady ? 'En attente de la sélection de votre adversaire…' : 'Vos choix seront définitifs : toutes les unités choisies devront être placées.'}</p></div>
     </div>
     {capacityError && <p className="game-error" role="alert">{gameErrorMessage(capacityError)}</p>}
-    <p className="game-intro">Déployez jusqu’à 21 points, sans minimum. Le reste de votre armée reste en réserve, dans la limite des 33 points du deck. Votre camp dispose de 18 cases, dont 9 à l’arrière pour l’artillerie.</p>
+    <p className="game-intro">Déployez jusqu’à {DEPLOYMENT_BUDGET} points, sans minimum. Le reste de votre armée reste en réserve, dans la limite des {DECK_BUDGET} points du deck. Votre camp dispose de 18 cases, dont 9 à l’arrière pour l’artillerie.</p>
     {me.preparationReady && <p className="game-waiting" role="status">Votre sélection est enregistrée. Le jet d’initiative s’ouvrira quand les deux joueurs auront validé.</p>}
     {me.cards.some((card) => card.kind === 'unit') ? <div className="deployment-grid">{me.cards.filter((card) => card.kind === 'unit').map((card) => <UnitCard key={card.stableId} card={card} footer={<div className="deployment-choice"><span>{canInitiallyDeploy(card.profile) ? `${card.selectedQuantity ?? 0} / ${card.quantity} à déployer` : `Commence en réserve · ${card.profile?.ability?.name ?? "Capacité"}`}</span><QuantityControl name={card.name} quantity={card.selectedQuantity ?? 0} max={canInitiallyDeploy(card.profile) ? card.quantity : 0} busy={busy || me.preparationReady}
       onAdjust={(delta) => void perform(() => update({ gameId: game.id, cardStableId: card.stableId, change: { delta } }))}

@@ -1,6 +1,6 @@
 import { unitTypeNames, type UnitProfile, type UnitType } from './unitProfile'
-export const DECK_BUDGET = 33
-export const DEPLOYMENT_BUDGET = 21
+export const DECK_BUDGET = 40
+export const DEPLOYMENT_BUDGET = 24
 const quotas: Partial<Record<UnitType, number>> = { cavalry: 6, artillery: 4, elite: 4, unique: 1 }
 type Card = { kind: 'unit' | 'action'; quantity: number; cost?: number; profile?: UnitProfile; selectedQuantity?: number }
 export function armyBudget(cards: Card[]) {

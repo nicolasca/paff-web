@@ -3,7 +3,8 @@ import { mutation } from './_generated/server'
 import type { MutationCtx } from './_generated/server'
 import type { Id } from './_generated/dataModel'
 import { cellCoordinate, isCell } from '../shared/board'
-import { manualMoves } from '../shared/manualBattle'
+import { GOBLIN_BAND_CARD_ID, GOBLIN_REINFORCEMENTS_ORDER_ID, manualMoves } from '../shared/manualBattle'
+import { getUnitProfile } from '../shared/unitProfile'
 import { fail, loadManual, logEvent, saveManual } from './lib/manualState'
 
 const gameId = v.id('games')
@@ -54,6 +55,42 @@ export const recruit = mutation({
     state.engine.units.push({ id: `${card.seat}:${card.stableId}:${card.entered}`, cardStableId: card.stableId, seat: card.seat, cell: args.cell, regiment: card.profile.regiment })
     await ctx.db.patch(row._id, { enteredQuantity: card.entered + 1 })
     await save(ctx, state, `${state.member.displayName} recrute ${card.name} en ${cellCoordinate(args.cell)}.`)
+  },
+})
+export const summonGoblins = mutation({
+  args: { gameId, summoned: v.number(), cell: v.number() },
+  handler: async (ctx, args) => {
+    const state = await load(ctx, args.gameId)
+    if (state.member.factionStableId !== 'gobelins' || !state.battle.catalog.some((order) => order.id === GOBLIN_REINFORCEMENTS_ORDER_ID && order.faction === 'gobelins' && order.seats.includes(state.member.seat))) return fail('ORDER_NOT_AVAILABLE')
+    const row = state.rows.find((card) => card.seat === state.member.seat && card.stableId === GOBLIN_BAND_CARD_ID)
+    const summoned = row?.summonedQuantity ?? 0
+    if (args.summoned !== summoned) return fail('STALE_GAME_ACTION')
+    freeCell(state, args.cell)
+
+    let profile = row && getUnitProfile(row)
+    let name = row?.name
+    if (row) {
+      if (row.kind !== 'unit' || !profile) return fail('SUMMON_CARD_UNAVAILABLE')
+      await ctx.db.patch(row._id, { summonedQuantity: summoned + 1 })
+    } else {
+      // A band absent from the deck gets its own frozen profile on first summon.
+      const source = await ctx.db.query('cards').withIndex('by_stable_id', (q) => q.eq('stableId', GOBLIN_BAND_CARD_ID)).unique()
+      if (!source || source.kind !== 'unit' || source.status !== 'published') return fail('SUMMON_CARD_UNAVAILABLE')
+      const faction = await ctx.db.get(source.factionId)
+      profile = getUnitProfile(source)
+      if (faction?.stableId !== 'gobelins' || !profile) return fail('SUMMON_CARD_UNAVAILABLE')
+      name = source.name
+      await ctx.db.insert('gameCards', {
+        gamePlayerId: state.member._id, stableId: source.stableId, name, kind: 'unit',
+        ...(source.cost !== undefined ? { cost: source.cost } : {}),
+        abilities: source.abilities, imagePath: source.imagePath, profile,
+        faction: { stableId: faction.stableId, name: faction.name, themeKey: faction.themeKey },
+        quantity: 0, deploymentQuantity: 0, selectedQuantity: 0, enteredQuantity: 0, summonedQuantity: 1,
+      })
+    }
+    // Generated units never consume or replenish a deck's reserve, including after discard.
+    state.engine.units.push({ id: `${state.member.seat}:${GOBLIN_BAND_CARD_ID}:summoned:${summoned}`, cardStableId: GOBLIN_BAND_CARD_ID, seat: state.member.seat, cell: args.cell, regiment: profile.regiment })
+    await save(ctx, state, `${state.member.displayName} ajoute ${name} en ${cellCoordinate(args.cell)} avec « Tiens, des gobelins... ».`)
   },
 })
 export const adjustTurn = mutation({
