@@ -7,6 +7,7 @@ import { getUnitProfile } from '../shared/unitProfile'
 import { canDeployUnit, canInitiallyDeploy, canRepositionUnit, deploymentLimit, initialSetup, preparationCapacityError, type GameSetup } from '../shared/board'
 import { deckRuleIssues, preparationBudgetError } from '../shared/armyRules'
 import { initialBattle, RULES_VERSION, type BattleState } from '../shared/battle'
+import { resolveBattlefield, selectBattlefield } from '../shared/battlefields'
 
 const gameId = v.id('games')
 type Context = QueryCtx | MutationCtx
@@ -85,6 +86,7 @@ export const get = query({
     if (!me && !canWatch(game.phase)) return null
     return {
       id: game._id, name: game.name, phase: game.phase,
+      battlefield: resolveBattlefield(game.battlefield, game._id),
       isSpectator: !me,
       isHost: game.hostUserId === player.userId,
       battleStartedAt: game.battleStartedAt ?? null,
@@ -155,7 +157,7 @@ export const start = mutation({
     if (game.hostUserId !== player.userId) throw new ConvexError({ code: 'HOST_ONLY' })
     requirePhase(game, 'waiting')
     if ((await members(ctx, game._id)).length !== 2) throw new ConvexError({ code: 'NEED_TWO_PLAYERS' })
-    await ctx.db.patch(game._id, { phase: 'deck_selection', setup: initialSetup(), rulesVersion: RULES_VERSION, updatedAt: Date.now() })
+    await ctx.db.patch(game._id, { phase: 'deck_selection', battlefield: game.battlefield ?? selectBattlefield(), setup: initialSetup(), rulesVersion: RULES_VERSION, updatedAt: Date.now() })
   },
 })
 

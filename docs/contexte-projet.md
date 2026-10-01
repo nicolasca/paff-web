@@ -28,6 +28,14 @@ Les cinq membres initiaux sont **Nicolas, Adrien, Bru, Pierre et Quentin**. Les 
 - Le logo apparaît dans la navigation et comme favicon ; ne pas le dupliquer dans le bloc principal de l’accueil.
 - Les futures préférences de faction/carte et les decks publics ne doivent pas apparaître comme des sections vides.
 
+## Champs de bataille — décision du 1er octobre 2026
+
+Nicolas demande trois champs de bataille personnalisés, un par faction actuelle, avec couleurs, textures et petits objets périphériques. **Camp de la Ferraille** (Gobelins), **Cour de la Salamandre** (Sephosi), **Sanctuaire des Racines** (Gaeli). Le serveur tire uniformément l’un des trois au lancement du salon, indépendamment des armées choisies, puis enregistre ce choix pour toute la partie. Les joueurs et spectateurs voient le même lieu au déploiement et au combat, y compris après reconnexion. Les anciennes parties ont un repli stable dérivé de leur identifiant sans migration. Décor uniquement visuel : ni obstacle, ni couvert, ni modification des 54 cases ou des règles. Détails, assets et prompts ImageGen dans [champs-bataille.md](champs-bataille.md).
+
+Travail sur `codex/champs-bataille-factions`, depuis le premier commit local d’automatisation. Après la revue des trois captures, Nicolas autorise le **1er octobre un commit local du lot**. Les captures fictives restent dans `combat-preview.local/`, ignoré par Git. Aucune publication ni push demandé pour ce lot.
+
+Vérifications : **341 tests**, lint, build et types Convex réussis. Développement **grateful-warthog-543** synchronisé sans réimport du catalogue. Trois captures du vrai plateau sur table fictive en mémoire ; vues des deux joueurs et spectateur, et défilement horizontal sur mobile vérifiés. Aucun compte ni partie réelle modifié pour ces captures.
+
 ## Automatisation des attaques — 29 septembre 2026
 
 Après une phase de formalisation sans code, Nicolas autorise une **nouvelle branche** et l’implémentation de la V1, avec choix des flèches par les deux joueurs, bouton COMBAT, UI visuelle et captures. Branche `codex/automatisation-combats-v1`, changements non commités pour revue. Le document [automatisation-combats-v1.md](automatisation-combats-v1.md) est la référence évolutive du périmètre ; le §4.1 des [règles implémentées](regles-implementees.md) distingue le livré des éléments reportés.

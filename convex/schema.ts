@@ -85,6 +85,7 @@ export default defineSchema({
   games: defineTable({
     hostUserId: v.id('users'),
     name: v.string(),
+    battlefield: v.optional(v.union(v.literal('gobelins'), v.literal('sephosi'), v.literal('gaeli'))),
     phase: v.union(v.literal('waiting'), v.literal('deck_selection'), v.literal('preparation'), v.literal('initiative'), v.literal('deployment'), v.literal('battle'), v.literal('cancelled')),
     setup: v.optional(gameSetupValidator),
     rulesVersion: v.optional(v.string()),

@@ -9,6 +9,9 @@ import './TacticalBoard.css'
 import { EngagementLines } from './EngagementLines'
 import type { AttackKind } from '../../../shared/combat'
 import { INVOCATION_AXES, underInvocation } from '../../../shared/greatInvocation'
+import { FactionEmblem } from '../catalogue/FactionEmblem'
+import { battlefieldAppearance } from './battlefieldAppearance'
+import { BattlefieldScenery } from './BattlefieldScenery'
 
 const bands = [[0], [1], [2, 3], [4], [5]]
 const axes = [[0, 1], [2, 3, 4, 5, 6], [7, 8]]
@@ -25,6 +28,7 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
   const me = game.players.find((player) => player.isMe) ?? game.players.find((player) => player.seat === 0)!
   const axisNames = me.seat === 1 ? [...INVOCATION_AXES].reverse() : INVOCATION_AXES
   const opponent = game.players.find((player) => player.seat !== me.seat)!
+  const battlefield = battlefieldAppearance(game.battlefield)
   const zoneNames = readOnly ? ['Arrière nord', 'Base nord', 'Centre stratégique', 'Base sud', 'Arrière sud'] : bandNames
   const [inspected, setInspected] = useState<number | null>(null)
   const previewId = useId()
@@ -72,11 +76,17 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
   }
   const detail = inspected === null ? undefined : unitAt(inspected)
   const previewUnit = hovered && unitAt(hovered.cell)
-  return <div className="tactical-board">
+  return <div className="tactical-board" data-battlefield={battlefield.theme}>
+    <header className="battlefield-heading" aria-label="Champ de bataille">
+      <span className="battlefield-heading__crest"><FactionEmblem theme={battlefield.theme} /></span>
+      <div><span>Champ de bataille · {battlefield.faction}</span><strong>{battlefield.name}</strong></div>
+      <span className="battlefield-heading__ornament" aria-hidden="true"><i />◆<i /></span>
+    </header>
     <div className="board-camp-label" data-faction={factionKey(opponent)}><span className="board-army-sigil" aria-hidden="true">◆</span><strong>{opponent.factionName ?? 'Armée adverse'}</strong><span>{opponent.displayName} · {readOnly ? 'Camp nord' : 'Adversaire'}</span></div>
     <p className="board-mobile-hint">↔ Faites défiler le plateau horizontalement</p>
     <div className="board-scroll" tabIndex={0} role="region" aria-label="Plateau de 54 cases et 15 zones, défilement horizontal sur petit écran">
       <div className="board-surface" ref={surface}>
+        <BattlefieldScenery theme={battlefield.theme} />
         {game.battle?.manual && <EngagementLines surface={surface} units={game.battle.engine!.units} engagements={game.battle.engine!.engagements} arrows={game.battle.manual.combat?.arrows} activeKind={activeAttackKind} />}
         <div className="board-axis">{axisNames.map((name) => <span key={name}>{name}</span>)}</div>
         <div className="board-zones">{bands.flatMap((rows, band) => axes.map((columns, axis) => <div

@@ -1,22 +1,25 @@
-.tactical-board { min-width: 0; border: 1px solid #ae916379; border-radius: .5rem; overflow: hidden; background: #25251b; box-shadow: 0 18px 50px #0005, 0 0 0 4px #1a1b15, 0 0 0 5px #7b67403d; }
+.tactical-board { min-width: 0; border: 1px solid var(--field-frame, #ae916379); border-radius: var(--field-radius, .5rem); overflow: hidden; background: var(--field-panel, #25251b); box-shadow: 0 18px 50px #0006, 0 0 0 3px var(--field-outer, #1a1b15), 0 0 0 4px color-mix(in srgb, var(--field-frame, #7b6740) 45%, transparent), inset 0 1px #fff2; }
 .board-camp-label { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem .8rem; padding: .7rem 1rem; background: linear-gradient(90deg, #1d201b, color-mix(in srgb, var(--faction-color, #967747) 18%, #20211b), #1d201b); border-block: 1px solid #c4a66d35; color: #f3e5c9; }
 .board-camp-label strong { font: 600 .85rem var(--display); letter-spacing: .07em; }
 .board-camp-label > span:last-child { color: #cbc4af; font: 400 .6rem var(--body); letter-spacing: .04em; }
 .board-army-sigil { display: grid; width: 1.4rem; height: 1.55rem; place-content: center; background: var(--faction-color, #967747); border: 1px solid color-mix(in srgb, var(--faction-color, #967747), #fff 25%); color: var(--faction-ink, #fff2ea); clip-path: polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%); font-size: .55rem; }
-.board-scroll { overflow-x: auto; scrollbar-color: #796447 #171f18; }
+.board-scroll { overflow-x: auto; scrollbar-color: var(--field-frame, #796447) var(--field-panel, #171f18); }
 .board-mobile-hint { display: none; margin: 0; padding: 0.2rem 0.8rem 0.7rem; text-align: center; color: #bfb18e; font-size: 0.65rem; }
 .board-scroll:focus-visible { outline: 2px solid #d7bd88; outline-offset: -2px; }
-.board-surface { position: relative; min-width: 580px; padding: 0 1rem 1rem; background: linear-gradient(#161f172e, #23251938), url('/art/paff-campaign-terrain-v1.webp') center / cover, #66664b; box-shadow: inset 0 0 55px #161c1680; }
+.board-surface { position: relative; isolation: isolate; min-width: 580px; padding: 0 1.35rem 1.35rem; background: linear-gradient(var(--field-veil, #161f172e), var(--field-veil, #23251938)), var(--field-terrain, url('/art/paff-campaign-terrain-v1.webp')) center / cover, var(--field-ground, #66664b); box-shadow: inset 0 0 55px #0a100d80; }
 .board-axis, .board-zones { display: grid; grid-template-columns: 2fr 5fr 2fr; gap: 0.5rem 1.25rem; }
-.board-axis { padding: .8rem 0; color: #f0e2bc; text-align: center; text-transform: uppercase; letter-spacing: .13em; font-size: .6rem; text-shadow: 0 1px 4px #000; }
-.board-zone { min-width: 0; padding: .35rem; border: 1px solid #e3d4a363; background: #10191024; border-radius: .2rem; box-shadow: 0 1px 3px #171c1660, inset 0 0 0 1px #1c211c35; }
-.board-zone--strategic { border-color: #f3d38dc9; background: #d7b46514; margin-block: .3rem; box-shadow: 0 0 0 1px #372c2270, inset 0 0 24px #d6af5d14; }
-.board-zone__label { display: block; height: 1rem; margin: -.05rem 0 .3rem; color: #f2e6cb; font-size: .5rem; text-align: center; text-transform: uppercase; letter-spacing: .08em; text-shadow: 0 1px 3px #16170f, 0 0 5px #16170f; }
-.board-zone--strategic .board-zone__label { color: #ffe5a4; }
+.board-axis { position: relative; z-index: 2; padding: .85rem 0; color: var(--field-text, #f0e2bc); text-align: center; text-transform: uppercase; letter-spacing: .13em; font-size: .6rem; text-shadow: 0 1px 4px #000, 0 0 8px #000; }
+.board-zones { position: relative; z-index: 2; }
+.board-zone { min-width: 0; padding: .35rem; border: 1px solid var(--field-zone-border, #e3d4a363); background: var(--field-zone, #10191024); border-radius: var(--field-zone-radius, .2rem); box-shadow: 0 1px 4px #090d0966, inset 0 0 0 1px #fff08; }
+.board-zone--opponent { background: var(--field-north, var(--field-zone, #10191024)); }
+.board-zone--you { background: var(--field-south, var(--field-zone, #10191024)); }
+.board-zone--strategic { border-color: var(--field-strategic, #f3d38dc9); background: var(--field-center, #d7b46514); margin-block: .3rem; box-shadow: 0 0 0 1px #211c1870, inset 0 0 24px color-mix(in srgb, var(--field-strategic, #d6af5d) 12%, transparent); }
+.board-zone__label { display: block; height: 1rem; margin: -.05rem 0 .3rem; color: var(--field-text, #f2e6cb); font-size: .5rem; text-align: center; text-transform: uppercase; letter-spacing: .08em; text-shadow: 0 1px 3px #111, 0 0 5px #111; }
+.board-zone--strategic .board-zone__label { color: var(--field-highlight, #ffe5a4); }
 .board-zone__cells { display: grid; gap: 0.3rem; }
-.board-cell { position: relative; min-width: 0; min-height: 3.65rem; aspect-ratio: 1.05; display: grid; place-items: center; padding: 0; overflow: hidden; background: #15201517; border: 1px solid #e1dec03b; border-radius: .2rem; color: #eee1b940; isolation: isolate; }
+.board-cell { position: relative; min-width: 0; min-height: 3.65rem; aspect-ratio: 1.05; display: grid; place-items: center; padding: 0; overflow: hidden; background: var(--field-cell, #15201517); border: 1px solid var(--field-cell-border, #e1dec03b); border-radius: .2rem; color: color-mix(in srgb, var(--field-text, #eee1b9) 36%, transparent); isolation: isolate; }
 .board-cell__mark { font-size: 1.4rem; font-weight: 300; }
-.board-cell__coordinate { position: absolute; right: .2rem; bottom: .15rem; font-size: .45rem; color: #f1e5c59c; text-shadow: 0 1px 2px #111; }
+.board-cell__coordinate { position: absolute; right: .2rem; bottom: .15rem; padding: .02rem .1rem; border-radius: .1rem; background: #0d13144d; font-size: .45rem; color: #f1e5c5bf; text-shadow: 0 1px 2px #111; }
 .board-cell--allowed { cursor: crosshair; border-color: #ffe09ebf; background: #f1d79c30; color: #fff0cb; box-shadow: inset 0 0 18px #f2d8a024; transition: background 150ms, box-shadow 150ms; }
 .board-cell--allowed:hover, .board-cell--allowed:focus-visible { background: #b8ad4d40; box-shadow: inset 0 0 0 1px #e1cc85; outline: 2px solid #e1cc85; outline-offset: -2px; }
 .board-cell--allowed .board-cell__coordinate { color: #d8c887aa; }
@@ -45,8 +48,8 @@
 .board-unit--invoked .board-unit__shooting-target { top: 1.5rem; }
 .board-surface:has(.board-unit--shooting-source) { min-width: 720px; }
 .board-unit--shooting-target .board-unit__rain { top: 2.7rem; }
-.board-caption { display: flex; justify-content: center; gap: 1.5rem; margin: 0; padding: 0.7rem 1rem; border-top: 1px solid #b49a6330; color: #a5a590; font-size: 0.6rem; }
-.board-caption span { color: #c6ae75; }
+.board-caption { display: flex; justify-content: center; gap: 1.5rem; margin: 0; padding: 0.7rem 1rem; border-top: 1px solid color-mix(in srgb, var(--field-frame, #b49a63) 35%, transparent); background: var(--field-panel, #25251b); color: var(--field-muted, #a5a590); font-size: 0.6rem; }
+.board-caption span { color: var(--field-accent, #c6ae75); }
 .board-inspection { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.7rem 1.5rem; padding: 1rem; border-block: 1px solid #bda5776b; background: #20291d; }
 .board-inspection h3 { margin: 0.25rem 0; font: 500 1rem var(--display); }
 .board-inspection .eyebrow { font-size: 0.55rem; }
@@ -80,3 +83,114 @@
 .board-unit--shooting-source .board-unit__rain { top: 1.6rem; }
 .board-unit--shooting-source.board-unit--invoked .board-unit__rain { top: 2.9rem; }
 .board-unit--shooting-target .board-unit__rain, .board-unit--shooting-target.board-unit--invoked .board-unit__rain { top: 2.9rem; }
+
+/* A battlefield is shared scenery. Army frames still use their own data-faction. */
+.tactical-board[data-battlefield=gobelins] {
+  --field-terrain: url('/art/battlefield-gobelins-v1.webp');
+  --field-ground: #76603c;
+  --field-veil: #231a0d12;
+  --field-panel: #25291e;
+  --field-outer: #15170f;
+  --field-frame: #8a885e;
+  --field-accent: #cbcf91;
+  --field-text: #f4ebce;
+  --field-muted: #b8b69c;
+  --field-zone-border: #dacf968a;
+  --field-zone: #231e1550;
+  --field-north: #39241559;
+  --field-south: #28341d59;
+  --field-center: #8b72302e;
+  --field-strategic: #eed089c9;
+  --field-highlight: #ffedb7;
+  --field-cell: #17201124;
+  --field-cell-border: #e3d9ac63;
+  --field-radius: .22rem;
+  --field-zone-radius: .1rem;
+  --field-display: 'Barlow Condensed', 'Arial Narrow', Impact, sans-serif;
+}
+.tactical-board[data-battlefield=sephosi] {
+  --field-terrain: url('/art/battlefield-sephosi-v1.webp');
+  --field-ground: #686c70;
+  --field-veil: #19192218;
+  --field-panel: #252029;
+  --field-outer: #15151d;
+  --field-frame: #b49b6c;
+  --field-accent: #e9c986;
+  --field-text: #fff0d7;
+  --field-muted: #c3b5ad;
+  --field-zone-border: #f5dfb78f;
+  --field-zone: #29263045;
+  --field-north: #561e3054;
+  --field-south: #26374754;
+  --field-center: #785a292e;
+  --field-strategic: #ffe0a2e0;
+  --field-highlight: #ffe9b2;
+  --field-cell: #1e222628;
+  --field-cell-border: #f0e2c478;
+  --field-radius: .38rem;
+  --field-zone-radius: .14rem;
+  --field-display: var(--display);
+}
+.tactical-board[data-battlefield=gaeli] {
+  --field-terrain: url('/art/battlefield-gaeli-v1.webp');
+  --field-ground: #395858;
+  --field-veil: #06242a10;
+  --field-panel: #14292a;
+  --field-outer: #091c1e;
+  --field-frame: #839e8e;
+  --field-accent: #abd9c8;
+  --field-text: #e6f4dd;
+  --field-muted: #afc5b9;
+  --field-zone-border: #c6e0c380;
+  --field-zone: #0b272f40;
+  --field-north: #15263350;
+  --field-south: #12352650;
+  --field-center: #68856224;
+  --field-strategic: #bddfcac9;
+  --field-highlight: #ecffd3;
+  --field-cell: #0a242724;
+  --field-cell-border: #c5e2d169;
+  --field-radius: .7rem;
+  --field-zone-radius: .3rem;
+  --field-display: 'Cormorant Garamond', 'Palatino Linotype', Palatino, Georgia, serif;
+}
+.battlefield-heading { position: relative; display: flex; align-items: center; gap: .8rem; min-height: 3.6rem; padding: .55rem 1rem; border-bottom: 1px solid var(--field-frame); background: linear-gradient(100deg, color-mix(in srgb, var(--field-panel), #000 12%), var(--field-panel) 55%, color-mix(in srgb, var(--field-accent) 12%, var(--field-panel))); box-shadow: inset 0 2px color-mix(in srgb, var(--field-accent) 20%, transparent); }
+.battlefield-heading__crest { flex: 0 0 2.35rem; width: 2.35rem; height: 2.35rem; padding: .3rem; border: 1px solid color-mix(in srgb, var(--field-accent) 48%, transparent); color: var(--field-accent); background: #060b0b36; box-shadow: inset 0 0 0 3px #090e0d26; }
+.battlefield-heading > div { min-width: 0; display: grid; gap: .16rem; }
+.battlefield-heading > div > span { color: var(--field-muted); font-size: .53rem; letter-spacing: .13em; text-transform: uppercase; }
+.battlefield-heading strong { color: var(--field-text); font: 600 1.04rem var(--field-display); line-height: 1.12; letter-spacing: .03em; }
+.battlefield-heading__ornament { display: flex; align-items: center; gap: .65rem; margin-left: auto; color: var(--field-accent); font-size: .5rem; opacity: .75; }
+.battlefield-heading__ornament i { display: block; width: clamp(1rem, 3vw, 3rem); height: 1px; background: linear-gradient(90deg, transparent, var(--field-accent)); }
+.battlefield-heading__ornament i:last-child { transform: rotate(180deg); }
+[data-battlefield=gobelins] .battlefield-heading__crest { clip-path: polygon(0 8%, 86% 0, 100% 22%, 92% 100%, 9% 91%); }
+[data-battlefield=gobelins] .battlefield-heading strong { font-size: 1.15rem; letter-spacing: .045em; }
+[data-battlefield=sephosi] .battlefield-heading { border-bottom-width: 3px; border-bottom-style: double; }
+[data-battlefield=sephosi] .battlefield-heading__crest { clip-path: polygon(50% 0, 94% 20%, 90% 77%, 50% 100%, 10% 77%, 6% 20%); }
+[data-battlefield=gaeli] .battlefield-heading__crest { border-radius: 50%; }
+[data-battlefield=gaeli] .battlefield-heading strong { font-size: 1.25rem; }
+.tactical-board[data-battlefield] .board-surface { padding: .4rem clamp(1.3rem, 3.5vw, 3rem) 1.7rem; background-size: auto, 100% 100%; }
+.battlefield-scenery { position: absolute; inset: 0; z-index: 1; overflow: hidden; color: var(--field-accent); opacity: .85; pointer-events: none; user-select: none; }
+.battlefield-corner { position: absolute; width: 3.2rem; height: 3.2rem; filter: drop-shadow(0 2px 2px #000a); }
+.battlefield-corner--nw { top: .25rem; left: .25rem; }
+.battlefield-corner--ne { top: .25rem; right: .25rem; transform: rotate(90deg); }
+.battlefield-corner--se { bottom: .25rem; right: .25rem; transform: rotate(180deg); }
+.battlefield-corner--sw { bottom: .25rem; left: .25rem; transform: rotate(270deg); }
+.battlefield-rail { position: absolute; top: 3.8rem; bottom: 3.8rem; width: .3rem; border-inline: 1px solid color-mix(in srgb, var(--field-accent) 38%, transparent); background: #10191226; box-shadow: 1px 0 3px #0005; }
+.battlefield-rail--left { left: .7rem; }
+.battlefield-rail--right { right: .7rem; }
+[data-battlefield=gobelins] .battlefield-rail { width: .5rem; background: repeating-linear-gradient(0deg, #161a1390 0 2rem, var(--field-frame) 2rem 2.15rem, #161a1390 2.15rem 4rem); }
+[data-battlefield=gaeli] .battlefield-rail { width: .6rem; border-radius: 50%; border-inline-color: #add4ac40; }
+.battlefield-wisps i { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #d2ffec; box-shadow: 0 0 9px 3px #6bc9c280; animation: battlefield-wisp 5s ease-in-out infinite alternate; }
+.battlefield-wisps i:nth-child(1) { left: 1.7%; top: 32%; }
+.battlefield-wisps i:nth-child(2) { right: 2%; top: 65%; animation-delay: -2s; }
+.battlefield-wisps i:nth-child(3) { left: 2.4%; bottom: 12%; animation-delay: -3.5s; }
+.battlefield-wisps i:nth-child(4) { right: 1.8%; top: 9%; animation-delay: -1s; }
+@keyframes battlefield-wisp { from { transform: translateY(0); opacity: .35; } to { transform: translateY(-10px); opacity: .9; } }
+@media (max-width: 650px) {
+  .battlefield-heading { padding: .5rem .65rem; gap: .6rem; }
+  .battlefield-heading__ornament { display: none; }
+  .battlefield-heading > div > span { font-size: .5rem; letter-spacing: .08em; }
+  .tactical-board[data-battlefield] .board-surface { padding-inline: 1.25rem; }
+  .battlefield-corner { width: 2.7rem; height: 2.7rem; }
+}
+@media (prefers-reduced-motion: reduce) { .battlefield-wisps i { animation: none; opacity: .65; } }

@@ -22,7 +22,7 @@ L’état précis du jeu et les écarts encore ouverts sont suivis dans les [rè
 Depuis le 30 septembre, sélectionner un tireur éclaire les ennemis à portée : 3 cases, ou 4 pour l’artillerie, dans le même axe. Les Archers longs Gaeliens gardent leur tir normal et gagnent une capacité permanente de portée 4 droit devant, à la place de l’ancien ordre. La géométrie est contrôlée au choix des flèches et avant leur résolution.
 Les derniers changements sont détaillés dans le [lot Gaeli du 21 septembre](docs/differences-regles-2026-09-21.md) et la [comparaison du 18 septembre](docs/differences-regles-2026-09-18.md). Les anciens documents d’équilibrage sont dans le dépôt local `paff-simulator`. Djil utilise l’illustration fournie le 20 septembre ; les Gros tarrés celle du 16 septembre.
 
-L’univers visuel mêle illustrations de fantasy, tons sombres et titres inspirés des inscriptions anciennes.
+L’univers visuel mêle illustrations de fantasy, tons sombres et titres inspirés des inscriptions anciennes. Chaque nouvelle partie tire au sort l’un des [trois champs de bataille](docs/champs-bataille.md) Gobelins, Sephosi et Gaeli ; le même décor accompagne les deux joueurs et les spectateurs, sans effet sur les règles.
 
 ## Choix techniques
 
