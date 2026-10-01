@@ -1,7 +1,7 @@
 import type { UnitProfile, UnitType } from './unitProfile'
 import { unitAbilities, type UnitAbility } from './unitAbilities'
 
-export const CATALOGUE_VERSION = '2026-09-21-gaeli-1'
+export const CATALOGUE_VERSION = '2026-09-30-portee-1'
 export const catalogueFactions = { gobelins: 'Gobelins', sephosi: 'Sephosi', gaeli: 'Gaeli' } as const
 type Unit = { stableId: string; faction: keyof typeof catalogueFactions; name: string; cost: number; imagePath: string; profile: UnitProfile }
 
@@ -40,7 +40,7 @@ export const catalogue2026: Unit[] = [
   // PAFF 2026 (4).pdf received 2026-09-21, pp. 8–9. Preserve four historical Gaeli IDs.
   unit('gaeli', 'combattants-des-vlands', 'Combattants des Vlands', 2, 'troop', 2, 2, 'melee', 3, 2, 2, undefined, 'combattants-des-vlands-2026'),
   unit('gaeli', 'longues-lames', 'Longues Lames', 3, 'troop', 3, 4, 'melee', 4, 3, 2, undefined, 'longues-lames'),
-  unit('gaeli', 'archers-longs-gaeliens', 'Archers longs Gaeliens', 2, 'ranged', 2, 3, 'ranged', 2, 1, 1, undefined, 'archers-longs-gaeliens'),
+  unit('gaeli', 'archers-longs-gaeliens', 'Archers longs Gaeliens', 2, 'ranged', 2, 3, 'ranged', 2, 1, 1, 'longRangeFire', 'archers-longs-gaeliens'),
   unit('gaeli', 'gardiens-des-cen', "Gardiens des Cen'", 1, 'ranged', 1, 0, 'none', null, 1, 1, 'ancestralSong', 'gardiens-des-cen'),
   unit('gaeli', 'druide', 'Druides', 1, 'ranged', 1, 0, 'none', null, 1, 1, 'branTeha', 'druides-2026'),
   unit('gaeli', 'eclaireurs-des-vlands', 'Eclaireurs des Vlands', 2, 'cavalry', 2, 2, 'melee', 2, 2, 1, undefined, 'eclaireurs-des-vlands'),

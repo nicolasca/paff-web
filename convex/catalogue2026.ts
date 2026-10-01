@@ -25,7 +25,7 @@ export const apply = internalMutation({
           kind: 'unit' as const, profile: unit.profile, imagePath: unit.imagePath, abilities: unit.profile.ability ? [unit.profile.ability.name] : [],
           dataVersion: CATALOGUE_VERSION, status: 'published' as const, sourceLine: catalogue2026.indexOf(unit) + 2,
           sourceNote: unit.faction === 'gaeli'
-            ? 'PAFF 2026 (4).pdf transmis le 21/09/2026, p. 8 (unités) et p. 9 (capacités). Les indications d’illustration ne sont pas des règles.'
+            ? `PAFF 2026 (4).pdf transmis le 21/09/2026, p. 8 (unités) et p. 9 (capacités). Les indications d’illustration ne sont pas des règles.${unit.stableId === 'gaeli-archers-longs-gaeliens' ? ' Décision de Nicolas du 30/09/2026 : Tir longue portée devient une capacité permanente ; portée 3 habituelle et 4 droit devant dans la même colonne.' : ''}`
             : 'PAFF 2026 (3).pdf transmis le 18/09/2026, p. 8 (unités) et p. 9 (capacités), avec les réponses du créateur transmises par Nicolas, récapitulées dans docs/differences-regles-2026-09-18.md.',
         }
         if (!existing) { await ctx.db.insert('cards', fields); result.created++ }

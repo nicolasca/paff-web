@@ -15,10 +15,11 @@ Le [contexte de travail](docs/contexte-projet.md) rassemble le vocabulaire, les 
 - Une seule faction par deck, avec des quantités de cartes libres et une sauvegarde automatique.
 - Pour jouer : deck de 40 points maximum, dont 24 points maximum au déploiement initial, sans minimum ; le reste forme la réserve.
 - Un récapitulatif de la composition et des coûts pendant la construction.
-- Un lobby à deux joueurs, la préparation privée, l’initiative et le déploiement sur 54 cases, puis un plateau manuel partagé avec déplacements, réserves, engagements, compteurs et dés synchronisés. Vol est pris en compte dans les déplacements ; Blop et le Grand Gardien commencent en réserve.
+- Un lobby à deux joueurs, la préparation privée, l’initiative et le déploiement sur 54 cases, puis un plateau partagé avec déplacements, réserves, engagements, compteurs et dés synchronisés. La [V1 des attaques automatisées](docs/automatisation-combats-v1.md) ajoute des flèches de tir/combat, une résolution simultanée et un compte rendu visuel partagé. « La gross Invokation ! » lance son dé, applique ses pertes ou son bonus, et illumine en vert les unités renforcées. Un dé libre cliquable, à la forme et aux couleurs de la faction, reste accessible dans chaque mode : un clic lance un D6 partagé. Vol est pris en compte dans les déplacements ; Blop et le Grand Gardien commencent en réserve.
 - L’ordre « Tiens, des gobelins... » permet d’ajouter une Bande de Gobelins hors deck sur une case libre. Les petites tuiles affichent les R actuels ; la carte au survol conserve les R initiaux.
 
 L’état précis du jeu et les écarts encore ouverts sont suivis dans les [règles implémentées](docs/regles-implementees.md).
+Depuis le 30 septembre, sélectionner un tireur éclaire les ennemis à portée : 3 cases, ou 4 pour l’artillerie, dans le même axe. Les Archers longs Gaeliens gardent leur tir normal et gagnent une capacité permanente de portée 4 droit devant, à la place de l’ancien ordre. La géométrie est contrôlée au choix des flèches et avant leur résolution.
 Les derniers changements sont détaillés dans le [lot Gaeli du 21 septembre](docs/differences-regles-2026-09-21.md) et la [comparaison du 18 septembre](docs/differences-regles-2026-09-18.md). Les anciens documents d’équilibrage sont dans le dépôt local `paff-simulator`. Djil utilise l’illustration fournie le 20 septembre ; les Gros tarrés celle du 16 septembre.
 
 L’univers visuel mêle illustrations de fantasy, tons sombres et titres inspirés des inscriptions anciennes.

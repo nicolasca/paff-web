@@ -1,0 +1,59 @@
+.invocation-orders { grid-column: 1 / -1; display: grid; gap: .6rem; }
+.invocation-order { min-width: 0; border: 1px solid #77855d66; border-radius: .55rem; background: linear-gradient(115deg, #222b24, #141c20 65%); overflow: hidden; transition: border-color 240ms, box-shadow 240ms, background 240ms; }
+.invocation-order-main { display: flex; align-items: center; gap: 1.2rem; padding: .75rem 1rem; }
+.invocation-switch { display: flex; align-items: center; gap: .75rem; flex: 1; min-width: 0; padding: .2rem; border: 0; background: transparent; color: #e2e5d1; text-align: left; }
+button.invocation-switch { cursor: pointer; border-radius: .3rem; }
+button.invocation-switch:hover { background: #bdd7870b; }
+button.invocation-switch:focus-visible { outline: 2px solid #c9ed92; outline-offset: 4px; }
+button.invocation-switch:disabled { opacity: .5; cursor: not-allowed; }
+.invocation-switch strong { display: block; font: 600 .88rem var(--display); }
+.invocation-switch small { display: block; margin-top: .25rem; font-size: .65rem; color: #a6b29d; }
+.invocation-sigil { display: grid; place-items: center; flex-shrink: 0; width: 2.8rem; height: 2.8rem; border: 1px solid #a0bf6866; border-radius: 50%; color: #b5cc81; background: radial-gradient(#9aca431a, #14221c); font-size: 1.7rem; }
+.invocation-shamans { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; padding: .6rem 1.2rem; border-top: 1px solid #a5bc6a22; }
+.invocation-shamans > span { color: #a6b29d; font-size: .65rem; }
+.invocation-shaman-choices { display: flex; flex-wrap: wrap; gap: .5rem; }
+.invocation-shaman-choices button { display: flex; align-items: center; gap: .5rem; min-height: 44px; padding: .3rem .75rem .3rem .3rem; border: 1px solid #76845c66; border-radius: .3rem; background: #111d19; color: #d8e4ca; text-align: left; cursor: pointer; }
+.invocation-shaman-choices button:hover:not(:disabled) { background: #34432a; border-color: #a6c57a; }
+.invocation-shaman-choices button[aria-pressed=true] { border-color: #c0e792; background: #3b542e; box-shadow: inset 0 0 0 1px #c0e79255; }
+.invocation-shaman-choices img { width: 2.5rem; height: 2.5rem; object-fit: cover; border-radius: .15rem; }
+.invocation-shaman-choices strong { font: 600 .8rem var(--body); }
+.invocation-shaman-choices small { display: block; margin-top: .2rem; color: #aebda0; font-size: .6rem; }
+.invocation-shamans p { margin: 0 0 0 auto; color: #a6b29d; font-size: .65rem; }
+.invocation-shamans p strong { color: #d7ecc0; font-weight: 500; }
+.invocation-scope-label { color: #cfedb5; font-size: .75rem; }
+.invocation-power { display: flex; gap: .5rem; align-items: center; padding-left: 1rem; border-left: 1px solid #a5bc6a33; color: #b0c385; }
+.invocation-power > strong { font: 700 1.8rem var(--display); }
+.invocation-power > span { font-size: .7rem; }
+.invocation-power small { display: block; font-size: .55rem; margin-top: .2rem; opacity: .8; }
+.invocation-order-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .3rem 1rem; padding: .5rem 1.2rem; border-top: 1px solid #a5bc6a22; color: #aebaa3; font-size: .65rem; background: #0002; }
+.invocation-order-foot small { font-size: .6rem; color: #90a28c; }
+.invocation-order[data-active="true"] { border-color: #a5df5c; background: radial-gradient(ellipse at 15% 0, #699e2738, transparent 65%), linear-gradient(115deg, #213a20, #101f1b); box-shadow: 0 0 24px #88d83a1a, inset 0 0 24px #88d83a09; }
+.invocation-order[data-active="true"] .invocation-sigil { color: #e3ffb8; border-color: #b9ec7b; box-shadow: 0 0 16px #bcfc5644, inset 0 0 14px #94df4455; }
+.invocation-order[data-active="true"] .invocation-switch strong, .invocation-order[data-active="true"] .invocation-power { color: #d3ff9b; }
+.invocation-order[data-active="true"] .invocation-switch small { color: #b9d896; }
+@media (max-width: 760px) {
+  .invocation-order-main { flex-wrap: wrap; gap: .65rem; padding: .7rem; }
+  .invocation-switch { flex-basis: 100%; }
+  .invocation-scope-label { flex: 1; min-width: 0; }
+  .invocation-shamans { padding-inline: .9rem; }
+  .invocation-shamans > span, .invocation-shamans p { width: 100%; }
+  .invocation-order-foot { padding-inline: .9rem; }
+  .invocation-power > strong { font-size: 1.4rem; }
+}
+.invocation-launch { margin-left: auto; border: 1px solid #a1be6177; border-radius: .3rem; background: #8ea84c22; padding: .4rem .6rem; font-size: .7rem; color: #d5e9a7; white-space: nowrap; }
+.invocation-stock { font-size: .68rem; color: #b3bd9f; }
+.invocation-order[data-active="true"] button.invocation-switch:disabled { opacity: 1; cursor: default; }
+.invocation-result { display: flex; align-items: flex-start; gap: .8rem; padding: .8rem 1.2rem; background: #090f1055; border-top: 1px solid #a5bc6a22; font-size: .7rem; color: #d9e9c0; }
+.invocation-result[data-success="false"] { color: #edb8a0; border-top-color: #c3764d66; background: #32171166; }
+.invocation-die { display: grid; place-items: center; flex-shrink: 0; border: 1px solid currentColor; border-radius: .25rem; width: 2.6rem; height: 2.6rem; background: #d0ecac; color: #223215; font: 2.3rem/1 sans-serif; }
+.invocation-result[data-success="false"] .invocation-die { background: #e3b295; color: #471d16; }
+.invocation-result > div { flex: 1; min-width: 0; }
+.invocation-result strong { font-weight: 500; }
+.invocation-result p { margin: .25rem 0 .5rem; opacity: .8; font-size: .65rem; }
+.invocation-result p.invocation-consequences { color: inherit; font-weight: 600; opacity: 1; }
+.invocation-result summary { cursor: pointer; font-size: .62rem; }
+.invocation-result ul { list-style: none; margin: .5rem 0 0; padding: 0; }
+.invocation-result li { display: flex; flex-wrap: wrap; gap: .2rem .5rem; justify-content: space-between; border-top: 1px solid #b9ce9d22; padding: .4rem 0; font-size: .65rem; }
+.invocation-result li b { font-weight: 500; }
+.combat-invocation-note { margin: .5rem 0 0; border-top: 1px solid #a5dc6633; padding-top: .4rem; color: #c5ed98; font-size: .6rem; }
+@media (prefers-reduced-motion: reduce) { .invocation-order { transition: none; } }

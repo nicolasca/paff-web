@@ -2,6 +2,15 @@ import { ConvexError } from 'convex/values'
 import { DECK_BUDGET, DEPLOYMENT_BUDGET } from '../../../shared/armyRules'
 
 const messages: Record<string, string> = {
+  ORDER_EXHAUSTED: 'Cet ordre a déjà été utilisé. Son stock est épuisé.',
+  INVOCATION_NEEDS_SHAMAN: 'Choisissez l’un de vos Shamans encore en jeu avec au moins 1 R.',
+  INVALID_ATTACK_TARGET: 'Choisissez une unité ennemie présente sur le plateau avec au moins 1 R.',
+  OUT_OF_SHOOTING_RANGE: 'Une cible est hors de portée ou dans un autre axe. Modifiez la flèche avant de tirer.',
+  ATTACK_NOT_AVAILABLE: 'Cette unité ne peut pas effectuer cette attaque dans les essais V1.',
+  INVALID_EXPOSED_ALLY: 'L’allié exposé doit encore être engagé avec la cible. Actualisez votre choix.',
+  MISSING_EXPOSED_ALLY: 'Choisissez l’allié exposé pour chaque tir en mêlée avant de lancer.',
+  COMBAT_NOT_READY: 'Les deux joueurs doivent valider leurs flèches avant le combat.',
+  NO_ATTACKS: 'Tracez au moins une flèche avant de lancer.',
   CELL_OCCUPIED: 'Cette case vient d’être occupée. Choisissez une case libre.',
   INVALID_MANUAL_COUNTER: 'Le compteur a atteint sa limite.',
   INVALID_DICE_COUNT: 'Choisissez entre 1 et 100 dés à six faces.',

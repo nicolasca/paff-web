@@ -33,6 +33,18 @@
 .board-unit:focus-visible { outline: 2px solid #fff5df; outline-offset: 2px; filter: brightness(1.2); }
 .board-unit--spectator { cursor: help; }
 .board-unit--spectator img { pointer-events: none; -webkit-user-drag: none; }
+.board-unit.board-unit--shooting-target { outline: 2px solid #a7e9ff; outline-offset: 1px; box-shadow: 0 0 0 4px #437d9760, 0 0 22px #82d8ff80; cursor: crosshair; }
+.board-unit--shooting-target::after { background: linear-gradient(#a3e6ff24, transparent 50%, #081820ed); }
+.board-unit.board-unit--shooting-target:hover, .board-unit.board-unit--shooting-target:focus-visible { outline-color: #e4faff; box-shadow: 0 0 0 4px #7dc8e380, 0 0 25px #a2eaffb0; }
+.board-unit.board-unit--outside-range { opacity: .55; }
+.board-unit.board-unit--shooting-source { outline: 2px solid #ffe6b0; outline-offset: 1px; box-shadow: 0 0 18px #e9c67d70; }
+.board-unit__shooting-target { position: absolute; top: .15rem; right: .15rem; display: flex; align-items: center; gap: .2rem; padding: .08rem .22rem; border: 1px solid #acdeed; border-radius: .2rem; background: #112f40eb; color: #d8f6ff; font: 600 .52rem var(--body); }
+.board-unit__shooting-target > span { font-size: .8rem; line-height: 1; }
+.board-unit__shooting-source { position: absolute; top: .15rem; right: .15rem; border: 1px solid #e3c58b; border-radius: .2rem; padding: .12rem .22rem; background: #392c16eb; color: #ffe8b8; font: 600 .5rem var(--body); }
+.board-unit--invoked .board-unit__shooting-source { top: 1.5rem; }
+.board-unit--invoked .board-unit__shooting-target { top: 1.5rem; }
+.board-surface:has(.board-unit--shooting-source) { min-width: 720px; }
+.board-unit--shooting-target .board-unit__rain { top: 2.7rem; }
 .board-caption { display: flex; justify-content: center; gap: 1.5rem; margin: 0; padding: 0.7rem 1rem; border-top: 1px solid #b49a6330; color: #a5a590; font-size: 0.6rem; }
 .board-caption span { color: #c6ae75; }
 .board-inspection { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.7rem 1.5rem; padding: 1rem; border-block: 1px solid #bda5776b; background: #20291d; }
@@ -48,3 +60,23 @@
   .battle-round { flex-direction: column; align-items: flex-start; padding: 1rem; }
 }
 @media (prefers-reduced-motion: reduce) { .board-unit { transition: none; } }
+
+/* The overlay leaves the original artwork intact; the badge carries the meaning
+   even when motion is disabled or the green glow cannot be distinguished. */
+.board-unit.board-unit--invoked { border-color: #b4ef68; box-shadow: 0 0 0 1px #dcffac, 0 0 18px #9bea5280; }
+.board-surface:has(.board-unit--invoked) { min-width: 720px; }
+.board-unit__invocation-aura { position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 50% 110%, #a4ff4199, transparent 70%), linear-gradient(110deg, #73e74240, transparent 50%, #baff4233); box-shadow: inset 0 0 14px #c6ff6b66; animation: invocation-breathe 2.6s ease-in-out infinite alternate; }
+.board-unit__invocation-aura::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 70%, #e6ffb3 0 1px, transparent 2px), radial-gradient(circle at 80% 45%, #e6ffb3 0 1px, transparent 2px), radial-gradient(circle at 65% 85%, #d3ff83 0 1px, transparent 2px); animation: invocation-sparks 3.2s ease-in-out infinite; }
+.board-unit__invocation { position: absolute; top: .15rem; right: .15rem; z-index: 3; border: 1px solid #d7ff9c; border-radius: .2rem; background: #a7e267; color: #15280e; font: 700 .52rem var(--body); padding: .12rem .2rem; box-shadow: 0 1px 5px #0008; }
+.board-unit--invoked .board-unit__engaged { color: #dcffae; background: #243b12; }
+.board-unit--invoked .board-unit__rain { top: 1.6rem; }
+.board-unit--invoked[data-battle-role] .board-unit__role { top: 1.6rem; }
+.board-unit--invoked[data-battle-role] .board-unit__rain { top: 2.8rem; }
+.board-unit.board-unit--invoked.board-cell--selected { outline: 2px solid #fff2c6; outline-offset: 2px; }
+@keyframes invocation-breathe { from { opacity: .65; } to { opacity: 1; } }
+@keyframes invocation-sparks { 0%, 100% { transform: translateY(4px); opacity: .25; } 60% { transform: translateY(-8px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .board-unit__invocation-aura, .board-unit__invocation-aura::after { animation: none; } }
+.board-unit__shooting-description { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.board-unit--shooting-source .board-unit__rain { top: 1.6rem; }
+.board-unit--shooting-source.board-unit--invoked .board-unit__rain { top: 2.9rem; }
+.board-unit--shooting-target .board-unit__rain, .board-unit--shooting-target.board-unit--invoked .board-unit__rain { top: 2.9rem; }

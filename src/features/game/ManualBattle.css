@@ -54,15 +54,6 @@
 .manual-order-info:hover > [role=tooltip], .manual-order-info:focus > [role=tooltip] { display: block; }
 .manual-opponent-orders { margin-top: .7rem; padding-top: .7rem; border-top: 1px solid #8f947544; }
 .manual-battle summary { cursor: pointer; color: #c3b994; font-size: .7rem; }
-.manual-dice-controls { display: flex; align-items: end; gap: .65rem; }
-.manual-dice-controls label { flex: 1; font-size: .65rem; color: #b7b5a1; }
-.manual-dice-controls input { display: block; width: 100%; padding: .5rem; margin-top: .3rem; border: 1px solid #8c8f734d; border-radius: .2rem; background: #10140f; color: #eee6cf; font: .9rem var(--body); }
-.manual-dice-controls button { min-height: 2.35rem; padding: .5rem 1rem; font-size: .75rem; }
-.manual-roll p { margin: .8rem 0 .3rem; font-size: .65rem; color: #c5bba0; }
-.manual-dice { display: flex; flex-wrap: wrap; gap: .3rem; max-height: 11rem; overflow-y: auto; }
-.manual-die { display: grid; width: 2.1rem; height: 2.1rem; place-content: center; background: #ece8dc; color: #22291f; border-radius: .3rem; font: 2rem/1 sans-serif; box-shadow: 0 2px 0 #b1ac97; animation: manual-dice-in 240ms ease-out; }
-.manual-dice-history { margin-top: .7rem; }
-.manual-dice-history ol { padding-left: 1rem; color: #b9b8a5; font-size: .65rem; line-height: 1.8; max-height: 9rem; overflow-y: auto; }
 .manual-reserve { margin-top: 1rem; padding: 1rem; border: 1px solid #71886b66; border-radius: .5rem; background: linear-gradient(145deg, #26302188, #151915); }
 .manual-reinforcements { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem 1rem; margin-top: 1rem; padding: 1rem; border: 1px solid #71886b66; border-radius: .5rem; background: #26302188; }
 .manual-reinforcements > div { flex: 1 1 16rem; }
@@ -98,8 +89,6 @@
 .manual-engagement-lines { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; overflow: visible; }
 .manual-engagement-lines line { stroke: #ff4b35; stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 3px #5b0000); }
 .board-unit__role { position: absolute; top: .2rem; right: .15rem; padding: .2rem; background: #efe7d8; color: #29251e; border-radius: .15rem; font-size: .5rem; font-weight: 700; box-shadow: 0 1px 4px #0007; }
-@keyframes manual-dice-in { from { transform: translateY(-4px) rotate(-10deg); opacity: .4; } to { transform: none; opacity: 1; } }
 @media (min-width: 1400px) { .manual-battle { grid-template-columns: minmax(0, 1fr) 22rem; gap: 1.4rem; } }
 @media (max-width: 1000px) { .manual-battle { grid-template-columns: minmax(0, 1fr); } .manual-sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)); } .manual-instructions > span { max-width: 36rem; } }
 @media (max-width: 600px) { .game-page--manual .game-shell { width: calc(100% - 1.2rem); } .manual-toolbar { padding: .85rem; } .manual-toolbar > div:first-child { width: calc(100% - 9rem); } .manual-strategy { font-size: .75rem; gap: .5rem; } .manual-sidebar { grid-template-columns: minmax(0, 1fr); } .manual-reserve > header { align-items: start; flex-direction: column; } .manual-reserve { padding: .8rem; } .manual-order-info > [role=tooltip] { left: 0; right: auto; } }
-@media (prefers-reduced-motion: reduce) { .manual-die { animation: none; } }

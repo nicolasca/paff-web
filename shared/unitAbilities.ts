@@ -5,6 +5,8 @@ import type { UnitProfile } from './unitProfile'
 // IDs and descriptions travel with frozen game profiles.
 export const unitAbilities = {
   // Gaeli: PAFF 2026 (4).pdf, received 2026-09-21, p. 9.
+  // Nicolas, 2026-09-30: the former order becomes an Archer ability.
+  longRangeFire: { id: 'long-range-fire', name: 'Tir longue portée', description: 'Cette unité peut tirer à portée 4 uniquement droit devant elle, dans la même colonne. Elle conserve les possibilités de tir normal à portée 3.' },
   branTeha: { id: 'bran-teha', name: 'Bran Teha', description: 'Si cette unité n’est pas engagée en combat, vous pouvez désigner une unité alliée, même engagée en combat, à portée de tir. Lancez un dé : sur un résultat de 5+, l’unité désignée peut récupérer 1 point de R, sans dépasser son score de R initial.' },
   ancestralSong: { id: 'ancestral-song', name: 'Chant des Ancêtres', description: 'Si cette unité n’est pas engagée en combat, toutes vos unités dans la même zone peuvent relancer 1 dé en combat.' },
   guardianCharge: { id: 'guardian-charge', name: 'Charge du Gardien', description: 'Cette unité ne peut pas être déployée avec l’armée initiale. Quand vous la déployez, désignez une de vos unités de Druides non engagée en combat dans votre zone Arrière. Le Grand Gardien se déploie dans la colonne de ces Druides en chargeant la première unité ennemie de cette colonne, à condition qu’il n’y ait que des emplacements vides entre les Druides et cette unité ennemie. Il ne peut pas aller plus loin qu’un emplacement de la zone Centre et doit s’engager avec l’unité ennemie. Il lance 1 dé supplémentaire par emplacement vide parcouru lors de cette première attaque de charge.' },

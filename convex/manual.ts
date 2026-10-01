@@ -6,6 +6,7 @@ import { cellCoordinate, isCell } from '../shared/board'
 import { GOBLIN_BAND_CARD_ID, GOBLIN_REINFORCEMENTS_ORDER_ID, manualMoves } from '../shared/manualBattle'
 import { getUnitProfile } from '../shared/unitProfile'
 import { fail, loadManual, logEvent, saveManual } from './lib/manualState'
+import { invalidateCombat } from '../shared/combat'
 
 const gameId = v.id('games')
 const delta = v.union(v.literal(-1), v.literal(1))
@@ -22,7 +23,8 @@ function owned(state: State, id: string) {
 function freeCell(state: State, cell: number) {
   if (!isCell(cell) || state.engine.units.some((unit) => unit.cell === cell)) fail('CELL_OCCUPIED')
 }
-function save(ctx: MutationCtx, state: State, text?: string) {
+function save(ctx: MutationCtx, state: State, text?: string, invalidate = true) {
+  if (invalidate && state.manual.combat) invalidateCombat(state.manual.combat, state.engine, state.battle.turn)
   return saveManual(ctx, state.game, { ...state.battle, manual: state.manual }, text ? logEvent(state.engine, state.battle.turn, text) : state.engine)
 }
 function counter(value: number, change: number, minimum = 0) {
@@ -106,7 +108,7 @@ export const adjustStrategy = mutation({
   handler: async (ctx, args) => {
     const state = await load(ctx, args.gameId)
     state.battle.strategyPoints[state.member.seat] = counter(state.battle.strategyPoints[state.member.seat], args.delta)
-    await save(ctx, state)
+    await save(ctx, state, undefined, false)
   },
 })
 export const adjustOrderStock = mutation({
@@ -117,7 +119,7 @@ export const adjustOrderStock = mutation({
     if (!stock) return fail('ORDER_NOT_AVAILABLE')
     if (args.orderId === 'recruitment' && state.battle.turn < 2) return fail('RECRUITMENT_NOT_YET_AVAILABLE')
     stock.remaining = counter(stock.remaining, args.delta)
-    await save(ctx, state)
+    await save(ctx, state, undefined, false)
   },
 })
 export const adjustRegiment = mutation({
@@ -142,7 +144,7 @@ export const setDuel = mutation({
       if (!attacker || (args.targetId && (!target || target.seat === attacker.seat))) return fail('INVALID_DUEL')
       state.manual.duel = { attackerId: attacker.id, ...(target ? { targetId: target.id } : {}) }
     }
-    await save(ctx, state)
+    await save(ctx, state, undefined, false)
   },
 })
 export const setEngagement = mutation({
@@ -155,6 +157,7 @@ export const setEngagement = mutation({
     const pair = [a.id, b.id].sort()
     state.engine.engagements = state.engine.engagements.filter((edge) => !pair.includes(edge.a) || !pair.includes(edge.b))
     if (args.engaged) state.engine.engagements.push({ a: pair[0], b: pair[1] })
+    else if (state.manual.combat) state.manual.combat.arrows = state.manual.combat.arrows.filter((arrow) => arrow.kind !== 'melee' || !pair.includes(arrow.attackerId) || !pair.includes(arrow.targetId))
     await save(ctx, state, `${state.member.displayName} ${args.engaged ? 'marque' : 'retire'} un engagement entre ${cellCoordinate(a.cell)} et ${cellCoordinate(b.cell)}.`)
   },
 })
@@ -165,7 +168,7 @@ export const rollDice = mutation({
     if (!Number.isSafeInteger(args.count) || args.count < 1 || args.count > 100) return fail('INVALID_DICE_COUNT')
     const roll = { id: (state.manual.dice.at(-1)?.id ?? 0) + 1, seat: state.member.seat, turn: state.battle.turn, values: Array.from({ length: args.count }, () => Math.floor(Math.random() * 6) + 1) }
     state.manual.dice = [...state.manual.dice, roll].slice(-20)
-    await save(ctx, state)
+    await save(ctx, state, undefined, false)
   },
 })
 export const discardUnit = mutation({

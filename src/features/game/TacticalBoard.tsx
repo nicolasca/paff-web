@@ -7,18 +7,23 @@ import type { Game, GamePlayer } from './types'
 import '../catalogue/factionTheme.css'
 import './TacticalBoard.css'
 import { EngagementLines } from './EngagementLines'
+import type { AttackKind } from '../../../shared/combat'
+import { INVOCATION_AXES, underInvocation } from '../../../shared/greatInvocation'
 
 const bands = [[0], [1], [2, 3], [4], [5]]
 const axes = [[0, 1], [2, 3, 4, 5, 6], [7, 8]]
 const bandNames = ['Arrière adverse', 'Base adverse', 'Centre stratégique', 'Votre base', 'Votre arrière']
 const factionKey = (player: GamePlayer) => player.deployedCards[0]?.faction.stableId ?? player.cards[0]?.faction.stableId ?? player.factionName?.toLowerCase()
 
-export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, placeLabel = 'Déployer ici', busy = false, onUnit, selectedCell, interaction }: {
+export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, placeLabel = 'Déployer ici', busy = false, onUnit, selectedCell, interaction, aiming = false, activeAttackKind, shootingTargets = [], shootingSourceCell }: {
+  aiming?: boolean; activeAttackKind?: AttackKind
+  shootingTargets?: { cell: number; distance: number }[]; shootingSourceCell?: number
   onUnit?: (cell: number) => void; selectedCell?: number; game: Game; allowedCells?: number[]; onPlace?: (cell: number) => void; onReposition?: (cell: number) => void; placeLabel?: string; busy?: boolean
   interaction?: { canDrag: (cell: number) => boolean; onDrag: (cell: number, event: DragEvent<HTMLButtonElement>) => void; onDragEnd: () => void; onDrop: (cell: number) => void; onCompare: (cell: number) => void; dragging: boolean }
 }) {
   const readOnly = game.isSpectator
   const me = game.players.find((player) => player.isMe) ?? game.players.find((player) => player.seat === 0)!
+  const axisNames = me.seat === 1 ? [...INVOCATION_AXES].reverse() : INVOCATION_AXES
   const opponent = game.players.find((player) => player.seat !== me.seat)!
   const zoneNames = readOnly ? ['Arrière nord', 'Base nord', 'Centre stratégique', 'Base sud', 'Arrière sud'] : bandNames
   const [inspected, setInspected] = useState<number | null>(null)
@@ -72,11 +77,11 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
     <p className="board-mobile-hint">↔ Faites défiler le plateau horizontalement</p>
     <div className="board-scroll" tabIndex={0} role="region" aria-label="Plateau de 54 cases et 15 zones, défilement horizontal sur petit écran">
       <div className="board-surface" ref={surface}>
-        {game.battle?.manual && <EngagementLines surface={surface} units={game.battle.engine!.units} engagements={game.battle.engine!.engagements} />}
-        <div className="board-axis"><span>Flanc coco</span><span>Centre</span><span>Flanc aux pommes</span></div>
+        {game.battle?.manual && <EngagementLines surface={surface} units={game.battle.engine!.units} engagements={game.battle.engine!.engagements} arrows={game.battle.manual.combat?.arrows} activeKind={activeAttackKind} />}
+        <div className="board-axis">{axisNames.map((name) => <span key={name}>{name}</span>)}</div>
         <div className="board-zones">{bands.flatMap((rows, band) => axes.map((columns, axis) => <div
           key={`${band}-${axis}`} className={`board-zone board-zone--${band < 2 ? 'opponent' : band === 2 ? 'strategic' : 'you'}`}
-          role="group" aria-label={`${zoneNames[band]} · ${['Flanc coco', 'Centre', 'Flanc aux pommes'][axis]}`}>
+          role="group" aria-label={`${zoneNames[band]} · ${axisNames[axis]}`}>
           <span className="board-zone__label">{axis === 1 ? zoneNames[band] : band === 2 ? '✦' : band === 0 || band === 4 ? 'Arrière' : 'Base'}</span>
           <div className="board-zone__cells" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}>{rows.flatMap((row) => columns.map((column) => {
             const cell = displayCell(row * 9 + column, me.seat)
@@ -84,16 +89,23 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
             const allowed = !readOnly && allowedCells.includes(cell)
             const engaged = Boolean(unit?.runtime && isEngaged(game.battle!.engine!, unit.runtime.id))
             const battleRole = unit?.runtime && game.battle?.manual?.duel ? unit.runtime.id === game.battle.manual.duel.attackerId ? 'attacker' : unit.runtime.id === game.battle.manual.duel.targetId ? 'defender' : undefined : undefined
-            const content = <>{unit ? <><img src={unit.card.imagePath} alt="" /><span className="board-unit__regiment" title={interaction && unit.owner.isMe ? 'Cliquez cette unité pour modifier ses R' : 'Points de régiment'}>{unit.runtime?.regiment ?? getUnitProfile(unit.card)?.regiment}<small>R</small></span><strong>{unit.card.name}</strong>{engaged && <span className="board-unit__engaged" title="Unité engagée">⚔</span>}</> : <span className="board-cell__mark" aria-hidden="true">{allowed ? '+' : '·'}</span>}<span className="board-cell__coordinate" aria-hidden="true">{cellCoordinate(cell)}</span></>
-            const className = `board-cell${unit ? ` board-unit board-unit--${unit.owner.seat === me.seat ? 'you' : 'opponent'}` : ''}${allowed ? ' board-cell--allowed' : ''}${!readOnly && cell === (selectedCell ?? inspected) ? ' board-cell--selected' : ''}${engaged && (interaction || readOnly) ? ' board-unit--engaged' : ''}${battleRole ? ` board-unit--${battleRole}` : ''}`
-            const label = `${cellCoordinate(cell)}${allowed ? ` · ${placeLabel}` : ''}${unit ? ` · ${unit.card.name} · ${unit.owner.displayName}` : allowed ? '' : ' · Case vide'}`
+            const rain = unit?.runtime && game.battle?.manual?.combat?.rain.find((effect) => effect.unitId === unit.runtime!.id && effect.turn === game.battle!.turn)
+            const invoked = unit?.runtime && underInvocation(unit.runtime, game.battle?.manual?.combat?.invocations, game.battle!.turn)
+            const choosingShot = !readOnly && shootingSourceCell !== undefined
+            const shootingTarget = choosingShot ? shootingTargets.find((target) => target.cell === cell) : undefined
+            const outsideRange = choosingShot && unit && unit.owner.seat !== me.seat && !shootingTarget
+            const rangeDescription = shootingTarget ? `Cible à portée : ${shootingTarget.distance} case${shootingTarget.distance > 1 ? 's' : ''}` : outsideRange ? 'Cible indisponible pour ce tir' : undefined
+            const descriptionIds = [hovered?.cell === cell ? previewId : undefined, rangeDescription ? `${previewId}-shot-${cell}` : undefined].filter(Boolean).join(' ') || undefined
+            const content = <>{unit ? <><img src={unit.card.imagePath} alt="" /><span className="board-unit__regiment" title={interaction && unit.owner.isMe && !aiming ? 'Cliquez cette unité pour modifier ses R' : 'Points de régiment'}>{unit.runtime?.regiment ?? getUnitProfile(unit.card)?.regiment}<small>R</small></span><strong>{unit.card.name}</strong>{invoked && <><span className="board-unit__invocation-aura" aria-hidden="true" /><span className="board-unit__invocation" title="La gross Invokation ! : dés du profil doublés jusqu’à la fin du tour">×2 D</span></>}{rain && <span className="board-unit__rain" title={`Pluie de gobs : −${rain.penalty} dés ce tour`}>−{rain.penalty} D</span>}{engaged && <span className="board-unit__engaged" title="Unité engagée">⚔</span>}</> : <span className="board-cell__mark" aria-hidden="true">{allowed ? '+' : '·'}</span>}<span className="board-cell__coordinate" aria-hidden="true">{cellCoordinate(cell)}</span></>
+            const className = `board-cell${unit ? ` board-unit board-unit--${unit.owner.seat === me.seat ? 'you' : 'opponent'}` : ''}${allowed ? ' board-cell--allowed' : ''}${!readOnly && cell === (selectedCell ?? inspected) ? ' board-cell--selected' : ''}${engaged && (interaction || readOnly) ? ' board-unit--engaged' : ''}${battleRole ? ` board-unit--${battleRole}` : ''}${invoked ? ' board-unit--invoked' : ''}${shootingTarget ? ' board-unit--shooting-target' : ''}${outsideRange ? ' board-unit--outside-range' : ''}${choosingShot && cell === shootingSourceCell ? ' board-unit--shooting-source' : ''}`
+            const label = `${cellCoordinate(cell)}${allowed ? ` · ${placeLabel}` : ''}${unit ? ` · ${unit.card.name} · ${unit.owner.displayName}${invoked ? ' · La gross Invokation !, dés de profil ×2' : ''}` : allowed ? '' : ' · Case vide'}`
             if (readOnly && unit) return <div key={cell} role="img" tabIndex={0} data-cell={cell} data-unit-id={unit.runtime?.id} data-faction={unit.card.faction.stableId} data-battle-role={battleRole} className={`${className} board-unit--spectator`} aria-label={`${label} · ${unit.runtime?.regiment ?? getUnitProfile(unit.card)?.regiment} R`} aria-describedby={hovered?.cell === cell ? previewId : undefined}
               onMouseEnter={(event) => showPreview(cell, event.currentTarget)}
               onMouseLeave={hidePreviewSoon}
               onFocus={(event) => showPreview(cell, event.currentTarget)}
               onBlur={hidePreviewSoon}
             >{content}{battleRole && <span className="board-unit__role">{battleRole === 'attacker' ? 'Att.' : 'Déf.'}</span>}</div>
-            return unit || allowed ? <button key={cell} type="button" data-cell={cell} data-unit-id={unit?.runtime?.id} data-faction={unit?.card.faction.stableId} data-battle-role={battleRole} className={className} aria-label={label} aria-describedby={hovered?.cell === cell ? previewId : undefined} aria-pressed={unit ? cell === (selectedCell ?? inspected) : undefined} disabled={busy && (allowed || Boolean(onUnit))}
+            return unit || allowed ? <button key={cell} type="button" data-cell={cell} data-unit-id={unit?.runtime?.id} data-faction={unit?.card.faction.stableId} data-battle-role={battleRole} data-shooting-target={choosingShot && unit?.owner.seat !== me.seat ? Boolean(shootingTarget) : undefined} className={className} aria-label={label} aria-description={rangeDescription} aria-describedby={descriptionIds} aria-pressed={unit ? cell === (selectedCell ?? inspected) : undefined} disabled={busy && (allowed || Boolean(onUnit))}
               draggable={!busy && Boolean(interaction?.canDrag(cell))}
               onDragStart={(event) => { setHovered(null); interaction?.onDrag(cell, event) }}
               onDragEnd={() => interaction?.onDragEnd()}
@@ -111,9 +123,10 @@ export function TacticalBoard({ game, allowedCells = [], onPlace, onReposition, 
                 else if (unit) {
                   if (onUnit) onUnit(cell)
                   else setInspected(cell === inspected ? null : cell)
-                  showPreview(cell, event.currentTarget)
+                  if (!aiming) showPreview(cell, event.currentTarget)
+                  else setHovered(null)
                 }
-              }}>{content}{battleRole && <span className="board-unit__role">{battleRole === 'attacker' ? 'Att.' : 'Déf.'}</span>}</button>
+              }}>{content}{rangeDescription && <span id={`${previewId}-shot-${cell}`} className="board-unit__shooting-description">{rangeDescription}</span>}{shootingTarget && <span className="board-unit__shooting-target" aria-hidden="true"><span>◎</span>{shootingTarget.distance} case{shootingTarget.distance > 1 ? 's' : ''}</span>}{choosingShot && cell === shootingSourceCell && <span className="board-unit__shooting-source" aria-hidden="true">Tireur</span>}{battleRole && <span className="board-unit__role">{battleRole === 'attacker' ? 'Att.' : 'Déf.'}</span>}</button>
               : <div key={cell} data-cell={cell} className={className} aria-label={label}>{content}</div>
           }))}</div>
         </div>))}</div>

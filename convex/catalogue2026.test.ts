@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { createGameHarness } from '../src/test/gameHarness'
 import { catalogue2026, CATALOGUE_VERSION } from '../shared/catalogue2026'
+import { hasUnitAbility, unitAbilities } from '../shared/unitAbilities'
 
 function setup() {
   const h = createGameHarness()
@@ -13,6 +14,35 @@ function setup() {
 }
 
 describe('September 21 roster with preserved September 18 rulings', () => {
+  it('publishes long-range fire as an Archer ability while preserving frozen Archers and deck references', async () => {
+    const h = setup()
+    const archers = catalogue2026.find((unit) => unit.stableId === 'gaeli-archers-longs-gaeliens')!
+    const historicalProfile = structuredClone(archers.profile)
+    delete historicalProfile.ability
+    h.tables.cards.push({ ...h.tables.cards[0], _id: 'long-archers', stableId: archers.stableId, factionId: 'gaeli', name: archers.name, cost: archers.cost, profile: historicalProfile })
+    h.tables.decks.find((deck) => deck._id === 'deck-1')!.factionId = 'gaeli'
+    h.tables.deckCards = h.tables.deckCards.filter((entry) => entry.deckId !== 'deck-1')
+    h.tables.deckCards.push({ _id: 'long-archers-deck', deckId: 'deck-1', cardId: 'long-archers', quantity: 1 })
+    await h.readyFor('preparation')
+    const frozen = structuredClone(h.tables.gameCards)
+    const entries = structuredClone(h.tables.deckCards)
+    expect(frozen.find((card) => card.stableId === archers.stableId)).toMatchObject({ profile: historicalProfile })
+
+    await h.apply()
+    expect(h.tables.cards.find((card) => card._id === 'long-archers')).toMatchObject({
+      dataVersion: CATALOGUE_VERSION, abilities: ['Tir longue portée'],
+      profile: { ...historicalProfile, ability: unitAbilities.longRangeFire },
+    })
+    expect(catalogue2026.filter((unit) => hasUnitAbility(unit.profile, 'longRangeFire')).map((unit) => unit.stableId)).toEqual([archers.stableId])
+    expect(h.tables.gameCards).toEqual(frozen)
+    expect(h.tables.deckCards).toEqual(entries)
+
+    await h.run('leave', 1, { gameId: h.tables.games[0]._id })
+    const gameId = await h.readyFor('deck_selection')
+    await h.run('selectDeck', 1, { gameId, deckId: 'deck-1' })
+    const me = (await h.run('get', 1, { gameId }))!.players[0]
+    expect(me.cards[0]).toMatchObject({ stableId: archers.stableId, profile: { ability: unitAbilities.longRangeFire } })
+  })
   it('removes all Orc deck entries, hides the faction, and leaves empty decks reusable', async () => {
     const h = setup()
     h.tables.decks.push({ _id: 'orc-deck', ownerUserId: 'user-1', name: 'Ma vieille armée', factionId: 'orcs' }, { _id: 'empty-orc-deck', ownerUserId: 'user-2', name: 'Vide', factionId: 'orcs' })

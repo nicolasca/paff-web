@@ -11,6 +11,11 @@ import { OrderInfo } from './OrderInfo'
 import type { BattleControls } from './types'
 import type { Game } from './types'
 import './ManualBattle.css'
+import { CombatPlan, CombatToolbar } from './CombatPlanning'
+import { useCombatPlanning, type PlanningMode } from './useCombatPlanning'
+import { CombatReport } from './CombatReport'
+import { InvocationOrders } from './InvocationOrders'
+import { FreeDice } from './FreeDice'
 
 type Source = { kind: 'unit'; id: string; from: number } | { kind: 'reserve'; id: string; entered: number } | { kind: 'discard'; id: string } | { kind: 'summon'; id: string; summoned: number }
 
@@ -32,7 +37,6 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
   const [selectedId, setSelectedId] = useState<string>()
   const [source, setSource] = useState<Source | null>(null)
   const [dragging, setDragging] = useState(false)
-  const [diceCount, setDiceCount] = useState(3)
   const battle = game.battle!
   const engine = battle.engine!
   const manual = battle.manual!
@@ -55,8 +59,9 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
   const defense = targetProfile && (ranged ? targetProfile.defenseRanged : targetProfile.defenseMelee)
   const rule = attackProfile && attackProfile.offense.score !== null && defense !== undefined ? hitRule(attackProfile.offense.score, defense) : undefined
   const engaged = attacker && target && engine.engagements.some((edge) => [edge.a, edge.b].includes(attacker.id) && [edge.a, edge.b].includes(target.id))
-  const lastRoll = manual.dice.at(-1)
   const run = (action: () => Promise<unknown>) => { if (!locked) void perform(action) }
+  const plan = useCombatPlanning(game, locked, run)
+  function changeMode(mode: PlanningMode) { setSource(null); setSelectedId(undefined); setDragging(false); plan.changeMode(mode) }
   const cancelDrag = () => { setDragging(false); setSource(null) }
   useEffect(() => {
     const cancel = (event: KeyboardEvent) => { if (event.key === 'Escape') { setDragging(false); setSource(null) } }
@@ -86,7 +91,7 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
     else if (attacker && !target && attacker.seat !== unit.seat) run(() => duel({ gameId: game.id, attackerId: attacker.id, targetId: unit.id }))
     else run(() => duel({ gameId: game.id, attackerId: unit.id }))
   }
-  const orderList = (seat: number, editable: boolean) => <ul className="manual-orders">{battle.catalog.filter((order) => order.seats.includes(seat)).map((order) => {
+  const orderList = (seat: number, editable: boolean) => <ul className="manual-orders">{battle.catalog.filter((order) => order.seats.includes(seat) && order.id !== 'long-range-fire').map((order) => {
     const remaining = manual.stocks.find((item) => item.seat === seat && item.orderId === order.id)?.remaining
     const unavailable = order.id === 'recruitment' && battle.turn < 2
     return <li key={order.id}><div><OrderInfo name={order.name} description={order.description} />{unavailable && <small className="manual-order-availability">À partir du tour 2</small>}</div>{remaining === undefined ? <span className="manual-unlimited" aria-label="Illimité">∞</span> : editable ? <Counter label={`${order.name} restants`} value={remaining} busy={locked || unavailable} onChange={(delta) => run(() => stock({ gameId: game.id, orderId: order.id, delta }))} /> : <span>{remaining}</span>}</li>
@@ -99,15 +104,18 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
       <div className="manual-strategy"><span>{me.displayName}<small>Points stratégiques</small></span><Counter label={`Points stratégiques de ${me.displayName}`} value={battle.strategyPoints[me.seat]} busy={locked} onChange={(delta) => run(() => strategy({ gameId: game.id, delta }))} /></div>
       <div className="manual-strategy manual-strategy--opponent"><span>{opponent.displayName}<small>Points stratégiques</small></span><output aria-label={`Points stratégiques de ${opponent.displayName}`}>{battle.strategyPoints[opponent.seat]}</output></div>
     </header>
+    <CombatToolbar game={game} plan={plan} locked={locked} onMode={changeMode} />
+    <InvocationOrders game={game} locked={locked} run={run} />
     <div className="manual-main">
-      <p className="manual-instructions">Glissez pour déplacer. Cliquez sur une de vos unités pour ajuster ses R, même hors combat. Clic droit : attaquant, puis défenseur.<span>Au clavier : sélectionnez une unité puis une case ; C pour comparer. Échap pour annuler le déplacement.</span></p>
+      {plan.mode === 'move' && <p className="manual-instructions">Glissez pour déplacer. Cliquez sur une de vos unités pour ajuster ses R, même hors combat. Clic droit : attaquant, puis défenseur.<span>Au clavier : sélectionnez une unité puis une case ; C pour comparer. Échap pour annuler le déplacement.</span></p>}
       {source && !dragging && <div className="manual-placement" role="status">Choisissez une case éclairée.<button type="button" onClick={cancelDrag}>Annuler</button></div>}
-      <TacticalBoard game={game} busy={locked} selectedCell={selected?.cell} allowedCells={allowed} onPlace={drop} placeLabel={source?.kind === 'summon' ? 'Ajouter la Bande ici' : source?.kind === 'reserve' ? 'Recruter ici' : source?.kind === 'discard' ? 'Remettre ici' : 'Déplacer ici'} onUnit={(cell) => {
+      <TacticalBoard game={game} aiming={plan.mode !== 'move'} activeAttackKind={plan.mode === 'move' ? undefined : plan.mode} shootingTargets={plan.shootingTargets} shootingSourceCell={plan.mode === 'ranged' ? plan.source?.cell : undefined} busy={locked} selectedCell={plan.source?.cell ?? selected?.cell} allowedCells={allowed} onPlace={drop} placeLabel={source?.kind === 'summon' ? 'Ajouter la Bande ici' : source?.kind === 'reserve' ? 'Recruter ici' : source?.kind === 'discard' ? 'Remettre ici' : 'Déplacer ici'} onUnit={(cell) => {
+        if (plan.mode !== 'move') { plan.choose(cell); return }
         const unit = engine.units.find((unit) => unit.cell === cell && unit.seat === me.seat)
         setSelectedId(unit?.id)
         setSource(unit ? { kind: 'unit', id: unit.id, from: unit.cell } : null)
-      }} interaction={{ dragging, onDragEnd: cancelDrag, onDrop: drop, onCompare: compare,
-        canDrag: (cell) => { const unit = engine.units.find((unit) => unit.cell === cell && unit.seat === me.seat); return Boolean(unit && manualMoves(engine, unit, getUnitProfile(cardFor(unit))!).length) },
+      }} interaction={{ dragging, onDragEnd: cancelDrag, onDrop: drop, onCompare: plan.mode === 'move' ? compare : plan.choose,
+        canDrag: (cell) => { if (plan.mode !== 'move') return false; const unit = engine.units.find((unit) => unit.cell === cell && unit.seat === me.seat); return Boolean(unit && manualMoves(engine, unit, getUnitProfile(cardFor(unit))!).length) },
         onDrag: (cell, event) => { const unit = engine.units.find((unit) => unit.cell === cell && unit.seat === me.seat); if (unit) { setSelectedId(unit.id); beginDrag({ kind: 'unit', id: unit.id, from: cell }, event) } else event.preventDefault() },
       }} />
       {goblinOrder && <section className="manual-reinforcements" aria-label="Renforts gobelins">
@@ -129,8 +137,12 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
       <details className="manual-journal"><summary>Journal des déplacements et engagements</summary><ol>{engine.log.slice(-20).reverse().map((item) => <li key={item.id}><small>Tour {item.turn}</small> {item.text}</li>)}</ol></details>
     </div>
     <aside className="manual-sidebar" aria-label="Outils de bataille">
+      <FreeDice game={game} busy={locked} onRoll={() => locked ? Promise.resolve() : perform(() => roll({ gameId: game.id, count: 1 }))} />
+      {!plan.arrows.length && <CombatReport game={game} />}
+      {plan.mode !== 'move' && <CombatPlan game={game} plan={plan} locked={locked} />}
+      {plan.arrows.length > 0 && <CombatReport game={game} />}
       {selected && <section className="manual-panel manual-selected" aria-label="Unité sélectionnée"><header><h3>{unitName(selected)}</h3><button type="button" className="manual-icon-button" aria-label="Fermer la sélection" onClick={() => { setSelectedId(undefined); setSource(null) }}>×</button></header><div className="manual-selected-r"><span>Points de régiment</span><Counter label={`R de ${unitName(selected)}`} value={selected.regiment} busy={locked} onChange={(delta) => run(() => regiment({ gameId: game.id, unitId: selected.id, delta }))} /></div><button type="button" className="manual-text-button" disabled={locked} onClick={() => { setSource(null); run(() => discard({ gameId: game.id, unitId: selected.id })) }}>Retirer du plateau</button></section>}
-      <section className="manual-panel manual-duel" aria-label="Aide au combat">
+      {plan.mode === 'move' && <section className="manual-panel manual-duel" aria-label="Aide au combat">
         <header><h3>Aide au combat</h3>{attacker && <button type="button" className="manual-icon-button" aria-label="Effacer la comparaison" disabled={locked} onClick={() => run(() => duel({ gameId: game.id }))}>×</button>}</header>
         <label>Attaquant<select aria-label="Attaquant" disabled={locked} value={attacker?.id ?? ''} onChange={(event) => run(() => duel({ gameId: game.id, ...(event.target.value ? { attackerId: event.target.value } : {}) }))}><option value="">Clic droit sur une unité</option>{engine.units.map((unit) => <option key={unit.id} value={unit.id}>{unitName(unit)}</option>)}</select></label>
         <label>Défenseur<select aria-label="Défenseur" disabled={locked || !attacker} value={target?.id ?? ''} onChange={(event) => run(() => duel({ gameId: game.id, attackerId: attacker!.id, ...(event.target.value ? { targetId: event.target.value } : {}) }))}><option value="">Puis sur l’autre unité</option>{engine.units.filter((unit) => attacker && unit.seat !== attacker.seat).map((unit) => <option key={unit.id} value={unit.id}>{unitName(unit)}</option>)}</select></label>
@@ -140,14 +152,7 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
           <button type="button" className={`ui-button${engaged ? ' manual-engaged-button' : ''}`} disabled={locked} onClick={() => run(() => engage({ gameId: game.id, a: attacker.id, b: target.id, engaged: !engaged }))}>{engaged ? 'Retirer l’engagement' : 'Marquer un engagement'}</button>
         </>}
         {!attacker && <p className="manual-note">Deux clics droits affichent les dés et le seuil à atteindre.</p>}
-      </section>
-      <section className="manual-panel manual-dice-panel" aria-label="Lanceur de dés">
-        <header><h3>Les dés</h3><span>D6</span></header>
-        <div className="manual-dice-controls"><label>Nombre<input aria-label="Nombre de D6" type="number" min={1} max={100} value={diceCount} onChange={(event) => setDiceCount(Number(event.target.value))} /></label><button type="button" className="ui-button ui-button--primary" disabled={locked || !Number.isInteger(diceCount) || diceCount < 1 || diceCount > 100} onClick={() => run(() => roll({ gameId: game.id, count: diceCount }))}>Lancer</button></div>
-        {attackProfile && attackProfile.dice > 0 && <button type="button" className="manual-text-button" onClick={() => setDiceCount(attackProfile.dice)}>Utiliser les {attackProfile.dice} dés de l’attaquant</button>}
-        <div aria-live="polite" aria-atomic="true">{lastRoll ? <div key={lastRoll.id} className="manual-roll"><p>{game.players.find((player) => player.seat === lastRoll.seat)?.displayName} · {lastRoll.values.length} D6 · Tour {lastRoll.turn}</p><div className="manual-dice" aria-label={`Résultats : ${lastRoll.values.join(', ')}`}>{lastRoll.values.map((value, index) => <span key={index} className="manual-die" aria-hidden="true">{['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'][value]}</span>)}</div></div> : <p className="manual-note">Les résultats seront visibles des deux joueurs.</p>}</div>
-        {manual.dice.length > 1 && <details className="manual-dice-history"><summary>Jets précédents</summary><ol>{manual.dice.slice(0, -1).reverse().map((item) => <li key={item.id}>{game.players.find((player) => player.seat === item.seat)?.displayName} · T{item.turn} : {item.values.join(' · ')}</li>)}</ol></details>}
-      </section>
+      </section>}
       <section className="manual-panel" aria-label="Ordres de référence"><header><h3>Vos ordres</h3><span>{me.factionName}</span></header>{orderList(me.seat, true)}<details className="manual-opponent-orders"><summary>Ordres de {opponent.displayName}</summary>{orderList(opponent.seat, false)}</details></section>
     </aside>
   </section>

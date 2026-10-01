@@ -43,12 +43,13 @@ describe('orders from the September 18 PDF and consolidated rulings', () => {
 
   it('does not assign Goblin or Sephosi orders to the other factions', () => {
     const battle = initialBattle([{ seat: 0, faction: 'orcs' }, { seat: 1, faction: 'gaeli' }])
-    expect(battle.catalog).toHaveLength(8)
+    expect(battle.catalog).toHaveLength(7)
     expect(battle.catalog.every((order) => order.faction === 'common' || order.faction === 'gaeli')).toBe(true)
     const gaeli = battle.catalog.filter((order) => order.faction === 'gaeli')
-    expect(gaeli.map((order) => order.name)).toEqual(['Tir longue portée', 'Course héroique', 'Appel des vents', 'Convocation des Esprits'])
-    expect(gaeli.map((order) => order.seats)).toEqual([[1], [1], [1], [1]])
-    expect(gaeli.map((order) => order.limit)).toEqual([undefined, 4, 2, 1])
+    expect(gaeli.map((order) => order.name)).toEqual(['Course héroique', 'Appel des vents', 'Convocation des Esprits'])
+    expect(gaeli.map((order) => order.seats)).toEqual([[1], [1], [1]])
+    expect(gaeli.map((order) => order.limit)).toEqual([4, 2, 1])
+    expect(battle.catalog.some((order) => order.id === 'long-range-fire')).toBe(false)
     expect(battle.manual.stocks.filter((stock) => stock.seat === 1).map((stock) => stock.remaining)).toEqual([3, 4, 2, 1])
     expect(new Set(orderDefinitions.map((order) => order.id)).size).toBe(orderDefinitions.length)
   })
