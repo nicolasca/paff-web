@@ -9,6 +9,8 @@ import './ManualBattle.css'
 import { CombatReport } from './CombatReport'
 import { InvocationOrders } from './InvocationOrders'
 import { FreeDice } from './FreeDice'
+import { AutoOrders } from './AutoOrders'
+import { MANUAL_RULES_VERSION } from '../../../shared/manualBattle'
 
 export function SpectatorBattle({ game }: { game: Game }) {
   const battle = game.battle
@@ -37,7 +39,9 @@ export function SpectatorBattle({ game }: { game: Game }) {
       <div className="manual-turn"><span>Tour</span><output aria-label="Tour">{battle.turn}</output></div>
       {game.players.map((player) => <div key={player.id} className="manual-strategy"><span>{player.displayName}<small>Points stratégiques</small></span><output aria-label={`Points stratégiques de ${player.displayName}`}>{battle.strategyPoints[player.seat]}</output></div>)}
     </header>
+    {game.rulesVersion !== MANUAL_RULES_VERSION && <p className="combat-legacy-notice" role="status">Cette partie conserve ses anciennes règles et ses rapports. Les nouvelles résolutions automatiques sont réservées aux nouvelles parties.</p>}
     <InvocationOrders game={game} />
+    <AutoOrders game={game} />
     <div className="manual-main">
       <p className="manual-instructions">Vous suivez la bataille en direct, sans pouvoir intervenir.<span>Survolez une unité ou utilisez Tab pour consulter son profil. Les réserves des joueurs restent privées.</span></p>
       <TacticalBoard game={game} />

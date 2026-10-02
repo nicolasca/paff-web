@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { liveGame } from '../../test/liveGame'
 import { TacticalBoard } from './TacticalBoard'
+import { emptyCombat } from '../../../shared/combat'
+import { FOREST_SPIRITS_ID } from '../../../shared/autoCombat'
 
 afterEach(() => vi.useRealTimers())
 
@@ -73,5 +75,59 @@ describe('interactive battlefield card preview', () => {
     await userEvent.keyboard('{Escape}')
     expect(unit).toHaveFocus()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
+
+describe('shared AUTO effects on the battlefield', () => {
+  it.each([1, 2, 3])('shows the roll for the active Troll attack rather than its newer engagement (viewer: %s)', async (viewer) => {
+    const h = await liveGame()
+    const game = await h.read(viewer)
+    const battle = game.battle!
+    const unit = battle.engine!.units.find((unit) => unit.seat === 0 && unit.cardStableId === 'lanciers')!
+    const enemies = battle.engine!.units.filter((unit) => unit.seat === 1)
+    battle.manual.combat = { ...emptyCombat(),
+      arrows: [{ kind: 'melee', attackerId: unit.id, targetId: enemies[0].id }],
+      trollRolls: [
+        { unitId: unit.id, targetId: enemies[0].id, value: 1, turn: battle.turn },
+        { unitId: unit.id, targetId: enemies[1].id, value: 4, turn: battle.turn },
+      ],
+    }
+    const { rerender } = render(<TacticalBoard game={game} />)
+    const tile = screen.getByRole(viewer === 3 ? 'img' : 'button', { name: /^E5 · Lanciers · Joueur 1 · Trollitude, dé 1/ })
+    expect(tile.querySelector('.board-unit__troll')).toHaveTextContent('D6 1')
+    expect(tile.querySelector('.board-unit__troll')).toHaveAttribute('title', 'Trollitude : attaque un allié adjacent')
+    battle.manual.combat.arrows = []
+    rerender(<TacticalBoard game={game} />)
+    expect(tile.querySelector('.board-unit__troll')).toHaveTextContent('D6 4')
+  })
+
+  it.each([false, true])('shows zero-R warriors with their final-combat status (spectator: %s)', async (spectator) => {
+    const h = await liveGame()
+    const game = await h.read(spectator ? 3 : 1)
+    const unit = game.battle!.engine!.units.find((unit) => unit.seat === 0 && unit.cardStableId === 'lanciers')!
+    unit.regiment = 0
+    game.battle!.manual.combat = { ...emptyCombat(), held: [{ unitId: unit.id, turn: game.battle!.turn }] }
+    render(<TacticalBoard game={game} />)
+    const tile = screen.getByRole(spectator ? 'img' : 'button', { name: /^E5 · Lanciers · Joueur 1 · Dernier combat, 0 R/ })
+    expect(tile).toHaveTextContent('Dernier combat')
+    expect(tile.querySelector('.board-unit__regiment')).toHaveTextContent('0R')
+    expect(tile).toHaveClass('board-unit--held')
+  })
+
+  it.each([false, true])('marks every current Spirit with the active forest bonus (spectator: %s)', async (spectator) => {
+    const h = await liveGame()
+    const game = await h.read(spectator ? 3 : 1)
+    const player = game.players.find((player) => player.seat === 0)!
+    const unit = game.battle!.engine!.units.find((unit) => unit.seat === 0 && unit.cardStableId === 'archers')!
+    const card = player.deployedCards.find((card) => card.stableId === unit.cardStableId)!
+    unit.cardStableId = FOREST_SPIRITS_ID
+    card.stableId = FOREST_SPIRITS_ID
+    card.name = 'Esprits des Bois'
+    game.battle!.manual.combat = { ...emptyCombat(), forestWrath: [{ seat: 0, turn: game.battle!.turn }] }
+    render(<TacticalBoard game={game} />)
+    const tile = screen.getByRole(spectator ? 'img' : 'button', { name: /^F5 · Esprits des Bois · Joueur 1 · Colère de la Forêt/ })
+    expect(tile).toHaveTextContent('×2 D')
+    expect(tile).toHaveClass('board-unit--invoked')
+    expect(tile.querySelector('.board-unit__invocation')).toHaveAttribute('title', 'Colère de la Forêt : dés de profil doublés au corps à corps jusqu’à la fin du tour')
   })
 })

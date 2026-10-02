@@ -24,9 +24,7 @@ export const apply = internalMutation({
           stableId: unit.stableId, factionId: faction._id, name: unit.name, cost: unit.cost,
           kind: 'unit' as const, profile: unit.profile, imagePath: unit.imagePath, abilities: unit.profile.ability ? [unit.profile.ability.name] : [],
           dataVersion: CATALOGUE_VERSION, status: 'published' as const, sourceLine: catalogue2026.indexOf(unit) + 2,
-          sourceNote: unit.faction === 'gaeli'
-            ? `PAFF 2026 (4).pdf transmis le 21/09/2026, p. 8 (unités) et p. 9 (capacités). Les indications d’illustration ne sont pas des règles.${unit.stableId === 'gaeli-archers-longs-gaeliens' ? ' Décision de Nicolas du 30/09/2026 : Tir longue portée devient une capacité permanente ; portée 3 habituelle et 4 droit devant dans la même colonne.' : ''}`
-            : 'PAFF 2026 (3).pdf transmis le 18/09/2026, p. 8 (unités) et p. 9 (capacités), avec les réponses du créateur transmises par Nicolas, récapitulées dans docs/differences-regles-2026-09-18.md.',
+          sourceNote: 'PAFF 2026 - Unités AUTO.pdf et Capacités AUTO.pdf transmis le 01/10/2026, p. 1 de chaque fiche, avec les arbitrages de Nicolas et le retour d’Adrien du 02/10/2026, consignés au §5.1 de docs/regles-implementees.md. Les indications d’illustration ne sont pas des règles. Les arbitrages historiques non annulés restent appliqués, dont la portée normale 3 et l’extension à 4 droit devant des Archers longs Gaeliens.',
         }
         if (!existing) { await ctx.db.insert('cards', fields); result.created++ }
         else if (Object.entries(fields).some(([key, value]) => !sameValue(existing[key as keyof typeof existing], value)) || existing.deckLimit !== undefined) {

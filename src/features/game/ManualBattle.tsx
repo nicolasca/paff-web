@@ -16,6 +16,8 @@ import { useCombatPlanning, type PlanningMode } from './useCombatPlanning'
 import { CombatReport } from './CombatReport'
 import { InvocationOrders } from './InvocationOrders'
 import { FreeDice } from './FreeDice'
+import { AutoOrders } from './AutoOrders'
+import { isHeld } from '../../../shared/autoCombat'
 
 type Source = { kind: 'unit'; id: string; from: number } | { kind: 'reserve'; id: string; entered: number } | { kind: 'discard'; id: string } | { kind: 'summon'; id: string; summoned: number }
 
@@ -45,9 +47,10 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
   const cardFor = (unit: BattleUnit) => game.players.find((player) => player.seat === unit.seat)!.deployedCards.find((card) => card.stableId === unit.cardStableId)!
   const unitName = (unit: BattleUnit) => `${cardFor(unit).name} · ${cellCoordinate(unit.cell)}`
   const selected = engine.units.find((unit) => unit.id === selectedId && unit.seat === me.seat)
+  const selectedHeld = selected && isHeld(selected, manual.combat, battle.turn)
   const moving = source?.kind === 'unit' ? engine.units.find((unit) => unit.id === source.id && unit.cell === source.from && unit.seat === me.seat) : undefined
   const free = cells.filter((cell) => !engine.units.some((unit) => unit.cell === cell))
-  const allowed = locked || !source ? [] : source.kind === 'unit' ? moving ? manualMoves(engine, moving, getUnitProfile(cardFor(moving))!) : [] : free
+  const allowed = locked || !source ? [] : source.kind === 'unit' ? moving && moving.regiment > 0 ? manualMoves(engine, moving, getUnitProfile(cardFor(moving))!) : [] : free
   const reserves = me.cards.filter((card) => card.kind === 'unit' && card.quantity > (card.enteredQuantity ?? card.deploymentQuantity))
   const goblinOrder = battle.catalog.find((order) => order.id === GOBLIN_REINFORCEMENTS_ORDER_ID && order.faction === 'gobelins' && order.seats.includes(me.seat))
   const summonedGoblins = me.cards.find((card) => card.stableId === GOBLIN_BAND_CARD_ID)?.summonedQuantity ?? 0
@@ -105,7 +108,8 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
       <div className="manual-strategy manual-strategy--opponent"><span>{opponent.displayName}<small>Points stratégiques</small></span><output aria-label={`Points stratégiques de ${opponent.displayName}`}>{battle.strategyPoints[opponent.seat]}</output></div>
     </header>
     <CombatToolbar game={game} plan={plan} locked={locked} onMode={changeMode} />
-    <InvocationOrders game={game} locked={locked} run={run} />
+    <InvocationOrders game={game} locked={locked || !plan.automated} run={run} />
+    <AutoOrders game={game} locked={locked || !plan.automated} run={run} />
     <div className="manual-main">
       {plan.mode === 'move' && <p className="manual-instructions">Glissez pour déplacer. Cliquez sur une de vos unités pour ajuster ses R, même hors combat. Clic droit : attaquant, puis défenseur.<span>Au clavier : sélectionnez une unité puis une case ; C pour comparer. Échap pour annuler le déplacement.</span></p>}
       {source && !dragging && <div className="manual-placement" role="status">Choisissez une case éclairée.<button type="button" onClick={cancelDrag}>Annuler</button></div>}
@@ -113,10 +117,10 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
         if (plan.mode !== 'move') { plan.choose(cell); return }
         const unit = engine.units.find((unit) => unit.cell === cell && unit.seat === me.seat)
         setSelectedId(unit?.id)
-        setSource(unit ? { kind: 'unit', id: unit.id, from: unit.cell } : null)
+        setSource(unit && unit.regiment > 0 ? { kind: 'unit', id: unit.id, from: unit.cell } : null)
       }} interaction={{ dragging, onDragEnd: cancelDrag, onDrop: drop, onCompare: plan.mode === 'move' ? compare : plan.choose,
-        canDrag: (cell) => { if (plan.mode !== 'move') return false; const unit = engine.units.find((unit) => unit.cell === cell && unit.seat === me.seat); return Boolean(unit && manualMoves(engine, unit, getUnitProfile(cardFor(unit))!).length) },
-        onDrag: (cell, event) => { const unit = engine.units.find((unit) => unit.cell === cell && unit.seat === me.seat); if (unit) { setSelectedId(unit.id); beginDrag({ kind: 'unit', id: unit.id, from: cell }, event) } else event.preventDefault() },
+        canDrag: (cell) => { if (plan.mode !== 'move') return false; const unit = engine.units.find((unit) => unit.cell === cell && unit.seat === me.seat); return Boolean(unit && unit.regiment > 0 && manualMoves(engine, unit, getUnitProfile(cardFor(unit))!).length) },
+        onDrag: (cell, event) => { const unit = engine.units.find((unit) => unit.cell === cell && unit.seat === me.seat && unit.regiment > 0); if (unit) { setSelectedId(unit.id); beginDrag({ kind: 'unit', id: unit.id, from: cell }, event) } else event.preventDefault() },
       }} />
       {goblinOrder && <section className="manual-reinforcements" aria-label="Renforts gobelins">
         <div><h3>{goblinOrder.name}</h3><p>Ajoutez gratuitement une Bande de Gobelins, même sans exemplaire en réserve ou en défausse.</p></div>
@@ -141,7 +145,7 @@ export function ManualBattle({ game, busy, perform }: { game: Game } & BattleCon
       {!plan.arrows.length && <CombatReport game={game} />}
       {plan.mode !== 'move' && <CombatPlan game={game} plan={plan} locked={locked} />}
       {plan.arrows.length > 0 && <CombatReport game={game} />}
-      {selected && <section className="manual-panel manual-selected" aria-label="Unité sélectionnée"><header><h3>{unitName(selected)}</h3><button type="button" className="manual-icon-button" aria-label="Fermer la sélection" onClick={() => { setSelectedId(undefined); setSource(null) }}>×</button></header><div className="manual-selected-r"><span>Points de régiment</span><Counter label={`R de ${unitName(selected)}`} value={selected.regiment} busy={locked} onChange={(delta) => run(() => regiment({ gameId: game.id, unitId: selected.id, delta }))} /></div><button type="button" className="manual-text-button" disabled={locked} onClick={() => { setSource(null); run(() => discard({ gameId: game.id, unitId: selected.id })) }}>Retirer du plateau</button></section>}
+      {selected && <section className="manual-panel manual-selected" aria-label="Unité sélectionnée"><header><h3>{unitName(selected)}</h3><button type="button" className="manual-icon-button" aria-label="Fermer la sélection" onClick={() => { setSelectedId(undefined); setSource(null) }}>×</button></header>{selectedHeld && <p className="combat-held-note">Pour la Gaeli ! · Dernier combat. Cette unité à 0 R peut seulement combattre jusqu’à la fin du tour. Vous pouvez aussi la retirer maintenant.</p>}<div className="manual-selected-r"><span>Points de régiment</span><Counter label={`R de ${unitName(selected)}`} value={selected.regiment} busy={locked || Boolean(selectedHeld)} onChange={(delta) => run(() => regiment({ gameId: game.id, unitId: selected.id, delta }))} /></div><button type="button" className="manual-text-button" disabled={locked} onClick={() => { setSource(null); run(() => discard({ gameId: game.id, unitId: selected.id })) }}>Retirer du plateau</button></section>}
       {plan.mode === 'move' && <section className="manual-panel manual-duel" aria-label="Aide au combat">
         <header><h3>Aide au combat</h3>{attacker && <button type="button" className="manual-icon-button" aria-label="Effacer la comparaison" disabled={locked} onClick={() => run(() => duel({ gameId: game.id }))}>×</button>}</header>
         <label>Attaquant<select aria-label="Attaquant" disabled={locked} value={attacker?.id ?? ''} onChange={(event) => run(() => duel({ gameId: game.id, ...(event.target.value ? { attackerId: event.target.value } : {}) }))}><option value="">Clic droit sur une unité</option>{engine.units.map((unit) => <option key={unit.id} value={unit.id}>{unitName(unit)}</option>)}</select></label>

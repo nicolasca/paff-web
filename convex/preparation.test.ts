@@ -6,9 +6,11 @@ import { RULES_VERSION } from '../shared/battle'
 const code = (code: string) => ({ data: { code } })
 afterEach(() => vi.restoreAllMocks())
 
-async function preparation() {
+async function preparation(sourceUnit?: Pick<typeof catalogue2026[number], 'stableId' | 'name' | 'profile'>) {
   const h = createGameHarness()
   h.tables.cards[0].cost = 1
+  if (sourceUnit) Object.assign(h.tables.cards[0], structuredClone(sourceUnit))
+  const mainStableId = sourceUnit?.stableId ?? 'archers'
   // A second unit type lets tests distinguish the chosen subset from the deck.
   h.tables.cards.push({ ...h.tables.cards[0], _id: 'other-unit', stableId: 'lanciers', name: 'Lanciers' })
   h.tables.deckCards.push({ _id: 'lanciers-1', deckId: 'deck-1', cardId: 'other-unit', quantity: 3 })
@@ -18,9 +20,9 @@ async function preparation() {
   await h.run('selectDeck', 1, { gameId, deckId: 'deck-1' })
   await h.run('selectDeck', 2, { gameId, deckId: 'deck-2' })
   const read = async (user = 1) => (await h.run('get', user, { gameId }))!
-  const choose = (user: number, quantity: number, cardStableId = 'archers') => h.run('updatePreparation', user, { gameId, cardStableId, change: { quantity } })
+  const choose = (user: number, quantity: number, cardStableId = mainStableId) => h.run('updatePreparation', user, { gameId, cardStableId, change: { quantity } })
   const validate = (user: number) => h.run('finishPreparation', user, { gameId })
-  const deploy = async (user: number, cell: number, cardStableId = 'archers') => h.run('deployUnit', user, { gameId, cell, cardStableId, revision: (await read()).setup!.revision })
+  const deploy = async (user: number, cell: number, cardStableId = mainStableId) => h.run('deployUnit', user, { gameId, cell, cardStableId, revision: (await read()).setup!.revision })
   const finish = async (user: number) => h.run('finishDeployment', user, { gameId, revision: (await read()).setup!.revision })
   async function initiative() {
     await validate(1)
@@ -63,17 +65,47 @@ describe('unit selection before initiative', () => {
     expect(game.players[0]).toMatchObject({ deploymentCount: 8, drawPileCount: 6 })
     expect(game.players[1]).toMatchObject({ deploymentCount: 0, drawPileCount: 14 })
   })
-  it('records the current rules with the new order catalog when an older preparation becomes a battle', async () => {
+  it.each(['2026-09-10-manual-1', undefined])('preserves the launch version %s when an older preparation becomes a battle', async (version) => {
     const h = await preparation()
-    h.tables.games[0].rulesVersion = '2026-09-10-manual-1'
+    h.tables.games[0].rulesVersion = version
     await h.initiative()
     await h.finish(1)
-    expect((await h.read()).rulesVersion).toBe('2026-09-10-manual-1')
+    expect((await h.read()).rulesVersion).toBe(version)
     await h.finish(2)
     const game = await h.read()
-    expect(game.rulesVersion).toBe(RULES_VERSION)
-    expect(game.battle!.catalog.find((order) => order.id === 'shamanic-invocation')).toMatchObject({ limit: 4, seats: [0, 1] })
+    expect(game.rulesVersion).toBe(version)
+    expect(game.battle!.catalog.find((order) => order.id === 'shamanic-boost')).toMatchObject({ limit: 4, seats: [0, 1] })
     expect(game.battle!.catalog.some((order) => order.id === 'waaagh')).toBe(false)
+  })
+  it('keeps frozen historical Shamans manual after deployment even when their published profile changes', async () => {
+    const shaman = catalogue2026.find((unit) => unit.stableId === 'gobelins-shaman-gobelin')!
+    const historicalProfile = {
+      ...shaman.profile, dice: 1, offense: { kind: 'ranged' as const, score: 3 },
+      ability: { id: 'magical-shot', name: 'Tir magique', description: 'Profil historique' },
+    }
+    const h = await preparation({ ...shaman, profile: historicalProfile })
+    expect((await h.read()).rulesVersion).toBe(RULES_VERSION)
+    h.tables.games[0].rulesVersion = '2026-09-30-portee-1'
+    h.tables.cards[0].profile = structuredClone(shaman.profile)
+    await h.choose(1, 1)
+    await h.choose(2, 1)
+    await h.initiative()
+    await h.deploy(1, 40)
+    await h.deploy(2, 13)
+    await h.finish(1)
+    await h.finish(2)
+    const game = await h.read()
+    expect(game).toMatchObject({ phase: 'battle', rulesVersion: '2026-09-30-portee-1' })
+    expect(game.battle!.engine.units).toHaveLength(2)
+    const frozen = h.tables.gameCards.filter((card) => card.stableId === shaman.stableId)
+    expect(frozen).toHaveLength(2)
+    for (const card of frozen) expect(card.profile).toEqual(historicalProfile)
+    expect(h.tables.cards[0].profile).toEqual(shaman.profile)
+    const before = structuredClone(h.tables)
+    const random = vi.mocked(Math.random).mockClear()
+    await expect(h.invoke('combat', 'resolve', 1, { gameId: h.gameId, revision: 0, kind: 'ranged' })).rejects.toMatchObject(code('AUTO_RULES_REQUIRED'))
+    expect(h.tables).toEqual(before)
+    expect(random).not.toHaveBeenCalled()
   })
   it.each(['Blop, le Meuteur', 'Grand Gardien'])('keeps %s in reserve through selection, validation and initial placement, then allows recruitment', async (name) => {
     const h = await preparation()
@@ -206,7 +238,7 @@ describe('unit selection before initiative', () => {
     await finish(1)
     await finish(2)
     expect((await read()).players.map((player) => player.drawPileCount)).toEqual([8, 5])
-    expect((await read()).phase).toBe('battle')
+    expect(await read()).toMatchObject({ phase: 'battle', rulesVersion: RULES_VERSION })
   })
   it('refuses selections that cannot fit the board before locking them', async () => {
     const { tables, choose, validate, read } = await preparation()

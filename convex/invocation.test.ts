@@ -157,10 +157,12 @@ describe('La gross Invokation !', () => {
     expect(combat.reports[0].attacks[0].dice).toHaveLength(4)
     expect(combat.reports[0].attacks[0].effects.join(' ')).toContain('La gross Invokation !')
     await h.invoke('manual', 'moveUnit', 1, { gameId: h.gameId, unitId: 'archer', from: 38, to: 29 })
+    await h.invoke('manual', 'setEngagement', 1, { gameId: h.gameId, a: 'band', b: 'enemy', engaged: false })
     await h.invoke('combat', 'setArrow', 1, { gameId: h.gameId, kind: 'ranged', attackerId: 'archer', targetId: 'enemy' })
     combat = (await h.read()).battle!.manual.combat!
     await h.invoke('combat', 'resolve', 1, { gameId: h.gameId, kind: 'ranged', revision: combat.revision })
-    expect((await h.read()).battle!.manual.combat!.reports[1].diversions[0].values).toHaveLength(4)
+    expect((await h.read()).battle!.manual.combat!.reports[1].attacks[0].dice).toHaveLength(4)
+    expect((await h.read()).battle!.manual.combat!.reports[1].diversions).toEqual([])
     for (const delta of [1, -1]) {
       await h.invoke('manual', 'adjustTurn', 1, { gameId: h.gameId, delta })
       expect((await h.read()).battle!.manual.combat!.invocations).toEqual([])

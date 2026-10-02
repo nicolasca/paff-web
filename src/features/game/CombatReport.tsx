@@ -6,12 +6,16 @@ import './CombatPlanning.css'
 const faces = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
 function Resolution({ report }: { report: Report }) {
   const hits = report.attacks.reduce((n, attack) => n + attack.hits, 0)
-  const destroyed = report.losses.filter((loss) => !loss.after).length
+  const held = new Set(report.held?.map((unit) => unit.id) ?? [])
+  const destroyed = report.losses.filter((loss) => !loss.after && !held.has(loss.unit.id)).length
   return <div className="combat-resolution">
     <div className="combat-summary"><div><strong>{hits}</strong><span>touches</span></div><div><strong>{report.losses.reduce((n, loss) => n + loss.before - loss.after, 0)}</strong><span>R perdus</span></div><div><strong>{destroyed}</strong><span>unités détruites</span></div></div>
+    {report.orderId === 'concentrated-fire' && <p className="combat-invocation-note">Tir concentré · +1 dé par tireur · 1 ordre consommé.</p>}
+    {report.sacrifices && report.sacrifices.length > 0 && <div className="combat-costs"><h4>Des munitions ! · sacrifices avant les tirs</h4>{report.sacrifices.map((unit) => <p key={unit.id}>{unit.name} · {cellCoordinate(unit.cell)} <strong>Défaussée</strong></p>)}</div>}
+    {report.shamanRisks && report.shamanRisks.length > 0 && <div className="combat-costs"><h4>Concentration shamanique · risques après les tirs</h4>{report.shamanRisks.map((risk) => <p key={risk.unit.id}>{risk.unit.name} · {cellCoordinate(risk.unit.cell)} <strong>Dé {risk.value} · {risk.discarded ? 'Défaussé' : 'Survit'}</strong></p>)}</div>}
     {report.diversions.map((split) => <details className="combat-diversion" key={split.attacker.id}><summary>Tir en mêlée · {split.attacker.name} ({cellCoordinate(split.attacker.cell)})</summary><p>1–3 → {split.ally.name} ({cellCoordinate(split.ally.cell)}) · 4–6 → {split.target.name} ({cellCoordinate(split.target.cell)})</p><p>Dés d’orientation : <strong>{split.values.join(' · ') || 'aucun'}</strong></p></details>)}
     <ol className="combat-result-list" tabIndex={0} aria-label="Détail des jets, liste défilante">{report.attacks.map((attack, index) => <li key={index}>
-      <div className="combat-result-heading"><span>{String(index + 1).padStart(2, '0')}</span><p><strong>{attack.attacker.name} <small>{cellCoordinate(attack.attacker.cell)}</small></strong><span>→ {attack.target.name} <small>{cellCoordinate(attack.target.cell)}</small>{attack.attacker.seat === attack.target.seat && <em>Allié</em>}</span></p><b>{attack.threshold}+</b></div>
+      <div className="combat-result-heading"><span>{String(index + 1).padStart(2, '0')}</span><p><strong>{attack.attacker.name} <small>{cellCoordinate(attack.attacker.cell)}{attack.slot !== undefined && ` · Tir ${attack.slot + 1}`}</small></strong><span>→ {attack.target.name} <small>{cellCoordinate(attack.target.cell)}</small>{attack.attacker.seat === attack.target.seat && <em>Allié</em>}</span></p><b>{attack.threshold}+</b></div>
       <div className="combat-result-dice" aria-label={`Dés : ${attack.dice.map((die) => die.rerolled === undefined ? die.value : `${die.value} relancé ${die.rerolled}`).join(', ') || 'aucun'}`}>
         {attack.dice.map((die, i) => <span key={i} className="combat-result-die" data-hit={(die.rerolled ?? die.value) >= attack.threshold} title={die.rerolled === undefined ? `${die.value}` : `Relance : ${die.value} → ${die.rerolled}`} aria-hidden="true">{die.rerolled !== undefined && <small>{die.value}↗</small>}{faces[die.rerolled ?? die.value]}</span>)}
         {!attack.dice.length && <span className="manual-note">Aucun dé à lancer</span>}
@@ -19,7 +23,7 @@ function Resolution({ report }: { report: Report }) {
       </div>
       <details className="combat-calculation"><summary>Détail du calcul</summary><p>{attack.offense}{report.kind === 'ranged' ? 'T' : 'C'} contre {attack.defense} {report.kind === 'ranged' ? 'DT' : 'DC'} · {attack.dice.length} dé{attack.dice.length > 1 ? 's' : ''}</p>{attack.effects.length ? <ul>{attack.effects.map((effect, i) => <li key={i}>{effect}</li>)}</ul> : <p>Profil de base, sans modificateur.</p>}</details>
     </li>)}</ol>
-    {report.losses.length > 0 && <div className="combat-losses"><h4>Après les attaques simultanées</h4>{report.losses.map((loss) => <div key={loss.unit.id} data-destroyed={!loss.after}><span>{loss.unit.name} <small>{cellCoordinate(loss.unit.cell)}</small></span><strong>{loss.before} → {loss.after} R</strong>{!loss.after && <em>Défaussée</em>}</div>)}</div>}
+    {report.losses.length > 0 && <div className="combat-losses"><h4>Après les attaques simultanées</h4>{report.losses.map((loss) => <div key={loss.unit.id} data-destroyed={!loss.after && !held.has(loss.unit.id)}><span>{loss.unit.name} <small>{cellCoordinate(loss.unit.cell)}</small></span><strong>{loss.before} → {loss.after} R</strong>{!loss.after && <em>{held.has(loss.unit.id) ? 'Pour la Gaeli ! · Dernier combat jusqu’à la fin du tour' : 'Défaussée'}</em>}</div>)}</div>}
   </div>
 }
 export function CombatReport({ game }: { game: Game }) {

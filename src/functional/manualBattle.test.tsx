@@ -9,7 +9,7 @@ import { createFunctionalTransport, FunctionalClientContext } from '../test/func
 import { catalogue2026, catalogueFactions } from '../../shared/catalogue2026'
 import { GOBLIN_BAND_CARD_ID } from '../../shared/manualBattle'
 import { invocationGame } from '../test/invocationGame'
-import type { BattleState } from '../../shared/battle'
+import { initialBattle, type BattleState } from '../../shared/battle'
 
 vi.mock('convex/react', async () => {
   const { useContext, useSyncExternalStore } = await import('react')
@@ -62,11 +62,27 @@ async function shootingTable(entries: { id: string; seat: number; stableId: stri
   return h
 }
 
+function mountBattle(h: Awaited<ReturnType<typeof shootingTable>>) {
+  const transport = createFunctionalTransport(h)
+  const mounted = render(<>{[1, 2, 3].map((user) => <div key={user} data-testid={`player-${user}`}><FunctionalClientContext.Provider value={{ user, transport }}><MemoryRouter initialEntries={[`/lobby/${h.gameId}`]}><App /></MemoryRouter></FunctionalClientContext.Provider></div>)}</>)
+  const p = (user: number) => within(screen.getByTestId(`player-${user}`))
+  const click = async (user: number, name: string | RegExp) => userEvent.click(await p(user).findByRole('button', { name }))
+  return { mounted, transport, p, click }
+}
+
+function factionOrders(h: Awaited<ReturnType<typeof shootingTable>>, factions: [string, string]) {
+  const battle = h.stored.battle as BattleState
+  const fresh = initialBattle(factions.map((faction, seat) => ({ faction, seat })))
+  battle.catalog = fresh.catalog
+  battle.manual.stocks = fresh.manual.stocks
+  h.tables.gamePlayers.forEach((player, seat) => { player.factionStableId = factions[seat]; player.factionName = catalogueFactions[factions[seat] as keyof typeof catalogueFactions] })
+}
+
 describe('manual tabletop across two real clients', () => {
   it('highlights only targets within three steps in the Goblin shooter’s axis, keeps invalid choices local and rechecks arrows after movement', async () => {
     const h = await shootingTable([
       { id: 'archer', seat: 0, stableId: 'gobelins-archers-gobelins', cell: 40 }, // E5
-      { id: 'shaman', seat: 0, stableId: 'gobelins-shaman-gobelin', cell: 33 }, // G4
+      { id: 'secondary', seat: 0, stableId: 'gobelins-le-danzereu', cell: 33 }, // G4
       { id: 'straight', seat: 1, stableId: GOBLIN_BAND_CARD_ID, cell: 13 }, // E2: 3
       { id: 'diagonal', seat: 1, stableId: GOBLIN_BAND_CARD_ID, cell: 21 }, // D3: 2 + 1
       { id: 'far', seat: 1, stableId: GOBLIN_BAND_CARD_ID, cell: 14 }, // F2: 3 + 1
@@ -89,7 +105,7 @@ describe('manual tabletop across two real clients', () => {
       expect(tile(id)).toHaveAccessibleDescription(expect.stringContaining('Cible à portée : 3 cases'))
     }
     for (const id of ['far', 'other-axis']) expect(tile(id)).toHaveClass('board-unit--outside-range')
-    expect(p(1).getByText('Portée 3 · même axe', { exact: false })).toHaveTextContent('2 cibles à portée')
+    expect(p(1).getByText('Portée 3 · même axe', { exact: false })).toHaveTextContent('2 cibles')
     for (const user of [2, 3]) expect(screen.getByTestId(`player-${user}`).querySelector('.board-unit--shooting-target')).toBeNull()
 
     await userEvent.click(p(1).getByRole('button', { name: 'F2 · Bande de Gobelins · Joueur 2' }))
@@ -98,15 +114,15 @@ describe('manual tabletop across two real clients', () => {
     expect(p(1).getByText('Cette cible est hors de portée ou dans un autre axe. Choisissez une unité éclairée.')).toBeVisible()
     expect((await h.read()).battle!.manual.combat?.arrows ?? []).toHaveLength(0)
 
-    await userEvent.click(p(1).getByRole('button', { name: 'G4 · Shamans Gobelins · Joueur 1' }))
+    await userEvent.click(p(1).getByRole('button', { name: 'G4 · Le Danzereu · Joueur 1' }))
     expect(tile('archer')).not.toHaveClass('board-unit--shooting-source')
-    expect(tile('shaman')).toHaveClass('board-unit--shooting-source')
+    expect(tile('secondary')).toHaveClass('board-unit--shooting-source')
     expect(tile('far')).toHaveClass('board-unit--shooting-target')
     expect(tile('straight')).toHaveClass('board-unit--outside-range')
     expect(root.querySelectorAll('.board-unit--shooting-target')).toHaveLength(1)
     await userEvent.keyboard('{Escape}')
     expect(root.querySelector('.board-unit--shooting-source, .board-unit--shooting-target, .board-unit--outside-range')).toBeNull()
-    await userEvent.click(p(1).getByRole('button', { name: 'G4 · Shamans Gobelins · Joueur 1' }))
+    await userEvent.click(p(1).getByRole('button', { name: 'G4 · Le Danzereu · Joueur 1' }))
     await userEvent.click(p(1).getByRole('button', { name: 'Corps à corps' }))
     expect(root.querySelector('.board-unit--shooting-source, .board-unit--shooting-target, .board-unit--outside-range')).toBeNull()
 
@@ -114,13 +130,13 @@ describe('manual tabletop across two real clients', () => {
     await userEvent.click(p(1).getByRole('button', { name: 'E5 · Archers Gobelins · Joueur 1' }))
     await userEvent.click(p(1).getByRole('button', { name: 'E2 · Bande de Gobelins · Joueur 2' }))
     await waitFor(() => expect(p(1).getByRole('button', { name: /TIR 1 attaque/ })).toBeEnabled())
-    expect(mutate).toHaveBeenCalledWith(1, 'combat:setArrow', { gameId: h.gameId, kind: 'ranged', attackerId: 'archer', targetId: 'straight' })
+    expect(mutate).toHaveBeenCalledWith(1, 'combat:setArrow', { gameId: h.gameId, kind: 'ranged', attackerId: 'archer', targetId: 'straight', slot: 0 })
     expect(root.querySelector('.board-unit--shooting-source, .board-unit--shooting-target, .board-unit--outside-range')).toBeNull()
     await userEvent.click(p(2).getByRole('button', { name: 'E2 · Bande de Gobelins · Joueur 2' }))
     await userEvent.click(p(2).getByRole('button', { name: 'E1 · Déplacer ici' }))
     await waitFor(() => expect(p(1).getByRole('button', { name: /TIR 1 attaque/ })).toBeDisabled())
-    expect(p(1).getByText('Une cible a quitté la portée : modifiez ou retirez sa flèche.')).toBeVisible()
-    expect(p(1).getByText('Hors de portée · cette flèche doit être modifiée.')).toBeVisible()
+    expect(p(1).getByText('Une cible ou un tir est devenu indisponible : corrigez sa flèche.')).toBeVisible()
+    expect(p(1).getByText('Hors de portée · modifiez ou retirez cette flèche.')).toBeVisible()
     const combat = (await h.read()).battle!.manual.combat!
     expect(combat.arrows).toHaveLength(1)
     expect(combat.reports).toHaveLength(0)
@@ -153,7 +169,7 @@ describe('manual tabletop across two real clients', () => {
     expect(tile('normal-target')).toHaveClass('board-unit--shooting-target')
     expect(tile('normal-target')).toHaveAttribute('aria-description', 'Cible à portée : 3 cases')
     for (const id of ['off-column', 'other-axis']) expect(tile(id)).toHaveClass('board-unit--outside-range')
-    expect(p(2).getByText('Portée 3 · 4 droit devant', { exact: false })).toHaveTextContent('2 cibles à portée')
+    expect(p(2).getByText('Portée 3 · 4 droit devant', { exact: false })).toHaveTextContent('2 cibles')
     for (const user of [1, 2, 3]) expect(screen.getByTestId(`player-${user}`).querySelector('.manual-orders')).not.toHaveTextContent('Tir longue portée')
     expect(p(3).getByRole('region', { name: 'Ordres de Joueur 2' })).not.toHaveTextContent('Tir longue portée')
 
@@ -165,7 +181,7 @@ describe('manual tabletop across two real clients', () => {
     expect((await h.read()).battle!.manual.combat!.arrows).toMatchObject([{ attackerId: 'long-archer', targetId: 'normal-target' }])
     await userEvent.click(p(2).getByRole('button', { name: 'E1 · Archers longs Gaeliens · Joueur 2' }))
     await userEvent.click(p(2).getByRole('button', { name: 'E5 · Bande de Gobelins · Joueur 1' }))
-    await waitFor(() => expect(mutate).toHaveBeenCalledWith(2, 'combat:setArrow', { gameId: h.gameId, kind: 'ranged', attackerId: 'long-archer', targetId: 'long-target' }))
+    await waitFor(() => expect(mutate).toHaveBeenCalledWith(2, 'combat:setArrow', { gameId: h.gameId, kind: 'ranged', attackerId: 'long-archer', targetId: 'long-target', slot: 0 }))
     expect((await h.read()).battle!.manual.combat!.arrows).toMatchObject([{ attackerId: 'long-archer', targetId: 'long-target' }])
     expect(h.tables.gameCards.find(card => card.stableId === 'gaeli-archers-longs-gaeliens')!.profile).toEqual(frozenProfile)
     expect(battle.catalog.some(order => order.id === 'long-range-fire')).toBe(true)
@@ -482,7 +498,7 @@ describe('manual tabletop across two real clients', () => {
     for (const user of [1, 2]) {
       expect(p(user).getByRole('button', { name: 'Diminuer Recrutement restants' })).toBeDisabled()
       expect(p(user).getByRole('button', { name: 'Augmenter Recrutement restants' })).toBeDisabled()
-      expect(p(user).getByRole('button', { name: 'Diminuer Invokation shamanique restants' })).toBeEnabled()
+      expect(p(user).getByRole('button', { name: 'Diminuer Boost shamanique restants' })).toBeEnabled()
     }
     expect(p(1).queryByRole('button', { name: 'Jouer Mouvement' })).not.toBeInTheDocument()
     expect(p(1).queryByLabelText('Étapes de la partie')).not.toBeInTheDocument()
@@ -510,13 +526,13 @@ describe('manual tabletop across two real clients', () => {
     await click(2, 'Augmenter Tour')
     await click(1, 'Augmenter Points stratégiques de Joueur 1')
     await click(1, 'Diminuer Recrutement restants')
-    expect(p(1).getByLabelText('Invokation shamanique restants')).toHaveTextContent('4')
+    expect(p(1).getByLabelText('Boost shamanique restants')).toHaveTextContent('4')
     expect(p(1).getByLabelText('Pause-déjeuner restants')).toHaveTextContent('2')
     expect(p(1).getByLabelText('La gross Invokation ! restants')).toHaveTextContent('1')
-    expect(p(1).getAllByText('Invokation shamanique', { exact: true })[0]).toHaveAccessibleDescription(expect.stringContaining('Après le tir, lancez 1D6'))
-    await click(1, 'Diminuer Invokation shamanique restants')
-    await waitFor(() => expect(p(1).getByLabelText('Invokation shamanique restants')).toHaveTextContent('3'))
-    expect(p(2).getByLabelText('Invokation shamanique restants')).toHaveTextContent('4')
+    expect(p(1).getAllByText('Boost shamanique', { exact: true })[0]).toHaveAccessibleDescription(expect.stringContaining('une seconde fois'))
+    await click(1, 'Diminuer Boost shamanique restants')
+    await waitFor(() => expect(p(1).getByLabelText('Boost shamanique restants')).toHaveTextContent('3'))
+    expect(p(2).getByLabelText('Boost shamanique restants')).toHaveTextContent('4')
     await waitFor(() => expect(p(2).getByLabelText('Tour')).toHaveTextContent('2'))
     await waitFor(() => expect(p(2).getByLabelText('Points stratégiques de Joueur 1')).toHaveTextContent('1'))
 
@@ -543,7 +559,7 @@ describe('manual tabletop across two real clients', () => {
     for (const user of [1, 2]) {
       expect(await p(user).findByRole('heading', { name: 'À vous de jouer' })).toBeVisible()
       expect(p(user).getByLabelText('Tour')).toHaveTextContent('2')
-      expect(p(user).getByLabelText('Invokation shamanique restants')).toHaveTextContent(user === 1 ? '3' : '4')
+      expect(p(user).getByLabelText('Boost shamanique restants')).toHaveTextContent(user === 1 ? '3' : '4')
       expect(p(user).getByRole('button', { name: 'E4 · Lanciers · Joueur 1' })).toHaveTextContent('3R')
       expect(p(user).getByRole('button', { name: 'F5 · Archers · Joueur 1' })).toHaveClass('board-unit--attacker', 'board-unit--engaged')
       await waitFor(() => expect(screen.getByTestId(`player-${user}`).querySelectorAll('.manual-engagement-lines line')).toHaveLength(1))
@@ -554,4 +570,181 @@ describe('manual tabletop across two real clients', () => {
     await waitFor(() => expect(screen.getByTestId('player-1').querySelectorAll('.manual-engagement-lines line')).toHaveLength(0))
     mounted.unmount()
   }, 30000)
+})
+
+
+describe('AUTO rules through the shared tabletop', () => {
+  it('chooses three Danzereu targets separately, resolves with one TIR and reuses surviving Shamans', async () => {
+    const h = await shootingTable([
+      { id: 'danz', seat: 0, stableId: 'gobelins-le-danzereu', cell: 40 },
+      { id: 'shaman-a', seat: 0, stableId: 'gobelins-shaman-gobelin', cell: 39 },
+      { id: 'shaman-b', seat: 0, stableId: 'gobelins-shaman-gobelin', cell: 41 },
+      { id: 'target-a', seat: 1, stableId: 'sephosi-lanciers-sephosiens', cell: 13 },
+      { id: 'target-b', seat: 1, stableId: 'sephosi-lanciers-sephosiens', cell: 21 },
+      { id: 'target-c', seat: 1, stableId: 'sephosi-lanciers-sephosiens', cell: 23 },
+    ])
+    const { mounted, transport, p, click } = mountBattle(h)
+    const mutate = vi.spyOn(transport, 'mutate')
+    await click(1, 'Tir')
+    await click(1, 'E5 · Le Danzereu · Joueur 1')
+    expect(p(1).getByRole('group', { name: 'Tirs du Danzereu' })).toHaveTextContent('3 tirs simultanés')
+    vi.spyOn(Math, 'random').mockReturnValue(.99)
+    const targets = ['E2', 'D3', 'F3']
+    for (const [slot, cell] of targets.entries()) {
+      await click(1, `${cell} · Lanciers Sephosiens · Joueur 2`)
+      await waitFor(() => expect((h.stored.battle as BattleState).manual.combat?.arrows).toHaveLength(slot + 1))
+      expect(p(1).getByRole('button', { name: /TIR [123] attaques?/ })).toHaveProperty('disabled', slot < 2)
+    }
+    expect((await h.read()).battle!.manual.combat!.arrows.map(a => [a.slot, a.targetId])).toEqual([[0, 'target-a'], [1, 'target-b'], [2, 'target-c']])
+    await click(1, /TIR 3 attaques/)
+    for (const user of [1, 2, 3]) expect(await p(user).findByRole('region', { name: 'Compte rendu des attaques' })).toHaveTextContent('Shamans')
+    const first = (await h.read()).battle!.manual.combat!.reports[0]
+    expect(first.attacks.map(attack => attack.dice.length)).toEqual([2, 2, 2])
+    expect(first.shamanRisks?.map(risk => [risk.unit.id, risk.discarded])).toEqual([['shaman-a', false], ['shaman-b', false]])
+    expect(mutate.mock.calls.filter(([, name]) => name === 'combat:resolve')).toHaveLength(1)
+    await click(1, 'E5 · Le Danzereu · Joueur 1')
+    expect(p(1).getByRole('group', { name: 'Tirs du Danzereu' })).toHaveTextContent('3 tirs simultanés')
+    for (const cell of targets) await click(1, `${cell} · Lanciers Sephosiens · Joueur 2`)
+    await click(1, /TIR 3 attaques/)
+    await waitFor(() => expect((h.stored.battle as BattleState).manual.combat?.reports).toHaveLength(2))
+    expect((await h.read()).battle!.manual.combat!.reports[1].shamanRisks).toHaveLength(2)
+    mounted.unmount()
+  }, 30000)
+
+  it('requires a valid adjacent Katapult sacrifice, excludes Trolls and applies ordinary wounds without rain', async () => {
+    const h = await shootingTable([
+      { id: 'katapult', seat: 0, stableId: 'gobelins-katapult-a-gobs', cell: 40 },
+      { id: 'ammo', seat: 0, stableId: GOBLIN_BAND_CARD_ID, cell: 31 }, // Adjacent across the zone boundary.
+      { id: 'troll', seat: 0, stableId: 'gobelins-meneurs-de-troll', cell: 41 },
+      { id: 'target', seat: 1, stableId: GOBLIN_BAND_CARD_ID, cell: 22 },
+    ])
+    const { mounted, p, click } = mountBattle(h)
+    await click(1, 'Tir')
+    await click(1, 'E5 · Katapult à gobs · Joueur 1')
+    await click(1, 'E3 · Bande de Gobelins · Joueur 2')
+    expect(p(1).getByRole('button', { name: /TIR 1 attaque/ })).toBeDisabled()
+    const ammo = p(1).getByRole('combobox', { name: 'Munition pour Katapult à gobs E5' })
+    expect(within(ammo).getAllByRole('option')).toHaveLength(2)
+    expect(within(ammo).queryByRole('option', { name: /Troll/ })).not.toBeInTheDocument()
+    await userEvent.selectOptions(ammo, 'ammo')
+    await waitFor(() => expect(p(1).getByRole('button', { name: /TIR 1 attaque/ })).toBeEnabled())
+    vi.spyOn(Math, 'random').mockReturnValue(.99)
+    await click(1, /TIR 1 attaque/)
+    await p(3).findByRole('region', { name: 'Compte rendu des attaques' })
+    const battle = (await h.read()).battle!
+    expect(battle.engine.units.map(unit => unit.id)).toEqual(['katapult', 'troll'])
+    expect(battle.manual.discarded.map(unit => unit.id)).toEqual(['ammo', 'target'])
+    expect(battle.manual.combat!.rain).toEqual([])
+    expect(battle.manual.combat!.reports[0]).toMatchObject({ sacrifices: [{ id: 'ammo' }], attacks: [{ damage: 2, rain: 0 }] })
+    mounted.unmount()
+  }, 30000)
+
+  it('applies Tir concentré only for two distinct shooters in one zone and shares its spent stock', async () => {
+    const h = await shootingTable([
+      { id: 'crossbow', seat: 0, stableId: 'sephosi-arbaletriers-avec-pavois', cell: 40 },
+      { id: 'mounted', seat: 0, stableId: 'sephosi-arbaletriers-montes-sephosiens', cell: 41 },
+      { id: 'target', seat: 1, stableId: 'gaeli-servlanders', cell: 22 },
+    ])
+    factionOrders(h, ['sephosi', 'gaeli'])
+    const { mounted, p, click } = mountBattle(h)
+    await click(1, 'Tir')
+    await click(1, 'E5 · Arbalétriers Sephosiens · Joueur 1')
+    await click(1, 'E3 · Servlanders · Joueur 2')
+    expect(p(1).getByRole('button', { name: /TIR CONCENTRÉ/ })).toBeDisabled()
+    await click(1, 'F5 · Arbalétriers Montés · Joueur 1')
+    await click(1, 'E3 · Servlanders · Joueur 2')
+    await waitFor(() => expect(p(1).getByRole('button', { name: /TIR CONCENTRÉ/ })).toBeEnabled())
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    await click(1, /TIR CONCENTRÉ/)
+    const report = (await h.read()).battle!.manual.combat!.reports[0]
+    expect(report.orderId).toBe('concentrated-fire')
+    expect(report.attacks.map(attack => attack.dice.length)).toEqual([3, 2])
+    expect(p(1).getByLabelText('Tir concentré restants')).toHaveTextContent('3')
+    expect(await p(3).findByRole('region', { name: 'Ordres de Joueur 1' })).toHaveTextContent('Tir concentré')
+    mounted.unmount()
+  }, 30000)
+  it('shares Colère with future recruits and lets a fallen Gaeli unit fight only until the turn ends', async () => {
+    const h = await shootingTable([
+      { id: 'guardian', seat: 0, stableId: 'gaeli-gardiens-des-cen', cell: 40 },
+      { id: 'spirit', seat: 0, stableId: 'gaeli-esprits-des-bois', cell: 31 },
+      { id: 'chief', seat: 0, stableId: 'gaeli-chefs-de-clan-de-gaeli', cell: 32 },
+      { id: 'enemy-shooter', seat: 1, stableId: 'sephosi-arbaletriers-avec-pavois', cell: 13 },
+      { id: 'enemy-fighter', seat: 1, stableId: 'sephosi-lanciers-sephosiens', cell: 22 },
+    ])
+    factionOrders(h, ['gaeli', 'sephosi'])
+    const fixture = h.stored.battle as BattleState
+    fixture.turn = 3
+    fixture.engine.units.find(unit => unit.id === 'spirit')!.regiment = 1
+    h.tables.gameCards.find(card => card.stableId === 'gaeli-esprits-des-bois')!.quantity = 2
+    const { mounted, p, click } = mountBattle(h)
+    await p(1).findByRole('button', { name: 'Lancer Colère de la Forêt' })
+    expect(p(1).getByRole('button', { name: 'Lancer Colère de la Forêt' })).toBeDisabled()
+    await click(1, 'Choisir le Gardien en E5')
+    await click(1, 'Lancer Colère de la Forêt')
+    for (const user of [1, 2, 3]) expect(await p(user).findByRole('region', { name: 'Colère de la Forêt · Joueur 1' })).toHaveTextContent('Active jusqu’à la fin du tour 3')
+    await click(1, "E5 · Gardiens des Cen' · Joueur 1")
+    await click(1, 'Retirer du plateau')
+    await click(1, 'Recruter Esprits des Bois')
+    await click(1, 'F6 · Recruter ici')
+    for (const user of [1, 2, 3]) await waitFor(() => expect(screen.getByTestId(`player-${user}`).querySelectorAll('.board-unit--invoked')).toHaveLength(2))
+    vi.spyOn(Math, 'random').mockReturnValue(.99)
+    await click(2, 'Tir')
+    await click(2, 'E2 · Arbalétriers Sephosiens · Joueur 2')
+    await click(2, /E4 · Esprits des Bois · Joueur 1/)
+    await click(2, /TIR 1 attaque/)
+    for (const user of [1, 2, 3]) await waitFor(() => expect(screen.getByTestId(`player-${user}`).querySelector('[data-unit-id="spirit"]')).toHaveClass('board-unit--held'))
+    await click(1, /E4 · Esprits des Bois · Joueur 1/)
+    expect(p(1).getByRole('button', { name: 'Augmenter R de Esprits des Bois · E4' })).toBeDisabled()
+    expect(screen.getByTestId('player-1').querySelector('[data-unit-id="spirit"]')).toHaveAttribute('draggable', 'false')
+    await click(1, 'Corps à corps')
+    await click(1, /E4 · Esprits des Bois · Joueur 1/)
+    await click(1, 'E3 · Lanciers Sephosiens · Joueur 2')
+    await click(1, 'Je suis prêt')
+    await click(2, 'Corps à corps')
+    await click(2, 'Je suis prêt')
+    await click(1, /COMBAT 1 attaque/)
+    const report = (await h.read()).battle!.manual.combat!.reports.at(-1)!
+    expect(report.attacks[0].dice).toHaveLength(6)
+    expect(report.attacks[0].effects).toEqual(expect.arrayContaining([expect.stringContaining('Colère de la Forêt'), expect.stringContaining('Pour la Gaeli')]))
+    await click(2, 'Augmenter Tour')
+    for (const user of [1, 2, 3]) await waitFor(() => {
+      expect(screen.getByTestId(`player-${user}`).querySelector('[data-unit-id="spirit"]')).toBeNull()
+      expect(screen.getByTestId(`player-${user}`).querySelector('.board-unit--invoked')).toBeNull()
+    })
+    expect((await h.read()).battle!.manual.discarded.map(unit => unit.id)).toContain('spirit')
+    mounted.unmount()
+  }, 30000)
+
+  it('lets the Troll owner choose an adjacent ally after a one without rerolling Trollitude', async () => {
+    const h = await shootingTable([
+      { id: 'troll', seat: 0, stableId: 'gobelins-meneurs-de-troll', cell: 31 },
+      { id: 'ally', seat: 0, stableId: GOBLIN_BAND_CARD_ID, cell: 30 },
+      { id: 'enemy', seat: 1, stableId: 'sephosi-lanciers-sephosiens', cell: 22 },
+    ])
+    const { mounted, p, click } = mountBattle(h)
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0)
+    await click(1, 'Corps à corps')
+    await click(1, 'E4 · Trolls · Joueur 1')
+    await click(1, 'E3 · Lanciers Sephosiens · Joueur 2')
+    await waitFor(() => expect(p(1).getByRole('button', { name: 'Je suis prêt' })).toBeDisabled())
+    expect(random).toHaveBeenCalledTimes(1)
+    for (const user of [1, 2, 3]) expect(screen.getByTestId(`player-${user}`).querySelector('[data-unit-id="troll"]')).toHaveTextContent('D6 1')
+    await click(1, 'Changer la cible de Trolls E4')
+    await click(1, 'D4 · Bande de Gobelins · Joueur 1')
+    expect(random).toHaveBeenCalledTimes(1)
+    expect((await h.read()).battle!.manual.combat!.arrows).toMatchObject([{ attackerId: 'troll', targetId: 'ally' }])
+    expect((await h.read()).battle!.engine.engagements).toEqual([{ a: 'ally', b: 'troll' }])
+    await click(1, 'Je suis prêt')
+    await click(2, 'Corps à corps')
+    await click(2, 'Je suis prêt')
+    random.mockReturnValue(.99)
+    await click(1, /COMBAT 1 attaque/)
+    const result = (await h.read()).battle!.manual.combat!.reports[0].attacks[0]
+    expect(result).toMatchObject({ attacker: { id: 'troll' }, target: { id: 'ally' }, damage: 2 })
+    expect(result.effects).toContain('Trollitude : dé 1, attaque de l’allié choisi')
+    expect(random).toHaveBeenCalledTimes(3) // One behavior die, then two attack dice.
+    expect(await p(3).findByRole('region', { name: 'Compte rendu des attaques' })).toHaveTextContent('Allié')
+    mounted.unmount()
+  }, 30000)
+
 })

@@ -5,8 +5,13 @@ import { requireActivePlayer } from './auth'
 import { getUnitProfile } from '../../shared/unitProfile'
 import { type BattleState } from '../../shared/battle'
 import type { EngineState, UnitCard } from '../../shared/battleEngine'
+import { MANUAL_RULES_VERSION } from '../../shared/manualBattle'
 
 export const fail = (code: string): never => { throw new ConvexError({ code }) }
+// Frozen armies keep their original profiles. Old tables remain playable manually.
+export function requireAutoRules(game: { rulesVersion?: string }) {
+  if (game.rulesVersion !== MANUAL_RULES_VERSION) fail('AUTO_RULES_REQUIRED')
+}
 export async function loadManual(ctx: MutationCtx, gameId: Id<'games'>) {
   const player = await requireActivePlayer(ctx)
   const game = await ctx.db.get(gameId)

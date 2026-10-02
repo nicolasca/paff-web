@@ -41,15 +41,17 @@ describe('public card catalogue', () => {
     await user.click(screen.getByRole('button', { name: 'Ordres 8' }))
     expect(screen.getByRole('button', { name: 'Ordres 8' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getAllByRole('article')).toHaveLength(8)
-    const invocation = screen.getByRole('article', { name: 'Invokation shamanique' })
+    const invocation = screen.getByRole('article', { name: 'Boost shamanique' })
     expect(invocation).toHaveTextContent('4 fois par partie')
-    expect(invocation).toHaveTextContent('sur 2–3, défaussez une unité de Shamans ; sur 4–5, aucun effet supplémentaire')
+    expect(invocation).toHaveTextContent('Défaussez une unité de Shamans')
+    expect(invocation).toHaveTextContent('Ces Archers peuvent tirer une seconde fois ce tour-ci')
+    expect(invocation).toHaveTextContent('Vous choisissez la cible de chaque tir')
     expect(within(screen.getByRole('region', { name: 'Ordres communs' })).getAllByRole('article')).toHaveLength(4)
     expect(screen.getByRole('article', { name: 'Recrutement' })).toHaveTextContent('première est accessible à partir du tour 2')
     expect(screen.queryByRole('heading', { name: 'Archers Gobelins' })).not.toBeInTheDocument()
     rerender(<CardsCatalogue {...props} selectedFactionId="sephosi" />)
     expect(screen.getByRole('article', { name: 'Fureur divine' })).toHaveTextContent('2 fois par partie')
-    expect(screen.queryByRole('article', { name: 'Invokation shamanique' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('article', { name: 'Boost shamanique' })).not.toBeInTheDocument()
     rerender(<CardsCatalogue {...props} selectedFactionId="orcs" />)
     expect(screen.getAllByRole('article')).toHaveLength(4)
     expect(screen.queryByRole('article', { name: 'Fureur divine' })).not.toBeInTheDocument()
@@ -57,7 +59,7 @@ describe('public card catalogue', () => {
     await user.click(screen.getByRole('button', { name: 'Unités 1' }))
     expect(screen.getByRole('heading', { name: 'Archers Gobelins' })).toBeVisible()
   })
-  it.each(['Porte-ordres Sephosiens', 'Maréchal Vallardi'])('shows %s without invented dice or an attack mode', (name) => {
+  it.each(['Shamans Gobelins', 'Porte-ordres Sephosiens', 'Maréchal Vallardi', 'Gardiens des Cen\'', 'Druides'])('shows %s without invented dice or an attack mode', (name) => {
     const unit = catalogue2026.find((unit) => unit.name === name)!
     const { container } = render(<UnitCard card={{ ...card, ...unit, faction: card.faction }} />)
     expect(screen.getByLabelText('Aucune attaque')).toHaveTextContent('—')
@@ -68,10 +70,11 @@ describe('public card catalogue', () => {
   it('shows the finalized spell definition instead of an implementation placeholder', async () => {
     const unit = catalogue2026.find((unit) => unit.name === 'Le Danzereu')!
     render(<UnitCard card={{ ...card, ...unit, faction: card.faction }} />)
-    await userEvent.hover(screen.getByRole('button', { name: /Ligne Verte/ }))
-    expect(screen.getByRole('tooltip')).toHaveTextContent('quel que soit le camp des cibles')
-    expect(screen.getByRole('tooltip')).toHaveTextContent('première case de la zone suivante')
-    expect(screen.getByRole('tooltip')).toHaveTextContent('+1 dé et +1 A')
+    await userEvent.hover(screen.getByRole('button', { name: /Concentration shamanique/ }))
+    expect(screen.getByRole('tooltip')).toHaveTextContent('conserve son tir normal')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('un tir supplémentaire par unité de Shamans Gobelins non engagée')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Vous choisissez la cible de chaque tir')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Un Shaman survivant peut soutenir une nouvelle activation')
     expect(screen.getByRole('tooltip')).not.toHaveTextContent('en cours de définition')
   })
   it('shows faction buttons from data, their selection and entity', async () => {

@@ -3,10 +3,11 @@ import { mutation } from './_generated/server'
 import type { MutationCtx } from './_generated/server'
 import type { Id } from './_generated/dataModel'
 import { cellCoordinate, isCell } from '../shared/board'
-import { GOBLIN_BAND_CARD_ID, GOBLIN_REINFORCEMENTS_ORDER_ID, manualMoves } from '../shared/manualBattle'
+import { GOBLIN_BAND_CARD_ID, GOBLIN_REINFORCEMENTS_ORDER_ID, MANUAL_RULES_VERSION, manualMoves } from '../shared/manualBattle'
 import { getUnitProfile } from '../shared/unitProfile'
 import { fail, loadManual, logEvent, saveManual } from './lib/manualState'
-import { invalidateCombat } from '../shared/combat'
+import { emptyCombat, invalidateCombat } from '../shared/combat'
+import { beginTrollEngagement } from '../shared/autoCombat'
 
 const gameId = v.id('games')
 const delta = v.union(v.literal(-1), v.literal(1))
@@ -19,6 +20,9 @@ function owned(state: State, id: string) {
   const unit = state.engine.units.find((unit) => unit.id === id && unit.seat === state.member.seat)
   if (!unit) return fail('UNIT_NOT_OWNED')
   return unit
+}
+function requireLivingAction(state: State, id: string) {
+  if (state.manual.combat?.held?.some((effect) => effect.unitId === id && effect.turn === state.battle.turn)) fail('UNIT_ONLY_COMBAT')
 }
 function freeCell(state: State, cell: number) {
   if (!isCell(cell) || state.engine.units.some((unit) => unit.cell === cell)) fail('CELL_OCCUPIED')
@@ -38,6 +42,7 @@ export const moveUnit = mutation({
   handler: async (ctx, args) => {
     const state = await load(ctx, args.gameId)
     const unit = owned(state, args.unitId)
+    requireLivingAction(state, unit.id)
     if (unit.cell !== args.from) fail('STALE_GAME_ACTION')
     const card = state.cards.find((card) => card.seat === unit.seat && card.stableId === unit.cardStableId)!
     if (!manualMoves(state.engine, unit, card.profile).includes(args.to)) fail('INVALID_MOVEMENT')
@@ -99,7 +104,20 @@ export const adjustTurn = mutation({
   args: { gameId, delta },
   handler: async (ctx, args) => {
     const state = await load(ctx, args.gameId)
-    state.battle.turn = counter(state.battle.turn, args.delta, 1)
+    const nextTurn = counter(state.battle.turn, args.delta, 1)
+    // Delayed deaths expire on any change of turn; rewinding never resurrects them.
+    const held = new Set(state.manual.combat?.held?.map((effect) => effect.unitId) ?? [])
+    const ended = state.engine.units.filter((unit) => held.has(unit.id))
+    state.manual.discarded.push(...ended)
+    state.engine.units = state.engine.units.filter((unit) => !held.has(unit.id))
+    state.engine.engagements = state.engine.engagements.filter((edge) => !held.has(edge.a) && !held.has(edge.b))
+    if (state.manual.duel && (held.has(state.manual.duel.attackerId) || held.has(state.manual.duel.targetId ?? ''))) state.manual.duel = undefined
+    if (state.manual.combat) {
+      state.manual.combat.held = []
+      state.manual.combat.forestWrath = []
+    }
+    state.battle.turn = nextTurn
+    for (const unit of ended) state.engine = logEvent(state.engine, nextTurn, `Pour la Gaeli ! : fin du dernier combat de ${cellCoordinate(unit.cell)}, unité défaussée.`)
     await save(ctx, state, `${state.member.displayName} indique le tour ${state.battle.turn}.`)
   },
 })
@@ -127,6 +145,7 @@ export const adjustRegiment = mutation({
   handler: async (ctx, args) => {
     const state = await load(ctx, args.gameId)
     const unit = owned(state, args.unitId)
+    requireLivingAction(state, unit.id)
     unit.regiment = counter(unit.regiment, args.delta)
     await save(ctx, state)
   },
@@ -156,7 +175,15 @@ export const setEngagement = mutation({
     if (!a || !b || a.seat === b.seat) return fail('INVALID_DUEL')
     const pair = [a.id, b.id].sort()
     state.engine.engagements = state.engine.engagements.filter((edge) => !pair.includes(edge.a) || !pair.includes(edge.b))
-    if (args.engaged) state.engine.engagements.push({ a: pair[0], b: pair[1] })
+    if (args.engaged) {
+      state.engine.engagements.push({ a: pair[0], b: pair[1] })
+      if (state.game.rulesVersion === MANUAL_RULES_VERSION) {
+        const combat = state.manual.combat ??= emptyCombat()
+        for (const unit of [a, b].filter((unit) => unit.seat === state.member.seat && unit.regiment > 0)) {
+          beginTrollEngagement(state.engine, state.cards, combat, state.battle.turn, unit.id, unit.id === a.id ? b.id : a.id, () => Math.floor(Math.random() * 6) + 1)
+        }
+      }
+    }
     else if (state.manual.combat) state.manual.combat.arrows = state.manual.combat.arrows.filter((arrow) => arrow.kind !== 'melee' || !pair.includes(arrow.attackerId) || !pair.includes(arrow.targetId))
     await save(ctx, state, `${state.member.displayName} ${args.engaged ? 'marque' : 'retire'} un engagement entre ${cellCoordinate(a.cell)} et ${cellCoordinate(b.cell)}.`)
   },

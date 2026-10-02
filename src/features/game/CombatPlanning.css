@@ -97,3 +97,21 @@ p.combat-guide { display: block; }
 .combat-diversion { color: #adbcc5; font-size: .65rem; }
 .combat-diversion p { line-height: 1.5; }
 @media (max-width: 600px) { .combat-toolbar { padding: .75rem; } .combat-modes button { padding: .45rem .55rem; font-size: .68rem; } .combat-version { font-size: .5rem; } .combat-readiness { width: 100%; flex-basis: 100%; margin-bottom: .25rem; } .combat-launch .ui-button { flex: 1; justify-content: center; } .combat-arrow-count { min-width: 3rem; } }
+.combat-legacy-notice { grid-column: 1 / -1; margin: .75rem 0 0; padding: .7rem .85rem; border: 1px solid #cba56c70; border-radius: .3rem; color: #e1caab; background: #362c20; font-size: .75rem; line-height: 1.55; }
+.combat-shot-slots { margin-top: .7rem; padding: .65rem; border: 1px solid #77c3dd50; border-radius: .35rem; background: #163141; }
+.combat-shot-slots > span { font-size: .75rem; color: #cef2ff; }
+.combat-shot-slots > div { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
+.combat-shot-slots button { padding: .4rem .7rem; border: 1px solid #628d9e; border-radius: .3rem; background: #152933; color: #cce9f6; font: .68rem var(--body); cursor: pointer; }
+.combat-shot-slots button[aria-pressed=true] { background: #387187; border-color: #a9e3f5; }
+.combat-shot-slots small { display: block; font-size: .56rem; margin-top: .15rem; }
+.combat-shot-slots p { margin: .5rem 0 0; font-size: .65rem; line-height: 1.5; color: #bad2df; }
+.combat-troll-note, .combat-held-note { margin: .55rem 0 0; padding: .5rem .65rem; background: #413822; border: 1px solid #bb965b70; border-radius: .3rem; color: #e3cc99; font-size: .7rem; line-height: 1.55; }
+.combat-concentrated > small { display: block; margin-top: .3rem; font-size: .62rem; color: #c8d3d9; }
+.combat-concentrated .combat-resolve { flex-wrap: wrap; justify-content: center; gap: .3rem .7rem; }
+.combat-exposed > small { display: block; font-size: .62rem; line-height: 1.5; color: #bcad93; margin-top: .25rem; }
+.combat-costs { margin-top: .6rem; padding: .6rem; border: 1px solid #9b875040; border-radius: .3rem; background: #28241b; }
+.combat-costs h4 { margin: 0 0 .35rem; font-size: .68rem; color: #dac594; }
+.combat-costs p { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem; margin: .2rem 0; font-size: .65rem; line-height: 1.5; color: #c1c7bc; }
+.combat-costs strong { color: #e7d4aa; }
+.combat-modes button:disabled { opacity: .45; cursor: default; }
+@media (max-width: 600px) { .combat-concentrated { width: 100%; } .combat-concentrated .ui-button { width: 100%; } }

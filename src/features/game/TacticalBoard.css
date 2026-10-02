@@ -194,3 +194,12 @@
   .battlefield-corner { width: 2.7rem; height: 2.7rem; }
 }
 @media (prefers-reduced-motion: reduce) { .battlefield-wisps i { animation: none; opacity: .65; } }
+.board-unit.board-unit--held { border-style: dashed; border-color: #dfc178; }
+.board-unit__held, .board-unit__troll { position: absolute; top: 1.5rem; left: .15rem; right: .15rem; padding: .1rem .15rem; border: 1px solid #e1c887; border-radius: .2rem; background: #423516ed; color: #fff0c0; font: 600 .49rem var(--body); text-align: center; z-index: 3; }
+.board-unit__held { top: .15rem; left: 1.7rem; font-size: .43rem; white-space: nowrap; }
+.board-unit--held.board-unit--invoked strong { padding-bottom: .8rem; }
+.board-unit--held .board-unit__invocation { top: auto; bottom: .06rem; left: .15rem; right: auto; padding: .02rem .12rem; font-size: .43rem; line-height: 1; }
+.board-unit__troll { top: .15rem; left: auto; right: .15rem; background: #242820e8; color: #dce8cb; border-color: #a4b587; }
+.board-unit--invoked .board-unit__troll { top: 1.5rem; }
+.board-surface:has(.board-unit--held) { min-width: 720px; }
+.combat-arrow-number { font: 700 11px var(--body); fill: #ebfbff; stroke: #163440; stroke-width: 3px; paint-order: stroke; text-anchor: middle; dominant-baseline: middle; }

@@ -2,6 +2,8 @@
 
 Document de travail évolutif, arrêté avec Nicolas le **29 septembre 2026**, complété le **30 septembre** pour la portée. Référence courante : `2026-09-30-portee-1`. Les arbitrages de cette discussion priment sur les descriptions historiques du catalogue. Ce lot conserve les profils figés des parties et ne modifie pas le simulateur.
 
+**Historique remplacé le 2 octobre 2026 :** la demande d’implémentation des fiches AUTO remplace les mécanismes V1 ci-dessous. Référence actuelle : [règles AUTO implémentées, §4.1](regles-implementees.md#41-tirs-et-corps-à-corps--règles-auto-du-2-octobre), version `2026-10-02-auto-1`. Pluie, Tir en mêlée, Tir magique, Chant des Ancêtres et l’ancien bonus du Chef sont retirés du calcul. Ce document conserve les choix, tests et captures de la V1 comme historique.
+
 ## Périmètre retenu
 
 - Automatiser les dés, capacités applicables, touches, pertes de R et défausses. Depuis le 30 septembre, contrôler aussi la distance de tir et l’axe ; conserver aux joueurs le choix des cibles et l'arbitrage des autres règles de zones, engagements, ordres et calendrier.

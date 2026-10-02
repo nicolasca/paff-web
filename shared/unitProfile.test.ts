@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { estimateUnitProfile, getUnitProfile, unitTypeNames, type UnitProfile } from './unitProfile'
+import { catalogue2026 } from './catalogue2026'
 
 const card = { kind: 'unit' as const, stableId: 'archers', name: 'Archers', life: 2, attack: 1, unitType: 'T', abilities: [] }
 
@@ -37,6 +38,13 @@ describe('2026 unit profiles', () => {
   it('honors a manually defined profile without recalculating it', () => {
     const profile: UnitProfile = { ...estimateUnitProfile(card), regiment: 12, dice: 4, offense: { kind: 'melee', score: 5 }, defenseMelee: 6, defenseRanged: 2, source: 'defined' }
     expect(getUnitProfile({ ...card, life: 1, attack: 0, profile })).toBe(profile)
+  })
+  it.each(['Shamans Gobelins', 'Porte-ordres Sephosiens', 'Maréchal Vallardi', 'Gardiens des Cen\'', 'Druides'])('keeps the defined non-attacking %s profile over stale legacy attack values', (name) => {
+    const unit = catalogue2026.find((unit) => unit.name === name)!
+    const profile = getUnitProfile({ ...card, ...unit, life: 6, attack: 6 })!
+    expect(profile).toBe(unit.profile)
+    expect(profile.dice).toBe(0)
+    expect(profile.offense).toEqual({ kind: 'none', score: null })
   })
   it('gives no unit profile to action cards, including artillery actions', () => {
     expect(getUnitProfile({ ...card, name: 'Tirs de balistes', kind: 'action', profile: estimateUnitProfile(card) })).toBeUndefined()

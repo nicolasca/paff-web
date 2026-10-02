@@ -13,7 +13,22 @@ function setup() {
   return { ...h, apply }
 }
 
-describe('September 21 roster with preserved September 18 rulings', () => {
+describe('AUTO roster with the October 2 rulings and preserved identities', () => {
+  it('updates attack values and removes retired abilities without changing the thirty-unit roster', () => {
+    expect(catalogue2026).toHaveLength(30)
+    expect(new Set(catalogue2026.map((unit) => unit.stableId)).size).toBe(30)
+    for (const faction of ['gobelins', 'sephosi', 'gaeli']) expect(catalogue2026.filter((unit) => unit.faction === faction)).toHaveLength(10)
+    expect(catalogue2026.find((unit) => unit.stableId === 'gobelins-shaman-gobelin')).toMatchObject({ cost: 1, profile: { unitType: 'ranged', regiment: 1, dice: 0, offense: { kind: 'none', score: null }, defenseMelee: 1, defenseRanged: 1 } })
+    expect(catalogue2026.find((unit) => unit.stableId === 'gobelins-katapult-a-gobs')).toMatchObject({ cost: 2, profile: { regiment: 1, dice: 2, offense: { kind: 'ranged', score: 3 }, ability: unitAbilities.ammunition } })
+    expect(catalogue2026.find((unit) => unit.stableId === 'sephosi-lanciers-sephosiens')?.profile).toMatchObject({ dice: 2, offense: { kind: 'melee', score: 3 }, defenseMelee: 4, defenseRanged: 4 })
+    expect(catalogue2026.find((unit) => unit.stableId === 'sephosi-cavalerie-lourde-sephosienne')?.profile).toMatchObject({ dice: 2, offense: { kind: 'melee', score: 4 }, defenseMelee: 3, defenseRanged: 2 })
+    expect(catalogue2026.find((unit) => unit.stableId === 'gobelins-le-danzereu')?.profile.ability).toEqual(unitAbilities.shamanicConcentration)
+    for (const stableId of ['gobelins-archers-gobelins', 'gobelins-shaman-gobelin', 'sephosi-lanciers-sephosiens', 'sephosi-cavalerie-lourde-sephosienne', 'gaeli-gardiens-des-cen', 'gaeli-druide']) {
+      expect(catalogue2026.find((unit) => unit.stableId === stableId)?.profile.ability, stableId).toBeUndefined()
+    }
+    const abilityIds = Object.values(unitAbilities).map((ability) => ability.id)
+    for (const id of ['bran-teha', 'ancestral-song', 'powerful-charge', 'green-line', 'spear-wall', 'goblin-rain', 'melee-shooting', 'magical-shot']) expect(abilityIds).not.toContain(id)
+  })
   it('publishes long-range fire as an Archer ability while preserving frozen Archers and deck references', async () => {
     const h = setup()
     const archers = catalogue2026.find((unit) => unit.stableId === 'gaeli-archers-longs-gaeliens')!
@@ -76,7 +91,8 @@ describe('September 21 roster with preserved September 18 rulings', () => {
     const entries = structuredClone(h.tables.deckCards)
     await h.apply()
     expect(h.tables.deckCards).toEqual(entries)
-    expect(h.tables.cards.find((card) => card._id === 'druide')).toMatchObject({ name: 'Druides', profile: { dice: 0, offense: { kind: 'none', score: null }, ability: { id: 'bran-teha' } } })
+    expect(h.tables.cards.find((card) => card._id === 'druide')).toMatchObject({ name: 'Druides', profile: { dice: 0, offense: { kind: 'none', score: null } } })
+    expect(h.tables.cards.find((card) => card._id === 'druide')?.profile).not.toHaveProperty('ability')
     expect(h.tables.cards.find((card) => card._id === 'chefs-de-clan-de-gaeli')).toMatchObject({ profile: { unitType: 'unique', regiment: 2, ability: { id: 'for-gaeli' } } })
     for (const id of ['sorl-caleit', 'charge-du-gardien', 'appel-des-vents', 'sacrifice-druidique']) expect(h.tables.cards.find((card) => card._id === id)?.status).toBe('archived')
     expect(h.tables.cards.filter((card) => card.factionId === 'gaeli' && card.status === 'published')).toHaveLength(10)

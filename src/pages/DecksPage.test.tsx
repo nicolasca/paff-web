@@ -103,7 +103,7 @@ describe('deck editing and viewing', () => {
     const reference = within(screen.getByRole('region', { name: 'Ordres de référence' }))
     expect(reference.getAllByRole('article')).toHaveLength(8)
     expect(reference.getByText(/ne s’ajoutent pas au deck/)).toBeVisible()
-    const invocation = reference.getByRole('article', { name: 'Invokation shamanique' })
+    const invocation = reference.getByRole('article', { name: 'Boost shamanique' })
     await user.click(within(invocation).getByRole('heading'))
     expect(within(invocation).queryByRole('button')).not.toBeInTheDocument()
     expect(reference.queryByRole('spinbutton')).not.toBeInTheDocument()

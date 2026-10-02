@@ -267,7 +267,8 @@ export const finishDeployment = mutation({
     }
     await ctx.db.patch(game._id, {
       phase: ready ? 'battle' : 'deployment', updatedAt: now,
-      ...(ready ? { battleStartedAt: now, rulesVersion: RULES_VERSION } : {}),
+      // Keep the version acquired at launch with the already frozen army profiles.
+      ...(ready ? { battleStartedAt: now } : {}),
       ...(battle ? { battle } : {}),
       setup: { ...setup, revision: setup.revision + 1, deploymentTurn: 1 - member.seat },
     })

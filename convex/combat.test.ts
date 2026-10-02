@@ -81,25 +81,17 @@ describe('combat server authority and persistence', () => {
     await h.action('clearArrows', 2, { kind: 'melee' })
     expect((await h.read()).battle!.engine.engagements).toEqual([])
   })
-  it('requires a valid exposed ally before rolling and cleans that choice after disengagement', async () => {
+  it('rejects engaged shooting targets before any roll, including historical melee-shooting profiles', async () => {
     const h = await table()
     const archer = await h.unit(0, 'archers')
     const row = h.tables.gameCards.find((card) => card.stableId === 'archers' && card.gamePlayerId === h.tables.gamePlayers[0]._id)!
-    row.profile = { ...row.profile as UnitProfile, ability: unitAbilities.meleeShooting }
-    await h.invoke('manual', 'recruit', 1, { gameId: h.gameId, cardStableId: 'lanciers', entered: 1, cell: 31 })
-    const c = (await h.read()).battle!.engine.units.find((u) => u.cell === 31)!
-    for (const a of [h.a.id, c.id]) await h.invoke('manual', 'setEngagement', 1, { gameId: h.gameId, a, b: h.b.id, engaged: true })
-    const arrow = { kind: 'ranged', attackerId: archer.id, targetId: h.b.id }
-    await h.action('setArrow', 1, arrow)
+    row.profile = { ...row.profile as UnitProfile, ability: { id: 'melee-shooting', name: 'Tir en mêlée', description: 'historique' } }
+    await h.invoke('manual', 'setEngagement', 1, { gameId: h.gameId, a: h.a.id, b: h.b.id, engaged: true })
     const before = structuredClone(h.tables)
-    await expect(h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision })).rejects.toMatchObject(error('MISSING_EXPOSED_ALLY'))
+    const random = vi.spyOn(Math, 'random')
+    await expect(h.action('setArrow', 1, { kind: 'ranged', attackerId: archer.id, targetId: h.b.id })).rejects.toMatchObject(error('ENGAGED_SHOOTING_TARGET'))
     expect(h.tables).toEqual(before)
-    await expect(h.action('setArrow', 1, { ...arrow, allyId: archer.id })).rejects.toMatchObject(error('INVALID_EXPOSED_ALLY'))
-    await h.action('setArrow', 1, { ...arrow, allyId: c.id })
-    await h.invoke('manual', 'setEngagement', 1, { gameId: h.gameId, a: c.id, b: h.b.id, engaged: false })
-    expect((await h.state()).arrows[0].allyId).toBeUndefined()
-    await h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision })
-    expect((await h.state()).reports[0].diversions[0].ally.id).toBe(h.a.id)
+    expect(random).not.toHaveBeenCalled()
   })
   it('shares arrows, preserves B → A when C joins, and waits for both players', async () => {
     const h = await table()
@@ -163,22 +155,278 @@ describe('combat server authority and persistence', () => {
     expect((await h.state()).arrows).toEqual([])
     expect((await h.state()).ready).toEqual([])
   })
-  it('resolves only the caller’s shots without creating engagements and expires rain on turn changes', async () => {
+  it('resolves only the caller’s shots and keeps an opponent’s prepared salve', async () => {
     const h = await table()
     const archers = [await h.unit(0, 'archers'), await h.unit(1, 'archers')]
-    const card = h.tables.gameCards.find((row) => row.stableId === 'archers' && row.gamePlayerId === h.tables.gamePlayers[0]._id)!
-    card.profile = { ...card.profile as UnitProfile, ability: unitAbilities.goblinRain }
     await h.action('setArrow', 1, { kind: 'ranged', attackerId: archers[0].id, targetId: h.b.id })
     await h.action('setArrow', 2, { kind: 'ranged', attackerId: archers[1].id, targetId: h.a.id })
     vi.spyOn(Math, 'random').mockReturnValue(.99)
     await h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision })
     expect((await h.state()).reports[0].attacks).toHaveLength(1)
-    expect((await h.state()).arrows.map((a) => a.attackerId)).toEqual([archers[1].id])
+    expect((await h.state()).arrows.map((arrow) => arrow.attackerId)).toEqual([archers[1].id])
     expect((await h.read()).battle!.engine.engagements).toEqual([])
-    expect((await h.state()).rain).toEqual([{ unitId: h.b.id, penalty: 2, turn: 1 }])
-    await h.invoke('manual', 'adjustTurn', 1, { gameId: h.gameId, delta: 1 })
-    expect((await h.state()).rain).toEqual([])
-    await h.invoke('manual', 'adjustTurn', 1, { gameId: h.gameId, delta: -1 })
     expect((await h.state()).rain).toEqual([])
   })
+})
+
+function currentBattle(h: Awaited<ReturnType<typeof table>>) {
+  return h.tables.games.find((game) => game._id === h.gameId)!.battle as BattleState
+}
+function addUnit(h: Awaited<ReturnType<typeof table>>, seat: number, stableId: string, cell: number, profile: UnitProfile) {
+  const source = h.tables.gameCards.find((row) => row.gamePlayerId === h.tables.gamePlayers[seat]._id)!
+  const id = `extra:${seat}:${stableId}:${h.tables.gameCards.length}`
+  h.tables.gameCards.push({ ...source, _id: id, stableId, name: stableId, profile, quantity: 1, selectedQuantity: 0, deploymentQuantity: 0, enteredQuantity: 1 })
+  const unit = { id, seat, cardStableId: stableId, cell, regiment: profile.regiment }
+  currentBattle(h).engine.units.push(unit)
+  return unit
+}
+const profile = (kind: 'ranged' | 'melee' | 'none', ability?: keyof typeof unitAbilities, dice = 2, regiment = 10): UnitProfile => ({
+  unitType: ability === 'ammunition' ? 'artillery' : kind === 'ranged' ? 'ranged' : 'troop', regiment, dice, offense: { kind, score: kind === 'none' ? null : 3 },
+  defenseMelee: 3, defenseRanged: 3, source: 'defined', ...(ability ? { ability: unitAbilities[ability] } : {}),
+})
+
+describe('AUTO server mechanics', () => {
+  it('keeps old tables read-only for these rules, without rolling or editing a profile', async () => {
+    const h = await table()
+    h.tables.games.find((game) => game._id === h.gameId)!.rulesVersion = '2026-09-30-portee-1'
+    const before = structuredClone(h.tables)
+    const random = vi.spyOn(Math, 'random')
+    await expect(h.action('setArrow', 1, { kind: 'melee', attackerId: h.a.id, targetId: h.b.id })).rejects.toMatchObject(error('AUTO_RULES_REQUIRED'))
+    expect(h.tables).toEqual(before)
+    expect(random).not.toHaveBeenCalled()
+  })
+
+  it('requires every Danzereu slot, validates them before rolls, and reuses surviving shamans', async () => {
+    const h = await table()
+    const danzereu = addUnit(h, 0, 'gobelins-le-danzereu', 22, profile('ranged', 'shamanicConcentration'))
+    const shaman = addUnit(h, 0, 'gobelins-shaman-gobelin', 42, profile('none', undefined, 0, 1))
+    await h.action('setArrow', 1, { kind: 'ranged', attackerId: danzereu.id, targetId: h.b.id, slot: 0 })
+    const random = vi.spyOn(Math, 'random')
+    const before = structuredClone(h.tables)
+    await expect(h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision })).rejects.toMatchObject(error('INCOMPLETE_SHAMANIC_SHOTS'))
+    expect(random).not.toHaveBeenCalled()
+    expect(h.tables).toEqual(before)
+    await expect(h.action('setArrow', 1, { kind: 'ranged', attackerId: danzereu.id, targetId: h.b.id, slot: 2 })).rejects.toMatchObject(error('INVALID_ATTACK_SLOT'))
+    await h.action('setArrow', 1, { kind: 'ranged', attackerId: danzereu.id, targetId: h.b.id, slot: 1 })
+    random.mockReturnValue(.01).mockReturnValueOnce(.01).mockReturnValueOnce(.01).mockReturnValueOnce(.01).mockReturnValueOnce(.01).mockReturnValueOnce(.99)
+    await h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision })
+    expect((await h.state()).reports[0].attacks.map((attack) => attack.slot)).toEqual([0, 1])
+    expect((await h.state()).reports[0].shamanRisks).toEqual([expect.objectContaining({ unit: expect.objectContaining({ id: shaman.id }), value: 6, discarded: false })])
+    for (const slot of [0, 1]) await h.action('setArrow', 1, { kind: 'ranged', attackerId: danzereu.id, targetId: h.b.id, slot })
+    random.mockReturnValue(.01)
+    await h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision })
+    expect((await h.state()).reports[1].attacks).toHaveLength(2)
+    expect((await h.read()).battle!.manual.discarded.map((unit) => unit.id)).toContain(shaman.id)
+  })
+
+  it('rechecks shaman availability when a supporter becomes engaged', async () => {
+    const h = await table()
+    const danzereu = addUnit(h, 0, 'gobelins-le-danzereu', 22, profile('ranged', 'shamanicConcentration'))
+    const shaman = addUnit(h, 0, 'gobelins-shaman-gobelin', 42, profile('none', undefined, 0, 1))
+    for (const slot of [0, 1]) await h.action('setArrow', 1, { kind: 'ranged', attackerId: danzereu.id, targetId: h.b.id, slot })
+    // Use the stored enemy archer to avoid engaging the shooting target itself.
+    currentBattle(h).engine.engagements.push({ a: shaman.id, b: (await h.unit(1, 'archers')).id })
+    const random = vi.spyOn(Math, 'random')
+    await expect(h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision })).rejects.toMatchObject(error('INVALID_ATTACK_SLOT'))
+    expect(random).not.toHaveBeenCalled()
+  })
+
+  it('requires legal ammunition, prevents double sacrifice, and reports a consumed unit', async () => {
+    const h = await table()
+    const cat = addUnit(h, 0, 'gobelins-katapult-a-gobs', 31, profile('ranged', 'ammunition'))
+    await h.action('setArrow', 1, { kind: 'ranged', attackerId: cat.id, targetId: h.b.id })
+    const random = vi.spyOn(Math, 'random')
+    const before = structuredClone(h.tables)
+    await expect(h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision })).rejects.toMatchObject(error('INVALID_AMMUNITION'))
+    expect(random).not.toHaveBeenCalled()
+    expect(h.tables).toEqual(before)
+    await expect(h.action('setArrow', 1, { kind: 'ranged', attackerId: cat.id, targetId: h.b.id, sacrificeId: h.b.id })).rejects.toMatchObject(error('INVALID_AMMUNITION'))
+    const troll = addUnit(h, 0, 'gobelins-meneurs-de-troll', 30, profile('melee', 'trollitude'))
+    await expect(h.action('setArrow', 1, { kind: 'ranged', attackerId: cat.id, targetId: h.b.id, sacrificeId: troll.id })).rejects.toMatchObject(error('INVALID_AMMUNITION'))
+    const ammo = addUnit(h, 0, 'gobelins-troupe-de-gobelins', 40, profile('melee'))
+    const second = addUnit(h, 0, 'gobelins-katapult-a-gobs', 39, profile('ranged', 'ammunition'))
+    for (const attackerId of [cat.id, second.id]) await h.action('setArrow', 1, { kind: 'ranged', attackerId, targetId: h.b.id, sacrificeId: ammo.id })
+    await expect(h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision })).rejects.toMatchObject(error('DUPLICATE_AMMUNITION'))
+    await h.action('setArrow', 1, { kind: 'ranged', attackerId: second.id })
+    random.mockReturnValue(.01)
+    await h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision })
+    expect((await h.read()).battle!.manual.discarded.map((unit) => unit.id)).toContain(ammo.id)
+    expect((await h.state()).reports[0].sacrifices?.[0].id).toBe(ammo.id)
+    expect((await h.state()).reports[0].attacks[0].damage).toBe(0)
+  })
+
+  it('freezes ammunition before concentration and excludes that shaman from the required slots', async () => {
+    const h = await table()
+    const danzereu = addUnit(h, 0, 'gobelins-le-danzereu', 22, profile('ranged', 'shamanicConcentration'))
+    const cat = addUnit(h, 0, 'gobelins-katapult-a-gobs', 31, profile('ranged', 'ammunition'))
+    const shaman = addUnit(h, 0, 'gobelins-shaman-gobelin', 40, profile('none', undefined, 0, 1))
+    await h.action('setArrow', 1, { kind: 'ranged', attackerId: cat.id, targetId: h.b.id, sacrificeId: shaman.id })
+    await h.action('setArrow', 1, { kind: 'ranged', attackerId: danzereu.id, targetId: h.b.id, slot: 0 })
+    vi.spyOn(Math, 'random').mockReturnValue(.01)
+    await h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision })
+    expect((await h.state()).reports[0].attacks).toHaveLength(2)
+    expect((await h.state()).reports[0].shamanRisks).toBeUndefined()
+  })
+
+  it('holds Gaeli units killed by shooting, allows melee only, and preserves the choice after the chief dies', async () => {
+    const h = await table()
+    const victim = addUnit(h, 0, 'gaeli-combattants-des-vlands', 30, profile('melee', undefined, 2, 1))
+    const chief = addUnit(h, 0, 'gaeli-chefs-de-clan-de-gaeli', 31, profile('melee', 'forGaeli', 2, 1))
+    const shooter = await h.unit(1, 'archers')
+    await h.action('setArrow', 2, { kind: 'ranged', attackerId: shooter.id, targetId: victim.id })
+    vi.spyOn(Math, 'random').mockReturnValue(.99)
+    await h.action('resolve', 2, { kind: 'ranged', revision: (await h.state()).revision })
+    expect((await h.state()).held).toEqual([{ unitId: victim.id, turn: 1 }])
+    const beforeRetry = structuredClone(h.tables)
+    const randomCalls = vi.mocked(Math.random).mock.calls.length
+    await expect(h.action('setArrow', 2, { kind: 'ranged', attackerId: shooter.id, targetId: victim.id })).rejects.toMatchObject(error('INVALID_ATTACK_TARGET'))
+    expect(h.tables).toEqual(beforeRetry)
+    expect(vi.mocked(Math.random).mock.calls.length).toBe(randomCalls)
+    await h.invoke('manual', 'discardUnit', 1, { gameId: h.gameId, unitId: chief.id })
+    await expect(h.action('setArrow', 1, { kind: 'ranged', attackerId: victim.id, targetId: h.b.id })).rejects.toMatchObject(error('ATTACK_NOT_AVAILABLE'))
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: victim.id, targetId: h.b.id })
+    await h.ready()
+    await h.action('resolve', 1, { kind: 'melee', revision: (await h.state()).revision })
+    expect((await h.state()).reports[1].attacks[0].dice).toHaveLength(2)
+    expect((await h.read()).battle!.engine.units.find((unit) => unit.id === victim.id)?.regiment).toBe(0)
+  })
+
+  it('activates forest wrath atomically and keeps it after its guardian dies', async () => {
+    const h = await table()
+    const battle = currentBattle(h)
+    battle.catalog.push({ id: 'forest-wrath', name: 'Colère de la Forêt', faction: 'gaeli', category: 'legendary', limit: 1, description: '', seats: [0] })
+    battle.manual.stocks.push({ seat: 0, orderId: 'forest-wrath', remaining: 1 })
+    const guardian = addUnit(h, 0, 'gaeli-gardiens-des-cen', 39, profile('none', undefined, 0, 1))
+    const random = vi.spyOn(Math, 'random')
+    await expect(h.action('forestWrath', 2, { revision: 0, guardianId: guardian.id })).rejects.toMatchObject(error('ORDER_NOT_AVAILABLE'))
+    await h.action('forestWrath', 1, { revision: 0, guardianId: guardian.id })
+    expect(random).not.toHaveBeenCalled()
+    expect((await h.state()).forestWrath).toEqual([{ seat: 0, turn: 1 }])
+    await expect(h.action('forestWrath', 1, { revision: 0, guardianId: guardian.id })).rejects.toMatchObject(error('STALE_GAME_ACTION'))
+    await expect(h.action('forestWrath', 1, { revision: (await h.state()).revision, guardianId: guardian.id })).rejects.toMatchObject(error('ORDER_EXHAUSTED'))
+    await h.invoke('manual', 'discardUnit', 1, { gameId: h.gameId, unitId: guardian.id })
+    const spirit = addUnit(h, 0, 'gaeli-esprits-des-bois', 31, profile('melee', 'ethereal', 3))
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: spirit.id, targetId: h.b.id })
+    await h.ready()
+    random.mockReturnValue(.01)
+    await h.action('resolve', 1, { kind: 'melee', revision: (await h.state()).revision })
+    expect((await h.state()).reports[0].attacks[0].dice).toHaveLength(6)
+    expect((await h.read()).battle!.manual.stocks.find((stock) => stock.orderId === 'forest-wrath')?.remaining).toBe(0)
+  })
+
+  it('requires an available non-engaged guardian before activating forest wrath', async () => {
+    const h = await table()
+    const battle = currentBattle(h)
+    battle.catalog.push({ id: 'forest-wrath', name: 'Colère', faction: 'gaeli', category: 'legendary', limit: 1, description: '', seats: [0] })
+    battle.manual.stocks.push({ seat: 0, orderId: 'forest-wrath', remaining: 1 })
+    const guardian = addUnit(h, 0, 'gaeli-gardiens-des-cen', 39, profile('none', undefined, 0, 1))
+    battle.engine.engagements.push({ a: guardian.id, b: h.b.id })
+    const before = structuredClone(h.tables)
+    await expect(h.action('forestWrath', 1, { revision: 0, guardianId: guardian.id })).rejects.toMatchObject(error('FOREST_WRATH_NEEDS_GUARDIAN'))
+    expect(h.tables).toEqual(before)
+  })
+
+  it('uses one troll roll per engagement and permits an explicitly selected adjacent ally after one', async () => {
+    const h = await table()
+    const troll = addUnit(h, 0, 'gobelins-meneurs-de-troll', 31, profile('melee', 'trollitude', 2))
+    const random = vi.spyOn(Math, 'random').mockReturnValue(.01)
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: troll.id, targetId: h.b.id })
+    expect((await h.state()).trollRolls?.[0].value).toBe(1)
+    await h.ready()
+    await expect(h.action('resolve', 1, { kind: 'melee', revision: (await h.state()).revision })).rejects.toMatchObject(error('TROLL_NEEDS_ALLY'))
+    const distant = addUnit(h, 0, 'gobelins-lointain', 49, profile('melee'))
+    await expect(h.action('setArrow', 1, { kind: 'melee', attackerId: troll.id, targetId: distant.id })).rejects.toMatchObject(error('INVALID_ATTACK_TARGET'))
+    const randomCalls = random.mock.calls.length
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: troll.id, targetId: h.a.id })
+    expect(random.mock.calls.length).toBe(randomCalls)
+    expect((await h.state()).trollRolls?.[0].targetId).toBe(h.a.id)
+    await h.ready()
+    await h.action('resolve', 1, { kind: 'melee', revision: (await h.state()).revision })
+    expect((await h.state()).reports[0].attacks[0].target.id).toBe(h.a.id)
+    await h.ready()
+    await h.action('resolve', 1, { kind: 'melee', revision: (await h.state()).revision })
+    expect((await h.state()).trollRolls).toHaveLength(1)
+    expect((await h.state()).reports).toHaveLength(2)
+  })
+
+  it.each([2, 3, 6])('persists troll result %i without additional behavior rolls', async (value) => {
+    const h = await table()
+    const troll = addUnit(h, 0, 'gobelins-meneurs-de-troll', 31, profile('melee', 'trollitude', 2))
+    const random = vi.spyOn(Math, 'random').mockReturnValue((value - .5) / 6)
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: troll.id, targetId: h.b.id })
+    random.mockReturnValue(.01)
+    for (let combat = 0; combat < 2; combat++) {
+      await h.ready()
+      await h.action('resolve', 1, { kind: 'melee', revision: (await h.state()).revision })
+      expect((await h.state()).reports[combat].attacks[0].dice).toHaveLength(value === 6 ? 2 : 0)
+    }
+    expect(random).toHaveBeenCalledTimes(value === 6 ? 5 : 1)
+  })
+
+  it('requires two concentrated shooters in one zone, adds one die each and consumes stock', async () => {
+    const h = await table()
+    const battle = currentBattle(h)
+    battle.catalog.push({ id: 'concentrated-fire', name: 'Tir concentré', faction: 'sephosi', category: 'advanced', limit: 4, description: '', seats: [0] })
+    battle.manual.stocks.push({ seat: 0, orderId: 'concentrated-fire', remaining: 4 })
+    const shooter = await h.unit(0, 'archers')
+    await h.action('setArrow', 1, { kind: 'ranged', attackerId: shooter.id, targetId: h.b.id })
+    const random = vi.spyOn(Math, 'random')
+    await expect(h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision, orderId: 'concentrated-fire' })).rejects.toMatchObject(error('INVALID_CONCENTRATED_FIRE'))
+    expect(random).not.toHaveBeenCalled()
+    const second = addUnit(h, 0, 'sephosi-arbaletriers', 31, profile('ranged'))
+    await h.action('setArrow', 1, { kind: 'ranged', attackerId: second.id, targetId: h.b.id })
+    random.mockReturnValue(.01)
+    await h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision, orderId: 'concentrated-fire' })
+    expect((await h.state()).reports[0].attacks.map((attack) => attack.dice.length)).toEqual([2, 3])
+    expect((await h.state()).reports[0].orderId).toBe('concentrated-fire')
+    expect((await h.read()).battle!.manual.stocks.find((stock) => stock.orderId === 'concentrated-fire')?.remaining).toBe(3)
+  })
+  it('redirects the roll of the prepared troll attack when another engagement was added later', async () => {
+    const h = await table()
+    const troll = addUnit(h, 0, 'gobelins-meneurs-de-troll', 31, profile('melee', 'trollitude', 2))
+    const random = vi.spyOn(Math, 'random').mockReturnValue(.01)
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: troll.id, targetId: h.b.id })
+    const otherEnemy = (await h.unit(1, 'archers')).id
+    random.mockReturnValue(.6)
+    await h.invoke('manual', 'setEngagement', 1, { gameId: h.gameId, a: troll.id, b: otherEnemy, engaged: true })
+    expect((await h.state()).trollRolls?.map((roll) => roll.value)).toEqual([1, 4])
+    const calls = random.mock.calls.length
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: troll.id, targetId: h.a.id })
+    expect(random.mock.calls.length).toBe(calls)
+    expect((await h.state()).trollRolls).toEqual(expect.arrayContaining([
+      expect.objectContaining({ unitId: troll.id, targetId: h.a.id, value: 1 }),
+      expect.objectContaining({ unitId: troll.id, targetId: otherEnemy, value: 4 }),
+    ]))
+    expect((await h.state()).trollRolls).toHaveLength(2)
+  })
+
+  it('retains the original troll roll when an opponent arrow keeps that engagement alive', async () => {
+    const h = await table()
+    const troll = addUnit(h, 0, 'gobelins-meneurs-de-troll', 31, profile('melee', 'trollitude', 2))
+    const random = vi.spyOn(Math, 'random').mockReturnValue(.01)
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: troll.id, targetId: h.b.id })
+    await h.action('setArrow', 2, { kind: 'melee', attackerId: h.b.id, targetId: troll.id })
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: troll.id, targetId: h.a.id })
+    expect((await h.state()).trollRolls?.map((roll) => roll.targetId)).toEqual([h.b.id, h.a.id])
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: troll.id })
+    expect((await h.state()).trollRolls?.map((roll) => roll.targetId)).toEqual([h.b.id])
+    const calls = random.mock.calls.length
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: troll.id, targetId: h.b.id })
+    expect(random.mock.calls.length).toBe(calls)
+    expect((await h.state()).trollRolls?.[0].value).toBe(1)
+  })
+
+  it('rejects using a shooter as ammunition before the entire salve rolls', async () => {
+    const h = await table()
+    const cat = addUnit(h, 0, 'gobelins-katapult-a-gobs', 31, profile('ranged', 'ammunition'))
+    const shooter = await h.unit(0, 'archers')
+    await h.action('setArrow', 1, { kind: 'ranged', attackerId: shooter.id, targetId: h.b.id })
+    await h.action('setArrow', 1, { kind: 'ranged', attackerId: cat.id, targetId: h.b.id, sacrificeId: shooter.id })
+    const before = structuredClone(h.tables)
+    const random = vi.spyOn(Math, 'random')
+    await expect(h.action('resolve', 1, { kind: 'ranged', revision: (await h.state()).revision })).rejects.toMatchObject(error('AMMUNITION_IS_ATTACKING'))
+    expect(h.tables).toEqual(before)
+    expect(random).not.toHaveBeenCalled()
+  })
+
 })
