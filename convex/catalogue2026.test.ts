@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { createGameHarness } from '../src/test/gameHarness'
 import { catalogue2026, CATALOGUE_VERSION } from '../shared/catalogue2026'
 import { hasUnitAbility, unitAbilities } from '../shared/unitAbilities'
+import { legalMoves } from '../shared/battleEngine'
+import { deckRuleIssues } from '../shared/armyRules'
 
 function setup() {
   const h = createGameHarness()
@@ -14,6 +16,26 @@ function setup() {
 }
 
 describe('AUTO roster with the October 2 rulings and preserved identities', () => {
+  it('corrects Blop to cavalry with its movement and deck quota while preserving prepared armies', async () => {
+    const h = setup()
+    const blop = catalogue2026.find((unit) => unit.stableId === 'gobelins-blop-le-meuteur')!
+    const historicalProfile = { ...structuredClone(blop.profile), unitType: 'unique' as const }
+    h.tables.cards.push({ ...h.tables.cards[0], _id: 'blop', stableId: blop.stableId, name: blop.name, cost: blop.cost, profile: historicalProfile })
+    h.tables.deckCards = h.tables.deckCards.filter((entry) => entry.deckId !== 'deck-1')
+    h.tables.deckCards.push({ _id: 'blop-deck', deckId: 'deck-1', cardId: 'blop', quantity: 1 })
+    await h.readyFor('preparation')
+    const frozen = structuredClone(h.tables.gameCards)
+    const entries = structuredClone(h.tables.deckCards)
+    await h.apply()
+    expect(h.tables.cards.find((card) => card._id === 'blop')).toMatchObject({ name: blop.name, cost: 2, profile: { unitType: 'cavalry', regiment: 3, dice: 2, ability: unitAbilities.packmaster } })
+    expect(h.tables.gameCards).toEqual(frozen)
+    expect(h.tables.deckCards).toEqual(entries)
+    const unit = { id: 'blop', cardStableId: blop.stableId, seat: 0, cell: 40, regiment: 3 }
+    const moves = legalMoves({ units: [unit], engagements: [], log: [] }, unit, blop.profile)
+    expect(moves.find((move) => move.cell === 13)?.cost).toBe(3)
+    expect(deckRuleIssues([{ ...blop, kind: 'unit', quantity: 2 }])).toEqual([])
+    expect(deckRuleIssues([{ ...blop, kind: 'unit', quantity: 7 }])).toContain('Cavalerie : 7 / 6 unités.')
+  })
   it('updates attack values and removes retired abilities without changing the thirty-unit roster', () => {
     expect(catalogue2026).toHaveLength(30)
     expect(new Set(catalogue2026.map((unit) => unit.stableId)).size).toBe(30)

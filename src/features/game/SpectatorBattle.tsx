@@ -11,8 +11,13 @@ import { InvocationOrders } from './InvocationOrders'
 import { FreeDice } from './FreeDice'
 import { AutoOrders } from './AutoOrders'
 import { MANUAL_RULES_VERSION } from '../../../shared/manualBattle'
+import { recruitmentPoints } from '../../../shared/battle'
+import { useConvexConnectionState } from 'convex/react'
+import { useBattleResolution } from './useBattleResolution'
 
 export function SpectatorBattle({ game }: { game: Game }) {
+  const connected = useConvexConnectionState().isWebSocketConnected
+  const { boardGame, resolution } = useBattleResolution(game, connected)
   const battle = game.battle
   if (!battle?.engine) return <section aria-label="Préparatifs en mode spectateur">
     <div className="game-section-heading"><h2>{phaseNames[game.phase]}</h2><p role="status">La partie se prépare…</p></div>
@@ -34,17 +39,9 @@ export function SpectatorBattle({ game }: { game: Game }) {
   const rule = attackProfile && attackProfile.offense.score !== null && defense !== undefined ? hitRule(attackProfile.offense.score, defense) : undefined
 
   return <section className="manual-battle manual-battle--spectator" aria-label="Bataille en mode spectateur">
-    <header className="manual-toolbar">
-      <div><p className="eyebrow">Lecture seule</p><h2>Mode spectateur</h2></div>
-      <div className="manual-turn"><span>Tour</span><output aria-label="Tour">{battle.turn}</output></div>
-      {game.players.map((player) => <div key={player.id} className="manual-strategy"><span>{player.displayName}<small>Points stratégiques</small></span><output aria-label={`Points stratégiques de ${player.displayName}`}>{battle.strategyPoints[player.seat]}</output></div>)}
-    </header>
-    {game.rulesVersion !== MANUAL_RULES_VERSION && <p className="combat-legacy-notice" role="status">Cette partie conserve ses anciennes règles et ses rapports. Les nouvelles résolutions automatiques sont réservées aux nouvelles parties.</p>}
-    <InvocationOrders game={game} />
-    <AutoOrders game={game} />
     <div className="manual-main">
       <p className="manual-instructions">Vous suivez la bataille en direct, sans pouvoir intervenir.<span>Survolez une unité ou utilisez Tab pour consulter son profil. Les réserves des joueurs restent privées.</span></p>
-      <TacticalBoard game={game} />
+      <TacticalBoard game={boardGame} resolution={resolution} />
       <section className="manual-reserve" aria-label="Réserves des joueurs">
         <header><h3>Réserves</h3><p>Cartes cachées</p></header>
         {game.players.map((player) => <p key={player.id} className="manual-enemy-reserve">{player.displayName} : <strong>{player.drawPileCount} unités</strong> <span aria-hidden="true">▰ ▰ ▰</span></p>)}
@@ -52,6 +49,20 @@ export function SpectatorBattle({ game }: { game: Game }) {
       <details className="manual-journal"><summary>Journal des déplacements et engagements</summary><ol>{engine.log.slice(-20).reverse().map((item) => <li key={item.id}><small>Tour {item.turn}</small> {item.text}</li>)}</ol></details>
     </div>
     <aside className="manual-sidebar" aria-label="Suivi de la bataille">
+      <div className="manual-command-dock">
+        <header className="manual-dock-heading"><h2>Mode spectateur</h2><div className="manual-turn"><span>Tour</span><output aria-label="Tour">{battle.turn}</output></div></header>
+        {game.players.map((player) => <p key={player.id} className="manual-opponent-resources">{player.displayName}<span><output aria-label={`Points stratégiques de ${player.displayName}`}>{battle.strategyPoints[player.seat]}</output> PS · <output aria-label={`Points de recrutement de ${player.displayName}`}>{recruitmentPoints(battle, player.seat)}</output> PR</span></p>)}
+        {game.rulesVersion !== MANUAL_RULES_VERSION && <p className="combat-legacy-notice" role="status">Cette partie conserve ses anciennes règles et ses rapports.</p>}
+      </div>
+      {game.players.map((player) => <section key={player.id} className="manual-panel" aria-label={`Ordres de ${player.displayName}`}>
+        <header><h3>Ordres de {player.displayName}</h3><span>{player.factionName}</span></header>
+        <ul className="manual-orders">{battle.catalog.filter((order) => order.seats.includes(player.seat) && order.id !== 'long-range-fire').map((order) => {
+          const remaining = manual?.stocks.find((item) => item.seat === player.seat && item.orderId === order.id)?.remaining
+          return <li key={order.id}><OrderInfo name={order.name} description={order.description} />{remaining === undefined ? <span className="manual-unlimited" aria-label="Illimité">∞</span> : <output aria-label={`${order.name} restants pour ${player.displayName}`}>{remaining}</output>}</li>
+        })}</ul>
+      </section>)}
+      <InvocationOrders game={game} />
+      <AutoOrders game={game} />
       <FreeDice game={game} />
       <CombatReport game={game} />
       {manual?.combat && <section className="manual-panel" aria-label="Attaques en préparation"><h3>Attaques en préparation</h3><p className="manual-note">{manual.combat.arrows.length} flèches sur le plateau</p>{game.players.map((player) => <p key={player.seat} className="manual-note">{player.displayName} · {manual.combat!.ready.includes(player.seat) ? 'Prêt pour le combat' : 'Prépare ses attaques'}</p>)}</section>}
@@ -66,13 +77,6 @@ export function SpectatorBattle({ game }: { game: Game }) {
           </>}
         </> : <p className="manual-note">Aucun combat sélectionné par les joueurs.</p>}
       </section>
-      {game.players.map((player) => <section key={player.id} className="manual-panel" aria-label={`Ordres de ${player.displayName}`}>
-        <header><h3>Ordres de {player.displayName}</h3><span>{player.factionName}</span></header>
-        <ul className="manual-orders">{battle.catalog.filter((order) => order.seats.includes(player.seat) && order.id !== 'long-range-fire').map((order) => {
-          const remaining = manual?.stocks.find((item) => item.seat === player.seat && item.orderId === order.id)?.remaining
-          return <li key={order.id}><OrderInfo name={order.name} description={order.description} />{remaining === undefined ? <span className="manual-unlimited" aria-label="Illimité">∞</span> : <output aria-label={`${order.name} restants pour ${player.displayName}`}>{remaining}</output>}</li>
-        })}</ul>
-      </section>)}
     </aside>
   </section>
 }

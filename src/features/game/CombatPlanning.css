@@ -115,3 +115,35 @@ p.combat-guide { display: block; }
 .combat-costs strong { color: #e7d4aa; }
 .combat-modes button:disabled { opacity: .45; cursor: default; }
 @media (max-width: 600px) { .combat-concentrated { width: 100%; } .combat-concentrated .ui-button { width: 100%; } }
+
+.manual-command-dock .combat-toolbar { padding: .55rem 0 0; border: 0; border-top: 1px solid #a8906340; border-radius: 0; box-shadow: none; background: none; }
+.combat-toolbar-top { gap: .5rem; }
+.combat-mode-name { color: #d9ceb7; font: 500 .8rem var(--display); text-align: right; }
+.combat-modes { flex-wrap: nowrap; }
+.combat-modes button { justify-content: center; width: 2.6rem; min-height: 2.6rem; padding: .4rem; border-color: #8b9da32b; background: #0d171d; }
+.combat-modes button span { font-size: 1.3rem; }
+.combat-guide { font-size: .71rem; line-height: 1.4; margin-top: .5rem; }
+.combat-guide small { font-size: .58rem; margin-top: .2rem; }
+.combat-launch { display: grid; grid-template-columns: minmax(0, 1fr); gap: .4rem; padding-top: .5rem; margin-top: .5rem; }
+.combat-launch .ui-button { width: 100%; min-height: 2.4rem; padding: .5rem; }
+.combat-launch .combat-resolve { justify-content: center; }
+.combat-launch > p { font-size: .68rem; }
+.combat-readiness { justify-content: space-between; gap: .4rem; }
+.combat-readiness > span { font-size: .65rem; }
+.combat-readiness small { font-size: .52rem; }
+.combat-arrow-list { max-height: 12rem; }
+.combat-plan .manual-note { margin-bottom: 0; font-size: .6rem; }
+.combat-report .combat-result-list { max-height: 12rem; }
+.combat-report-status { font-size: .55rem; margin-bottom: .5rem; }
+.combat-summary { margin-bottom: .5rem; }
+.combat-summary strong { font-size: 1.25rem; }
+.combat-summary > div { padding: .35rem .15rem; }
+.combat-shot-slots { padding: .45rem; margin-top: .5rem; }
+.combat-shot-slots > span { font-size: .68rem; }
+.combat-shot-slots p { font-size: .58rem; }
+@media (max-width: 760px) {
+  .combat-launch { grid-template-columns: 1fr 1fr; }
+  .combat-launch > p, .combat-readiness, .combat-concentrated { grid-column: 1 / -1; }
+  .combat-guide { margin-top: .35rem; }
+}
+.combat-toolbar[data-mode=ranged] .combat-launch > .combat-resolve { grid-column: 1 / -1; }

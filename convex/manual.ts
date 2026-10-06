@@ -8,6 +8,7 @@ import { getUnitProfile } from '../shared/unitProfile'
 import { fail, loadManual, logEvent, saveManual } from './lib/manualState'
 import { emptyCombat, invalidateCombat } from '../shared/combat'
 import { beginTrollEngagement } from '../shared/autoCombat'
+import { recruitmentPoints } from '../shared/battle'
 
 const gameId = v.id('games')
 const delta = v.union(v.literal(-1), v.literal(1))
@@ -31,9 +32,9 @@ function save(ctx: MutationCtx, state: State, text?: string, invalidate = true) 
   if (invalidate && state.manual.combat) invalidateCombat(state.manual.combat, state.engine, state.battle.turn)
   return saveManual(ctx, state.game, { ...state.battle, manual: state.manual }, text ? logEvent(state.engine, state.battle.turn, text) : state.engine)
 }
-function counter(value: number, change: number, minimum = 0) {
+function counter(value: number, change: number, minimum = 0, maximum = 999) {
   const next = value + change
-  if (!Number.isSafeInteger(next) || next < minimum || next > 999) return fail('INVALID_MANUAL_COUNTER')
+  if (!Number.isSafeInteger(next) || next < minimum || next > maximum) return fail('INVALID_MANUAL_COUNTER')
   return next
 }
 
@@ -117,6 +118,7 @@ export const adjustTurn = mutation({
       state.manual.combat.forestWrath = []
     }
     state.battle.turn = nextTurn
+    state.battle.recruitmentOffsets = [0, 0]
     for (const unit of ended) state.engine = logEvent(state.engine, nextTurn, `Pour la Gaeli ! : fin du dernier combat de ${cellCoordinate(unit.cell)}, unité défaussée.`)
     await save(ctx, state, `${state.member.displayName} indique le tour ${state.battle.turn}.`)
   },
@@ -126,6 +128,18 @@ export const adjustStrategy = mutation({
   handler: async (ctx, args) => {
     const state = await load(ctx, args.gameId)
     state.battle.strategyPoints[state.member.seat] = counter(state.battle.strategyPoints[state.member.seat], args.delta)
+    await save(ctx, state, undefined, false)
+  },
+})
+export const adjustRecruitment = mutation({
+  args: { gameId, delta },
+  handler: async (ctx, args) => {
+    const state = await load(ctx, args.gameId)
+    if (state.battle.turn < 2) return fail('RECRUITMENT_NOT_YET_AVAILABLE')
+    const seat = state.member.seat
+    const next = counter(recruitmentPoints(state.battle, seat), args.delta, 0, 1002)
+    const offsets = state.battle.recruitmentOffsets ??= [0, 0]
+    offsets[seat] = next - 3 - state.battle.strategyPoints[seat]
     await save(ctx, state, undefined, false)
   },
 })

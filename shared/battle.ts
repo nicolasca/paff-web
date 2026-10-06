@@ -8,14 +8,19 @@ export { orderDefinitions, type OrderDefinition } from './orders'
 export type BattleState = {
   manual: ManualState; engine: EngineState
   revision: number; turn: number; strategyPoints: number[]
+  recruitmentOffsets?: number[]
   catalog: (OrderDefinition & { seats: number[] })[]
 }
 
 export function initialBattle(factions: { seat: number; faction: string }[]): BattleState {
   const catalog = orderDefinitions.map((order) => ({ ...order, seats: factions.filter((player) => order.faction === 'common' || player.faction === order.faction).map((player) => player.seat) })).filter((order) => order.seats.length > 0)
   return {
-    revision: 0, turn: 1, strategyPoints: [0, 0], catalog,
+    revision: 0, turn: 1, strategyPoints: [0, 0], recruitmentOffsets: [0, 0], catalog,
     engine: { units: [], engagements: [], log: [] },
     manual: { stocks: catalog.flatMap((order) => order.limit === undefined ? [] : order.seats.map((seat) => ({ seat, orderId: order.id, remaining: order.limit! }))), discarded: [], dice: [] },
   }
+}
+
+export function recruitmentPoints(battle: Pick<BattleState, 'strategyPoints' | 'recruitmentOffsets'>, seat: number) {
+  return Math.min(1002, Math.max(0, 3 + (battle.strategyPoints[seat] ?? 0) + (battle.recruitmentOffsets?.[seat] ?? 0)))
 }

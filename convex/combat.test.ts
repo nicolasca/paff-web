@@ -416,6 +416,29 @@ describe('AUTO server mechanics', () => {
     expect((await h.state()).trollRolls?.[0].value).toBe(1)
   })
 
+  it('rolls independently for a new Troll target while preserving the one on an existing pair', async () => {
+    const h = await table()
+    const troll = addUnit(h, 0, 'gobelins-meneurs-de-troll', 31, profile('melee', 'trollitude', 2))
+    const otherEnemy = addUnit(h, 1, 'sephosi-autre-lancier', 22, profile('melee'))
+    const random = vi.spyOn(Math, 'random').mockReturnValueOnce(0).mockReturnValue(.6)
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: troll.id, targetId: h.b.id })
+    await h.action('setArrow', 2, { kind: 'melee', attackerId: h.b.id, targetId: troll.id })
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: troll.id, targetId: otherEnemy.id })
+    expect((await h.state()).trollRolls).toEqual([
+      { unitId: troll.id, targetId: h.b.id, value: 1, turn: 1 },
+      { unitId: troll.id, targetId: otherEnemy.id, value: 4, turn: 1 },
+    ])
+    expect(random).toHaveBeenCalledTimes(2)
+    await h.action('setArrow', 1, { kind: 'melee', attackerId: troll.id, targetId: otherEnemy.id })
+    expect(random).toHaveBeenCalledTimes(2)
+    await h.ready()
+    random.mockReturnValue(0)
+    await h.action('resolve', 1, { kind: 'melee', revision: (await h.state()).revision })
+    const attack = (await h.state()).reports[0].attacks.find((item) => item.attacker.id === troll.id)!
+    expect(attack).toMatchObject({ target: { id: otherEnemy.id }, effects: ['Trollitude : dé 4, attaque normale'] })
+    expect(attack.dice).toHaveLength(2)
+  })
+
   it('rejects using a shooter as ammunition before the entire salve rolls', async () => {
     const h = await table()
     const cat = addUnit(h, 0, 'gobelins-katapult-a-gobs', 31, profile('ranged', 'ammunition'))

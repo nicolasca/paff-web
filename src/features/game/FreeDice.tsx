@@ -62,18 +62,20 @@ export function FreeDice({ game, busy = false, onRoll }: { game: Game; busy?: bo
     try { await onRoll() } finally { inFlight.current = false; setRolling(false) }
   }
   return <section className="manual-panel free-dice" data-faction={faction} aria-label={editable ? 'Lanceur de dés' : 'Jets des joueurs'}>
-    <header><div><FactionEmblem theme={faction} /><h3>Dés libres</h3></div><span>1 clic · 1 D6</span></header>
+    <header><div><FactionEmblem theme={faction} /><h3>D6 libre</h3></div><span>1 clic · 1 D6</span></header>
+    <div className="free-dice-compact">
     {editable && <>
       <button className="free-dice-launch" type="button" disabled={busy || rolling} data-rolling={rolling} aria-label="Lancer un dé" aria-describedby={instructionsId} onClick={() => void roll()}>
-        <DieFace value={5} faction={faction} />
-        <span className="free-dice-launch-label"><strong>{rolling ? 'Lancer en cours…' : 'Lancer un dé'}</strong><span id={instructionsId}>Cliquez sur le dé.<br />Un résultat de 1 à 6.</span></span>
+        <DieFace value={last?.values.length === 1 ? last.values[0]! : 5} faction={faction} />
+        <span className="free-dice-launch-label"><strong>{rolling ? 'Lancer en cours…' : 'Lancer un dé'}</strong><span id={instructionsId}>Résultat partagé</span></span>
       </button>
     </>}
     <div className="free-dice-live" aria-live="polite" aria-atomic="true">
       {last ? <div className="free-dice-result" key={last.id} data-faction={factionOf(author)}>
         <div className="free-dice-values" role="img" aria-label={`Résultats : ${last.values.join(', ')}`}>{last.values.map((value, index) => <DieFace key={index} value={value} faction={factionOf(author)} />)}</div>
-        <div><span>{author?.displayName} · tour {last.turn}</span><strong>{last.values.length === 1 ? <>Résultat <b>{last.values[0]}</b></> : `${last.values.length} dés lancés`}</strong><small>Visible de tous</small></div>
-      </div> : <p className="free-dice-empty">{editable ? 'À vous de lancer.' : 'En attente du premier jet.'}<span>Le résultat apparaîtra ici pour tous les joueurs.</span></p>}
+        <div><span>{author?.displayName} · tour {last.turn}</span><strong>{last.values.length === 1 ? <>Résultat <b>{last.values[0]}</b></> : `${last.values.length} dés lancés`}</strong></div>
+      </div> : <p className="free-dice-empty">{editable ? 'À vous de lancer.' : 'En attente du premier jet.'}</p>}
+    </div>
     </div>
     {rolls.length > 1 && <details className="free-dice-history"><summary>Jets précédents <span>{rolls.length - 1}</span></summary><ol>{rolls.slice(0, -1).reverse().map((item) => {
       const player = game.players.find((player) => player.seat === item.seat)

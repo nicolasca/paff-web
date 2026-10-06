@@ -77,7 +77,7 @@ describe('spectator access', () => {
     const actions: Record<string, Record<string, unknown>> = {
       moveUnit: { unitId: unit.id, from: unit.cell, to: 31 },
       recruit: { cardStableId: 'lanciers', entered: 1, cell: 45 },
-      adjustTurn: { delta: 1 }, adjustStrategy: { delta: 1 },
+      adjustTurn: { delta: 1 }, adjustStrategy: { delta: 1 }, adjustRecruitment: { delta: 1 },
       adjustOrderStock: { orderId: 'recruitment', delta: -1 },
       adjustRegiment: { unitId: unit.id, delta: -1 },
       setDuel: { attackerId: unit.id, targetId: target.id },

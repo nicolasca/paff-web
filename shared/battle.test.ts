@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { initialBattle, orderDefinitions, RULES_VERSION } from './battle'
+import { initialBattle, orderDefinitions, recruitmentPoints, RULES_VERSION } from './battle'
 import { CATALOGUE_VERSION } from './catalogue2026'
 
 describe('orders from the AUTO PDF and October 2 rulings', () => {
@@ -14,9 +14,20 @@ describe('orders from the AUTO PDF and October 2 rulings', () => {
     const battle = initialBattle([{ seat: 0, faction: 'gobelins' }, { seat: 1, faction: 'sephosi' }])
     const recruitment = battle.catalog.find((order) => order.id === 'recruitment')!
     expect(battle.manual.stocks.filter((stock) => stock.orderId === 'recruitment')).toEqual([{ seat: 0, orderId: 'recruitment', remaining: 3 }, { seat: 1, orderId: 'recruitment', remaining: 3 }])
-    for (const rule of ['première est accessible à partir du tour 2', 'deuxième à partir du tour 3', 'troisième à partir du tour 4', 'aux tours 2, 4 et 5', 'sans ennemi non engagé', 'tirer dès leur arrivée']) expect(recruitment.description).toContain(rule)
+    for (const rule of ['première est accessible à partir du tour 2', 'deuxième à partir du tour 3', 'troisième à partir du tour 4', 'renouvelé chaque tour', '3 points plus vos points de stratégie actuels', 'sans ennemi non engagé', 'tirer dès leur arrivée']) expect(recruitment.description).toContain(rule)
+    expect(recruitment.description).not.toContain('aux tours 2, 4 et 5')
     expect(recruitment.description).not.toContain('ne peuvent pas tirer')
     expect(recruitment.description).not.toContain('6 ou 9 points')
+  })
+  it('provides a separate per-turn recruitment budget with legacy fallback and manual spending', () => {
+    const battle = initialBattle([{ seat: 0, faction: 'gobelins' }, { seat: 1, faction: 'sephosi' }])
+    expect(battle.recruitmentOffsets).toEqual([0, 0])
+    expect([0, 1].map((seat) => recruitmentPoints(battle, seat))).toEqual([3, 3])
+    battle.strategyPoints = [2, 1]
+    battle.recruitmentOffsets = [-4, 2]
+    expect([0, 1].map((seat) => recruitmentPoints(battle, seat))).toEqual([1, 6])
+    expect(recruitmentPoints({ strategyPoints: [4, 0] }, 0)).toBe(7)
+    expect(recruitmentPoints({ strategyPoints: [0, 0], recruitmentOffsets: [-5, 0] }, 0)).toBe(0)
   })
 
   it('gives each faction its four finalized orders and the 4/2/1 limited stocks', () => {

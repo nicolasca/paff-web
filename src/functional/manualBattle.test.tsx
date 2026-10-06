@@ -41,6 +41,12 @@ vi.mock('../auth/authSession', async () => {
 
 afterEach(() => vi.restoreAllMocks())
 
+async function finishResolution() {
+  await waitFor(() => {
+    for (const user of [1, 2, 3]) expect(screen.getByTestId(`player-${user}`).querySelector('[data-resolving="true"]')).toBeNull()
+  }, { timeout: 3500 })
+}
+
 // Real profiles and handlers, with positions prepared only in the in-memory table.
 async function shootingTable(entries: { id: string; seat: number; stableId: string; cell: number }[], frozenLongArchers = false) {
   const h = await liveGame()
@@ -79,6 +85,36 @@ function factionOrders(h: Awaited<ReturnType<typeof shootingTable>>, factions: [
 }
 
 describe('manual tabletop across two real clients', () => {
+  it.each(['Déplacer', 'Tir', 'Corps à corps'])('ignores right clicks without changing selection or sending an action in %s mode', async (mode) => {
+    const h = await shootingTable([
+      { id: 'melee', seat: 0, stableId: GOBLIN_BAND_CARD_ID, cell: 31 },
+      { id: 'shooter', seat: 0, stableId: 'gobelins-archers-gobelins', cell: 32 },
+      { id: 'enemy', seat: 1, stableId: 'sephosi-lanciers-sephosiens', cell: 22 },
+    ])
+    const { mounted, transport, p, click } = mountBattle(h)
+    await click(1, mode)
+    const source = p(1).getByRole('button', { name: mode === 'Tir' ? 'F4 · Archers Gobelins · Joueur 1' : 'E4 · Bande de Gobelins · Joueur 1' })
+    const enemy = p(1).getByRole('button', { name: 'E3 · Lanciers Sephosiens · Joueur 2' })
+    const mutate = vi.spyOn(transport, 'mutate')
+    const before = structuredClone(h.tables)
+    fireEvent.contextMenu(source)
+    fireEvent.contextMenu(enemy)
+    expect(source).toHaveAttribute('aria-pressed', 'false')
+    expect(enemy).toHaveAttribute('aria-pressed', 'false')
+    expect(p(1).queryByRole('region', { name: 'Unité sélectionnée' })).not.toBeInTheDocument()
+    expect(mutate).not.toHaveBeenCalled()
+    expect(h.tables).toEqual(before)
+
+    await userEvent.click(source)
+    expect(source).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.contextMenu(enemy)
+    expect(source).toHaveAttribute('aria-pressed', 'true')
+    expect(enemy).toHaveAttribute('aria-pressed', 'false')
+    expect(mutate).not.toHaveBeenCalled()
+    expect(h.tables).toEqual(before)
+    mounted.unmount()
+  }, 30000)
+
   it('highlights only targets within three steps in the Goblin shooter’s axis, keeps invalid choices local and rechecks arrows after movement', async () => {
     const h = await shootingTable([
       { id: 'archer', seat: 0, stableId: 'gobelins-archers-gobelins', cell: 40 }, // E5
@@ -161,7 +197,7 @@ describe('manual tabletop across two real clients', () => {
     const root = screen.getByTestId('player-2')
     const tile = (id: string) => root.querySelector(`[data-unit-id="${id}"]`)!
     await userEvent.click(await p(2).findByRole('button', { name: 'Tir' }))
-    fireEvent.contextMenu(p(2).getByRole('button', { name: 'E1 · Archers longs Gaeliens · Joueur 2' }))
+    await userEvent.click(p(2).getByRole('button', { name: 'E1 · Archers longs Gaeliens · Joueur 2' }))
     expect(tile('long-archer')).toHaveClass('board-unit--shooting-source')
     expect(root.querySelectorAll('.board-unit--shooting-target')).toHaveLength(2)
     expect(tile('long-target')).toHaveClass('board-unit--shooting-target')
@@ -272,6 +308,7 @@ describe('manual tabletop across two real clients', () => {
     }
     await userEvent.click(p(1).getByRole('button', { name: /COMBAT/ }))
     expect((await h.read()).battle!.manual.combat!.reports[0].attacks[0].dice).toHaveLength(4)
+    await finishResolution()
     await userEvent.click(p(1).getByRole('button', { name: 'Augmenter Tour' }))
     await waitFor(() => expect(screen.getByTestId('player-3').querySelectorAll('.board-unit--invoked')).toHaveLength(0))
     expect(p(3).getByLabelText('Dé d’invocation : 6')).toBeVisible()
@@ -340,9 +377,16 @@ describe('manual tabletop across two real clients', () => {
       expect(p(user).getByText('Combat n°1 résolu · résultats partagés')).toBeVisible()
     }
     expect((await h.read()).battle!.manual.combat!.arrows).toHaveLength(2)
+    for (const user of [1, 2, 3]) {
+      const root = screen.getByTestId(`player-${user}`)
+      expect(root.querySelector('[data-resolving="true"]')).not.toBeNull()
+      expect(root.querySelectorAll('[data-resolution-outcome="wounded"]')).toHaveLength(2)
+    }
+    expect(p(1).getByRole('button', { name: /COMBAT/ })).toBeDisabled()
+    await finishResolution()
     await userEvent.click(p(1).getByRole('button', { name: 'Tir' }))
-    fireEvent.contextMenu(p(1).getByRole('button', { name: 'F5 · Archers · Joueur 1' }))
-    fireEvent.contextMenu(p(1).getByRole('button', { name: 'F2 · Archers · Joueur 2' }))
+    await userEvent.click(p(1).getByRole('button', { name: 'F5 · Archers · Joueur 1' }))
+    await userEvent.click(p(1).getByRole('button', { name: 'F2 · Archers · Joueur 2' }))
     await waitFor(() => expect(p(1).getByRole('button', { name: /TIR 1 attaque/ })).toBeEnabled())
     await userEvent.click(p(1).getByRole('button', { name: /TIR 1 attaque/ }))
     expect(await p(3).findByText('Tir n°2 résolu · résultats partagés')).toBeVisible()
@@ -351,6 +395,7 @@ describe('manual tabletop across two real clients', () => {
     await transport.reconnect()
     mounted = render(<Clients />)
     expect(await p(3).findByText('Tir n°2 résolu · résultats partagés')).toBeVisible()
+    expect(screen.getByTestId('player-3').querySelector('[data-resolving="true"]')).toBeNull()
     expect(p(3).queryByRole('button', { name: /COMBAT|Je suis prêt|TIR/ })).not.toBeInTheDocument()
     mounted.unmount()
   }, 30000)
@@ -441,9 +486,9 @@ describe('manual tabletop across two real clients', () => {
     expect(await p(3).findByRole('img', { name: 'E5 · Lanciers · Joueur 1 · 3 R' })).toBeVisible()
     await userEvent.click(p(1).getByRole('button', { name: 'E4 · Déplacer ici' }))
     expect(await p(3).findByRole('img', { name: 'E4 · Lanciers · Joueur 1 · 3 R' })).toBeVisible()
-    fireEvent.contextMenu(p(1).getByRole('button', { name: 'F5 · Archers · Joueur 1' }))
+    fireEvent.keyDown(p(1).getByRole('button', { name: 'F5 · Archers · Joueur 1' }), { key: 'c' })
     await waitFor(() => expect(p(1).getByRole('combobox', { name: 'Attaquant' })).not.toHaveValue(''))
-    fireEvent.contextMenu(p(1).getByRole('button', { name: 'E2 · Lanciers · Joueur 2' }))
+    fireEvent.keyDown(p(1).getByRole('button', { name: 'E2 · Lanciers · Joueur 2' }), { key: 'c' })
     expect(await within(p(3).getByLabelText('Combat suivi')).findByText('4+')).toBeVisible()
     await userEvent.click(p(1).getByRole('button', { name: 'Marquer un engagement' }))
     await waitFor(() => expect(spectator.querySelectorAll('.manual-engagement-lines line')).toHaveLength(1))
@@ -494,7 +539,7 @@ describe('manual tabletop across two real clients', () => {
       fireEvent.drop(target, { dataTransfer })
       fireEvent.dragEnd(element)
     }
-    for (const user of [1, 2]) expect(await p(user).findByRole('heading', { name: 'À vous de jouer' })).toBeVisible()
+    for (const user of [1, 2]) expect(await p(user).findByRole('region', { name: 'Plateau manuel' })).toBeVisible()
     for (const user of [1, 2]) {
       expect(p(user).getByRole('button', { name: 'Diminuer Recrutement restants' })).toBeDisabled()
       expect(p(user).getByRole('button', { name: 'Augmenter Recrutement restants' })).toBeDisabled()
@@ -515,9 +560,9 @@ describe('manual tabletop across two real clients', () => {
     await drag(p(1).getByRole('button', { name: 'E5 · Lanciers · Joueur 1' }), 1, 'E4 · Déplacer ici')
     await waitFor(() => expect(p(2).getByRole('button', { name: 'E4 · Lanciers · Joueur 1' })).toBeVisible())
 
-    fireEvent.contextMenu(p(1).getByRole('button', { name: 'F5 · Archers · Joueur 1' }))
+    fireEvent.keyDown(p(1).getByRole('button', { name: 'F5 · Archers · Joueur 1' }), { key: 'c' })
     await waitFor(() => expect(p(2).getByRole('combobox', { name: 'Attaquant' })).not.toHaveValue(''))
-    fireEvent.contextMenu(p(1).getByRole('button', { name: 'E3 · Lanciers · Joueur 2' }))
+    fireEvent.keyDown(p(1).getByRole('button', { name: 'E3 · Lanciers · Joueur 2' }), { key: 'c' })
     for (const user of [1, 2]) await waitFor(() => expect(within(p(user).getByLabelText('Aide au combat')).getByText('4+')).toBeVisible())
     expect(p(1).getByText('3T contre 3 DT')).toBeVisible()
     await click(1, 'Marquer un engagement')
@@ -557,7 +602,7 @@ describe('manual tabletop across two real clients', () => {
 
     mounted.unmount(); await transport.reconnect(); mounted = render(<Clients />)
     for (const user of [1, 2]) {
-      expect(await p(user).findByRole('heading', { name: 'À vous de jouer' })).toBeVisible()
+      expect(await p(user).findByRole('region', { name: 'Plateau manuel' })).toBeVisible()
       expect(p(user).getByLabelText('Tour')).toHaveTextContent('2')
       expect(p(user).getByLabelText('Boost shamanique restants')).toHaveTextContent(user === 1 ? '3' : '4')
       expect(p(user).getByRole('button', { name: 'E4 · Lanciers · Joueur 1' })).toHaveTextContent('3R')
@@ -602,6 +647,7 @@ describe('AUTO rules through the shared tabletop', () => {
     expect(first.attacks.map(attack => attack.dice.length)).toEqual([2, 2, 2])
     expect(first.shamanRisks?.map(risk => [risk.unit.id, risk.discarded])).toEqual([['shaman-a', false], ['shaman-b', false]])
     expect(mutate.mock.calls.filter(([, name]) => name === 'combat:resolve')).toHaveLength(1)
+    await finishResolution()
     await click(1, 'E5 · Le Danzereu · Joueur 1')
     expect(p(1).getByRole('group', { name: 'Tirs du Danzereu' })).toHaveTextContent('3 tirs simultanés')
     for (const cell of targets) await click(1, `${cell} · Lanciers Sephosiens · Joueur 2`)
@@ -636,6 +682,16 @@ describe('AUTO rules through the shared tabletop', () => {
     expect(battle.manual.discarded.map(unit => unit.id)).toEqual(['ammo', 'target'])
     expect(battle.manual.combat!.rain).toEqual([])
     expect(battle.manual.combat!.reports[0]).toMatchObject({ sacrifices: [{ id: 'ammo' }], attacks: [{ damage: 2, rain: 0 }] })
+    for (const user of [1, 2, 3]) {
+      const root = screen.getByTestId(`player-${user}`)
+      for (const id of ['ammo', 'target']) expect(root.querySelector(`[data-unit-id="${id}"]`)).toHaveAttribute('data-resolution-outcome', 'destroyed')
+    }
+    expect(p(1).getByRole('button', { name: 'E5 · Katapult à gobs · Joueur 1' })).toBeDisabled()
+    await finishResolution()
+    for (const user of [1, 2, 3]) {
+      const root = screen.getByTestId(`player-${user}`)
+      for (const id of ['ammo', 'target']) expect(root.querySelector(`[data-unit-id="${id}"]`)).toBeNull()
+    }
     mounted.unmount()
   }, 30000)
 
@@ -693,6 +749,8 @@ describe('AUTO rules through the shared tabletop', () => {
     await click(2, /E4 · Esprits des Bois · Joueur 1/)
     await click(2, /TIR 1 attaque/)
     for (const user of [1, 2, 3]) await waitFor(() => expect(screen.getByTestId(`player-${user}`).querySelector('[data-unit-id="spirit"]')).toHaveClass('board-unit--held'))
+    for (const user of [1, 2, 3]) expect(screen.getByTestId(`player-${user}`).querySelector('[data-unit-id="spirit"]')).toHaveAttribute('data-resolution-outcome', 'held')
+    await finishResolution()
     await click(1, /E4 · Esprits des Bois · Joueur 1/)
     expect(p(1).getByRole('button', { name: 'Augmenter R de Esprits des Bois · E4' })).toBeDisabled()
     expect(screen.getByTestId('player-1').querySelector('[data-unit-id="spirit"]')).toHaveAttribute('draggable', 'false')
@@ -706,6 +764,7 @@ describe('AUTO rules through the shared tabletop', () => {
     const report = (await h.read()).battle!.manual.combat!.reports.at(-1)!
     expect(report.attacks[0].dice).toHaveLength(6)
     expect(report.attacks[0].effects).toEqual(expect.arrayContaining([expect.stringContaining('Colère de la Forêt'), expect.stringContaining('Pour la Gaeli')]))
+    await finishResolution()
     await click(2, 'Augmenter Tour')
     for (const user of [1, 2, 3]) await waitFor(() => {
       expect(screen.getByTestId(`player-${user}`).querySelector('[data-unit-id="spirit"]')).toBeNull()
@@ -744,6 +803,53 @@ describe('AUTO rules through the shared tabletop', () => {
     expect(result.effects).toContain('Trollitude : dé 1, attaque de l’allié choisi')
     expect(random).toHaveBeenCalledTimes(3) // One behavior die, then two attack dice.
     expect(await p(3).findByRole('region', { name: 'Compte rendu des attaques' })).toHaveTextContent('Allié')
+    mounted.unmount()
+  }, 30000)
+
+  it.each([true, false])('allows a new enemy after a Troll rolled one, with an active allied arrow: %s', async (alliedArrow) => {
+    const h = await shootingTable([
+      { id: 'troll', seat: 0, stableId: 'gobelins-meneurs-de-troll', cell: 31 },
+      { id: 'ally', seat: 0, stableId: GOBLIN_BAND_CARD_ID, cell: 30 },
+      { id: 'enemy', seat: 1, stableId: 'sephosi-lanciers-sephosiens', cell: 22 },
+      { id: 'next-enemy', seat: 1, stableId: 'sephosi-lanciers-sephosiens', cell: 23 },
+    ])
+    const { mounted, p, click } = mountBattle(h)
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0)
+    await click(1, 'Corps à corps')
+    await click(1, 'E4 · Trolls · Joueur 1')
+    await click(1, 'E3 · Lanciers Sephosiens · Joueur 2')
+    await click(2, 'Corps à corps')
+    await click(2, 'E3 · Lanciers Sephosiens · Joueur 2')
+    await click(2, /E4 · Trolls · Joueur 1/)
+    if (alliedArrow) {
+      await click(1, 'Changer la cible de Trolls E4')
+      await click(1, 'D4 · Bande de Gobelins · Joueur 1')
+    } else await click(1, 'Retirer la flèche de Trolls E4')
+    expect(random).toHaveBeenCalledTimes(1)
+    expect((await h.read()).battle!.manual.combat!.trollRolls).toContainEqual({ unitId: 'troll', targetId: 'enemy', value: 1, turn: 1 })
+
+    random.mockReturnValue(.6)
+    await click(1, /E4 · Trolls · Joueur 1/)
+    if (!alliedArrow) expect(p(1).queryByText('Trollitude · dé 1 :', { exact: false })).not.toBeInTheDocument()
+    await click(1, 'F3 · Lanciers Sephosiens · Joueur 2')
+    await waitFor(async () => expect((await h.read()).battle!.manual.combat!.arrows).toContainEqual({ kind: 'melee', attackerId: 'troll', targetId: 'next-enemy' }))
+    expect(random).toHaveBeenCalledTimes(2)
+    expect((await h.read()).battle!.manual.combat!.trollRolls).toEqual([
+      { unitId: 'troll', targetId: 'enemy', value: 1, turn: 1 },
+      { unitId: 'troll', targetId: 'next-enemy', value: 4, turn: 1 },
+    ])
+    for (const user of [1, 2, 3]) expect(screen.getByTestId(`player-${user}`).querySelector('[data-unit-id="troll"]')).toHaveTextContent('D6 4')
+    await click(1, 'Changer la cible de Trolls E4')
+    await click(1, 'F3 · Lanciers Sephosiens · Joueur 2')
+    expect(random).toHaveBeenCalledTimes(2)
+    await click(1, 'Je suis prêt')
+    await click(2, 'Je suis prêt')
+    random.mockReturnValue(0)
+    await click(1, /COMBAT 2 attaques/)
+    const attack = (await h.read()).battle!.manual.combat!.reports[0].attacks.find((item) => item.attacker.id === 'troll')!
+    expect(attack.target.id).toBe('next-enemy')
+    expect(attack.dice).toHaveLength(2)
+    expect(attack.effects).toContain('Trollitude : dé 4, attaque normale')
     mounted.unmount()
   }, 30000)
 

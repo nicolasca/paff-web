@@ -42,7 +42,8 @@ export function useCombatPlanning(game: Game, locked: boolean, run: (action: () 
   const shootingTargets = shootingProfile && source ? engine.units.filter((unit) => unit.seat !== seat && unit.regiment > 0 && !isEngaged(engine, unit.id) && isWithinShootingRange(source, unit, shootingProfile)).map((unit) => ({ cell: unit.cell, distance: shootingDistance(source.cell, unit.cell) })) : []
   const rangeLabel = shootingProfile && source ? hasLongRangeFire(source, shootingProfile) ? 'Portée 3 · 4 droit devant' : `Portée ${shootingProfile.unitType === 'artillery' ? 4 : 3} · même axe` : ''
   const sourceArrow = source && own.find((arrow) => arrow.attackerId === source.id)
-  const trollRoll = source && (state.trollRolls?.find((roll) => roll.unitId === source.id && roll.targetId === sourceArrow?.targetId) ?? state.trollRolls?.findLast((roll) => roll.unitId === source.id))
+  // Trollitude belongs to this pair; another engagement must not restrict a new target.
+  const trollRoll = source && sourceArrow && state.trollRolls?.find((roll) => roll.unitId === source.id && roll.targetId === sourceArrow.targetId)
   const needsFriendlyTarget = mode === 'melee' && trollRoll?.value === 1
   const shotProblem = (arrow: AttackArrow) => {
     const attacker = engine.units.find((unit) => unit.id === arrow.attackerId)
@@ -102,7 +103,6 @@ export function useCombatPlanning(game: Game, locked: boolean, run: (action: () 
       setHint(''); return
     }
     if (!source) { setHint('Choisissez d’abord une de vos unités.'); return }
-    if (needsFriendlyTarget) { setHint('Trollitude : choisissez une de vos unités adjacentes au Troll.'); return }
     if (mode === 'ranged' && (unit.regiment <= 0 || isEngaged(engine, unit.id))) { setHint('Cette cible est engagée ou conservée pour le combat : le tir est interdit.'); return }
     if (mode === 'ranged' && !isWithinShootingRange(source, unit, getUnitProfile(cardFor(source))!)) { setHint('Cette cible est hors de portée ou dans un autre axe. Choisissez une unité éclairée.'); return }
     const slot = mode === 'ranged' ? shotSlot : undefined

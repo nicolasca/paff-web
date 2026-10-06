@@ -1,0 +1,327 @@
+/* Impact & éclats: the affected unit gives each hit and disappearance its identity. */
+.battle-resolution-effects { position: absolute; inset: 0; z-index: 16; overflow: visible; pointer-events: none; }
+.battle-resolution-effect { --resolution-ink: #efffb9; --resolution-color: #b4e36b; --resolution-secondary: #be9354; position: absolute; border-radius: .2rem; }
+.battle-resolution-effect[data-faction='sephosi'] { --resolution-ink: #fff1bf; --resolution-color: #f4b653; --resolution-secondary: #ed5c43; }
+.battle-resolution-effect[data-faction='gaeli'] { --resolution-ink: #cefff6; --resolution-color: #63ddc9; --resolution-secondary: #9ecc72; }
+.resolution-flash { position: absolute; inset: -12%; opacity: 0; border-radius: 50%; background: radial-gradient(ellipse, #fffbe9 0 7%, var(--resolution-color) 17%, transparent 66%); mix-blend-mode: screen; }
+.resolution-ring { position: absolute; inset: -8%; opacity: 0; }
+.resolution-signature, .resolution-trail, .resolution-emblem { position: absolute; opacity: 0; }
+.resolution-particles { position: absolute; inset: 0; }
+.resolution-particles i { --dx: calc(var(--resolution-reach) * -.72); --dy: calc(var(--resolution-reach) * -.65); position: absolute; left: 50%; top: 50%; width: 5px; height: 7px; opacity: 0; background: var(--resolution-color); }
+.resolution-particles i:nth-child(2) { --dx: calc(var(--resolution-reach) * .03); --dy: calc(var(--resolution-reach) * -.97); }
+.resolution-particles i:nth-child(3) { --dx: calc(var(--resolution-reach) * .7); --dy: calc(var(--resolution-reach) * -.63); }
+.resolution-particles i:nth-child(4) { --dx: var(--resolution-reach); --dy: calc(var(--resolution-reach) * -.13); }
+.resolution-particles i:nth-child(5) { --dx: calc(var(--resolution-reach) * .78); --dy: calc(var(--resolution-reach) * .43); }
+.resolution-particles i:nth-child(6) { --dx: calc(var(--resolution-reach) * .17); --dy: calc(var(--resolution-reach) * .92); }
+.resolution-particles i:nth-child(7) { --dx: calc(var(--resolution-reach) * -.55); --dy: calc(var(--resolution-reach) * .73); }
+.resolution-particles i:nth-child(8) { --dx: calc(var(--resolution-reach) * -.97); --dy: calc(var(--resolution-reach) * .18); }
+.resolution-particles i:nth-child(9) { --dx: calc(var(--resolution-reach) * -.23); --dy: calc(var(--resolution-reach) * -.72); }
+.resolution-particles i:nth-child(10) { --dx: calc(var(--resolution-reach) * .5); --dy: calc(var(--resolution-reach) * .87); }
+.resolution-loss { position: absolute; z-index: 3; left: 50%; top: 23%; padding: .12rem .25rem; border: 1px solid var(--resolution-color); border-radius: .25rem; background: #0e1515f5; box-shadow: 0 2px 7px #000b, 0 0 9px color-mix(in srgb, var(--resolution-color) 35%, transparent); color: var(--resolution-ink); font: 800 .9rem/1.1 var(--body, sans-serif); white-space: nowrap; opacity: 0; transform: translateX(-50%); }
+.resolution-regiment { position: absolute; z-index: 4; left: 50%; top: 61%; padding: .08rem .2rem; border: 1px solid var(--resolution-color); border-radius: .2rem; background: #101916fa; color: var(--resolution-ink); font: 750 .59rem/1.2 var(--body, sans-serif); white-space: nowrap; opacity: 0; transform: translateX(-50%); box-shadow: 0 2px 6px #000a; }
+.resolution-result { position: absolute; z-index: 4; left: 50%; top: 85%; max-width: calc(100% - 2px); padding: .08rem .15rem; border: 1px solid color-mix(in srgb, var(--resolution-color) 65%, transparent); border-radius: .2rem; background: #111815fa; color: var(--resolution-ink); font: 650 .49rem/1.2 var(--body, sans-serif); text-align: center; opacity: 0; transform: translateX(-50%); }
+.battle-resolution-effect[data-reason] .resolution-loss { max-width: 94%; font-size: .6rem; white-space: normal; text-align: center; }
+.battle-resolution-effect[data-outcome='held'] .resolution-regiment, .battle-resolution-effect[data-outcome='held'] .resolution-result { border-style: dashed; }
+.battle-resolution-effect:not([data-outcome='destroyed']) .resolution-trail { display: none; }
+.board-surface[data-resolving='true'] .board-cell:disabled { opacity: 1; }
+.board-surface[data-resolving='true'] .board-unit[data-resolution-outcome] { transition: none; }
+.board-surface[data-resolving='true'] .resolution-loss { animation: battle-resolution-loss 2300ms ease-out both; }
+.board-surface[data-resolving='true'] .resolution-regiment { animation: battle-resolution-regiment 2300ms ease-out both; }
+.board-surface[data-resolving='true'] .resolution-result { animation: battle-resolution-result 2300ms ease-out both; }
+.battle-resolution-announcement { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+@keyframes battle-resolution-loss {
+  0%, 13% { opacity: 0; transform: translate(-50%, 6px) scale(.6); }
+  22% { opacity: 1; transform: translate(-50%, -1px) scale(1.1); }
+  28%, 73% { opacity: 1; transform: translate(-50%, -2px) scale(1); }
+  91%, 100% { opacity: 0; transform: translate(-50%, -12px) scale(.97); }
+}
+@keyframes battle-resolution-regiment {
+  0%, 27% { opacity: 0; transform: translate(-50%, 5px); }
+  38%, 88% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -2px); }
+}
+@keyframes battle-resolution-result {
+  0%, 48% { opacity: 0; transform: translate(-50%, 3px); }
+  65%, 92% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 0); }
+}
+
+/* Gobelins — an uneven blow, broken metal, then a downward collapse. */
+.battle-resolution-effect[data-faction='gobelins'] .resolution-signature,
+.battle-resolution-effect[data-faction='gobelins'] .resolution-trail,
+.battle-resolution-effect[data-faction='gobelins'] .resolution-emblem {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+}
+.battle-resolution-effect[data-faction='gobelins'] .resolution-signature {
+  inset: -5%;
+  background: linear-gradient(30deg, transparent 43%, #bddd57 45%, #fff8b8 47%, transparent 49%, transparent 58%, #a78741 60%, transparent 63%);
+  clip-path: polygon(0 8%, 34% 30%, 25% 43%, 65% 29%, 52% 51%, 100% 62%, 60% 65%, 75% 87%, 37% 62%, 10% 100%, 17% 58%, 0 44%);
+  filter: drop-shadow(0 0 5px #8bbe39);
+}
+.battle-resolution-effect[data-faction='gobelins'] .resolution-trail {
+  left: -20%;
+  right: -20%;
+  top: 70%;
+  height: 45%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #bba15c90, #64832265 35%, transparent 70%);
+  filter: blur(3px);
+}
+.battle-resolution-effect[data-faction='gobelins'] .resolution-emblem {
+  left: 5%;
+  bottom: 10%;
+  width: 21px;
+  height: 21px;
+  color: #b9e867;
+  filter: drop-shadow(0 0 4px #8fb632);
+}
+.battle-resolution-effect[data-faction='gobelins'] .resolution-emblem svg { width: 100%; height: 100%; }
+.battle-resolution-effect[data-faction='gobelins'] .resolution-ring {
+  inset: -10%;
+  border: 0;
+  border-radius: 0;
+  background: radial-gradient(ellipse, transparent 37%, #a48145b0 42%, #b4df6580 46%, transparent 51%);
+  clip-path: polygon(0 12%, 31% 8%, 39% 0, 67% 13%, 100% 31%, 83% 53%, 97% 78%, 60% 87%, 43% 100%, 20% 86%, 0 51%, 13% 30%);
+}
+.battle-resolution-effect[data-faction='gobelins'] .resolution-particles i {
+  width: 4px;
+  height: 4px;
+  border-radius: 0;
+  clip-path: polygon(8% 5%, 90% 0, 100% 66%, 40% 100%, 0 60%);
+  background: #b2d85b;
+  box-shadow: 0 0 4px #98ba4780;
+}
+.battle-resolution-effect[data-faction='gobelins'] .resolution-particles i:nth-child(even) { background: #c69a51; width: 4px; height: 7px; }
+.board-surface[data-resolving='true'] .board-unit[data-faction='gobelins']:is([data-resolution-outcome='wounded'], [data-resolution-outcome='held']) { animation: battle-impact-goblin-wound 2300ms linear both; }
+.board-surface[data-resolving='true'] .board-unit[data-faction='gobelins'][data-resolution-outcome='destroyed'] { animation: battle-impact-goblin-collapse 2300ms linear both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='gobelins'] .resolution-flash { animation: battle-impact-goblin-flash 2300ms linear both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='gobelins'] .resolution-ring { animation: battle-impact-goblin-crack-ring 2300ms ease-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='gobelins'] .resolution-particles i { animation: battle-impact-goblin-fragment 2300ms ease-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='gobelins'] .resolution-signature { animation: battle-impact-goblin-crack 2300ms linear both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='gobelins'] .resolution-trail { animation: battle-impact-goblin-dust 2300ms ease-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='gobelins'] .resolution-emblem { animation: battle-impact-goblin-mark 2300ms linear both; }
+.battle-resolution-effect[data-faction='gobelins'][data-outcome='wounded'] .resolution-trail { display: none; }
+
+/* Sephosi — two clean diagonal cuts, a red-gold scorch, rising embers. */
+.battle-resolution-effect[data-faction='sephosi'] .resolution-signature,
+.battle-resolution-effect[data-faction='sephosi'] .resolution-trail,
+.battle-resolution-effect[data-faction='sephosi'] .resolution-emblem {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.battle-resolution-effect[data-faction='sephosi'] .resolution-signature { inset: -5%; }
+.battle-resolution-effect[data-faction='sephosi'] .resolution-signature::before,
+.battle-resolution-effect[data-faction='sephosi'] .resolution-signature::after {
+  content: '';
+  position: absolute;
+  left: -12%;
+  top: 45%;
+  width: 125%;
+  height: 4px;
+  border-radius: 100%;
+  background: linear-gradient(90deg, transparent, #fcdf87 25%, #fff8d2 48%, #ff693d 60%, transparent);
+  box-shadow: 0 0 8px #f45a34;
+  transform: rotate(-39deg);
+}
+.battle-resolution-effect[data-faction='sephosi'] .resolution-signature::after { top: 56%; height: 3px; transform: rotate(-39deg) translateY(6px); background: linear-gradient(90deg, transparent, #e45038, #ffd268, transparent); }
+.battle-resolution-effect[data-faction='sephosi'] .resolution-trail {
+  inset: 25% -5% -15%;
+  background: linear-gradient(0deg, #df3818b0, #f7b63f80 30%, #fff1af35 65%, transparent);
+  clip-path: polygon(0 100%, 0 60%, 12% 25%, 21% 72%, 29% 12%, 40% 58%, 51% 0, 62% 58%, 75% 20%, 84% 71%, 96% 30%, 100% 100%);
+  filter: drop-shadow(0 0 7px #f36b2d);
+}
+.battle-resolution-effect[data-faction='sephosi'] .resolution-emblem {
+  right: 3%;
+  bottom: 10%;
+  width: 22px;
+  height: 22px;
+  color: #ffd981;
+  filter: drop-shadow(0 0 6px #ef792b);
+}
+.battle-resolution-effect[data-faction='sephosi'] .resolution-emblem svg { width: 100%; height: 100%; }
+.battle-resolution-effect[data-faction='sephosi'] .resolution-flash { background: radial-gradient(ellipse, #fff5bb 0 6%, #fa983f 20%, #cf311740 45%, transparent 68%); }
+.battle-resolution-effect[data-faction='sephosi'] .resolution-ring {
+  inset: -5%;
+  border: 0;
+  border-radius: 50%;
+  clip-path: none;
+  background: conic-gradient(from 0deg, transparent 0 35deg, #ffda88 36deg 39deg, transparent 40deg 80deg, #f95631 81deg 85deg, transparent 86deg 125deg, #ffda88 126deg 129deg, transparent 130deg 170deg, #f95631 171deg 175deg, transparent 176deg 215deg, #ffda88 216deg 219deg, transparent 220deg 260deg, #f95631 261deg 265deg, transparent 266deg 305deg, #ffda88 306deg 309deg, transparent 310deg 350deg, #f95631 351deg 355deg, transparent 356deg);
+  mask: radial-gradient(ellipse, transparent 43%, #000 45% 65%, transparent 67%);
+  box-shadow: none;
+}
+.battle-resolution-effect[data-faction='sephosi'] .resolution-particles i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  clip-path: none;
+  background: linear-gradient(#fff7b3, #fbb541 50%, #ee4d27);
+  box-shadow: 0 0 6px #ff943f;
+}
+.battle-resolution-effect[data-faction='sephosi'][data-outcome='wounded'] .resolution-trail { display: none; }
+.board-surface[data-resolving='true'] .board-unit[data-faction='sephosi']:is([data-resolution-outcome='wounded'], [data-resolution-outcome='held']) { animation: battle-impact-sephosi-cut 2300ms ease-out both; }
+.board-surface[data-resolving='true'] .board-unit[data-faction='sephosi'][data-resolution-outcome='destroyed'] { animation: battle-impact-sephosi-burn 2300ms ease-in-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='sephosi'] .resolution-flash { animation: battle-impact-sephosi-flash 2300ms ease-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='sephosi'] .resolution-ring { animation: battle-impact-sephosi-rays 2300ms ease-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='sephosi'] .resolution-particles i { animation: battle-impact-sephosi-ember 2300ms ease-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='sephosi'] .resolution-signature { animation: battle-impact-sephosi-slashes 2300ms linear both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='sephosi'] .resolution-trail { animation: battle-impact-sephosi-flames 2300ms ease-in-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='sephosi'] .resolution-emblem { animation: battle-impact-sephosi-mark 2300ms ease-out both; }
+
+/* Gaeli — a smooth turquoise wave, leaves circling, soft upward evaporation. */
+.battle-resolution-effect[data-faction='gaeli'] .resolution-signature,
+.battle-resolution-effect[data-faction='gaeli'] .resolution-trail,
+.battle-resolution-effect[data-faction='gaeli'] .resolution-emblem {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.battle-resolution-effect[data-faction='gaeli'] .resolution-signature {
+  inset: -8%;
+  border: 3px solid #5de4d0;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #46c4b388, inset 0 0 8px #4ecfbd88;
+  background: radial-gradient(ellipse, transparent 42%, #4fe8ce35 60%, transparent 67%);
+}
+.battle-resolution-effect[data-faction='gaeli'] .resolution-signature::before,
+.battle-resolution-effect[data-faction='gaeli'] .resolution-signature::after {
+  content: '';
+  position: absolute;
+  inset: 13%;
+  border: 1px solid #a4dc8d;
+  border-radius: 50% 15% 50% 15%;
+  transform: rotate(45deg);
+}
+.battle-resolution-effect[data-faction='gaeli'] .resolution-signature::after { inset: 26%; border-color: #b5fff0; transform: rotate(-45deg); }
+.battle-resolution-effect[data-faction='gaeli'] .resolution-trail {
+  inset: -20% 8% 10%;
+  border-radius: 50%;
+  background: linear-gradient(0deg, transparent, #56e0d235 35%, #a7ffec40 65%, transparent);
+  filter: blur(5px);
+}
+.battle-resolution-effect[data-faction='gaeli'] .resolution-emblem {
+  right: 4%;
+  bottom: 9%;
+  width: 22px;
+  height: 22px;
+  color: #a1f3db;
+  filter: drop-shadow(0 0 5px #43bfa9);
+}
+.battle-resolution-effect[data-faction='gaeli'] .resolution-emblem svg { width: 100%; height: 100%; }
+.battle-resolution-effect[data-faction='gaeli'] .resolution-flash { inset: -10%; background: radial-gradient(ellipse, #d7fff230 5%, #53d8c235 38%, transparent 65%); }
+.battle-resolution-effect[data-faction='gaeli'] .resolution-ring {
+  inset: -12%;
+  clip-path: none;
+  border-radius: 50%;
+  border: 1px solid #75ead5;
+  background: none;
+  box-shadow: 0 0 7px #76ead570, inset 0 0 7px #76ead550;
+}
+.battle-resolution-effect[data-faction='gaeli'] .resolution-particles i {
+  width: 5px;
+  height: 4px;
+  clip-path: none;
+  border-radius: 85% 0 85% 0;
+  background: linear-gradient(45deg, #a7d76d, #50dfc9);
+  box-shadow: 0 0 3px #72d9ae;
+}
+.battle-resolution-effect[data-faction='gaeli'] .resolution-particles i:nth-child(even) { width: 5px; height: 7px; background: linear-gradient(45deg, #63cbb4, #c7e794); }
+.battle-resolution-effect[data-faction='gaeli'][data-outcome='wounded'] .resolution-trail { display: none; }
+.board-surface[data-resolving='true'] .board-unit[data-faction='gaeli']:is([data-resolution-outcome='wounded'], [data-resolution-outcome='held']) { animation: battle-impact-gaeli-wave 2300ms ease-in-out both; }
+.board-surface[data-resolving='true'] .board-unit[data-faction='gaeli'][data-resolution-outcome='destroyed'] { animation: battle-impact-gaeli-evaporate 2300ms ease-in-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='gaeli'] .resolution-flash { animation: battle-impact-gaeli-glow 2300ms ease-in-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='gaeli'] .resolution-ring { animation: battle-impact-gaeli-ripple 2300ms ease-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='gaeli'] .resolution-particles { animation: battle-impact-gaeli-orbit-wheel 2300ms linear both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='gaeli'] .resolution-particles i { animation: battle-impact-gaeli-leaf 2300ms ease-in-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='gaeli'] .resolution-signature { animation: battle-impact-gaeli-spiral 2300ms ease-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='gaeli'] .resolution-trail { animation: battle-impact-gaeli-mist 2300ms ease-in-out both; }
+.board-surface[data-resolving='true'] .battle-resolution-effect[data-faction='gaeli'] .resolution-emblem { animation: battle-impact-gaeli-mark 2300ms ease-in-out both; }
+
+@keyframes battle-impact-goblin-wound {
+  0%, 12% { transform: translate(0); filter: brightness(1); }
+  15% { transform: translate(-5px, 2px) rotate(-5deg); filter: brightness(1.6) drop-shadow(0 0 8px #b2d85b); }
+  18% { transform: translate(4px, -1px) rotate(4deg); }
+  22% { transform: translate(-3px, 2px) rotate(-3deg); filter: brightness(1.15); }
+  27% { transform: translate(3px, 0) rotate(2deg); }
+  32% { transform: translate(-1px, 1px) rotate(-1deg); }
+  39%, 100% { transform: translate(0) rotate(0); filter: brightness(1); }
+}
+@keyframes battle-impact-goblin-collapse {
+  0%, 12% { opacity: 1; transform: translate(0) scale(1); filter: brightness(1); clip-path: inset(0); }
+  15% { transform: translate(-5px, 2px) rotate(-5deg); filter: brightness(1.7); }
+  19% { transform: translate(4px, -2px) rotate(4deg); }
+  24% { transform: translate(-3px, 2px) rotate(-2deg); filter: brightness(1); }
+  33% { opacity: 1; transform: translateY(0) scale(1); filter: saturate(.8); clip-path: polygon(0 0, 100% 0, 100% 100%, 79% 90%, 68% 100%, 42% 93%, 24% 100%, 0 100%); }
+  52% { opacity: .8; transform: translateY(6px) scale(.98, .85); filter: saturate(.4) sepia(.5); clip-path: polygon(0 18%, 18% 25%, 33% 9%, 49% 26%, 72% 12%, 89% 26%, 100% 17%, 100% 100%, 0 100%); }
+  70% { opacity: .35; transform: translateY(13px) scale(.92, .58); filter: saturate(.2) blur(.7px); clip-path: polygon(0 62%, 18% 76%, 33% 60%, 49% 85%, 72% 58%, 89% 76%, 100% 65%, 100% 100%, 0 100%); }
+  80%, 100% { opacity: 0; transform: translateY(22px) scale(.88, .2); filter: saturate(0) blur(2px); clip-path: inset(95% 0 0); }
+}
+@keyframes battle-impact-goblin-flash { 0%, 12% { opacity: 0; transform: scale(.3); } 15% { opacity: .7; transform: scale(1.06); } 21% { opacity: .1; } 24% { opacity: .3; } 30%, 100% { opacity: 0; transform: scale(1.1); } }
+@keyframes battle-impact-goblin-crack-ring { 0%, 13% { opacity: 0; transform: scale(.3) rotate(-8deg); } 20% { opacity: .85; } 42%, 100% { opacity: 0; transform: scale(1.55) rotate(9deg); } }
+@keyframes battle-impact-goblin-fragment { 0%, 14% { opacity: 0; transform: translate(-50%, -50%) scale(.4); } 18% { opacity: 1; } 36% { opacity: .9; transform: translate(var(--dx), calc(var(--dy) * .8)) rotate(calc(var(--i, 0) * 53deg)); } 60% { opacity: .4; transform: translate(calc(var(--dx) * 1.15), calc(var(--dy) * .3 + 16px)) rotate(calc(var(--i, 0) * 99deg)); } 80%, 100% { opacity: 0; transform: translate(calc(var(--dx) * 1.2), 28px) rotate(calc(var(--i, 0) * 127deg)) scale(.4); } }
+@keyframes battle-impact-goblin-crack { 0%, 13% { opacity: 0; transform: scale(.75); } 17% { opacity: .9; transform: scale(1.05) rotate(-3deg); } 24% { opacity: .3; transform: scale(1) rotate(2deg); } 29%, 100% { opacity: 0; transform: scale(1.2); } }
+@keyframes battle-impact-goblin-dust { 0%, 36% { opacity: 0; transform: scale(.5); } 54% { opacity: .65; transform: scale(1); } 74% { opacity: .3; transform: scale(1.3) translateY(5px); } 97%, 100% { opacity: 0; transform: scale(1.5) translateY(6px); } }
+@keyframes battle-impact-goblin-mark { 0%, 18% { opacity: 0; transform: rotate(-14deg) scale(.5); } 25%, 48% { opacity: .85; transform: rotate(3deg) scale(1); } 64%, 100% { opacity: 0; transform: rotate(-6deg) scale(.8); } }
+
+@keyframes battle-impact-sephosi-cut {
+  0%, 12% { transform: translate(0); filter: brightness(1); }
+  19% { transform: translate(4px, -4px) rotate(1.5deg); filter: brightness(1.65) drop-shadow(0 0 9px #e98a40); }
+  26% { transform: translate(-2px, 2px); filter: brightness(1.15); }
+  39%, 100% { transform: translate(0); filter: brightness(1); }
+}
+@keyframes battle-impact-sephosi-burn {
+  0%, 12% { opacity: 1; transform: translate(0); filter: brightness(1); clip-path: inset(0); }
+  20% { opacity: 1; transform: translate(3px, -3px); filter: brightness(1.8) sepia(.25); }
+  34% { opacity: 1; transform: translate(0); filter: brightness(.75) sepia(.8) saturate(2.5); clip-path: inset(0); }
+  48% { opacity: .9; transform: translateY(-2px); filter: brightness(.7) sepia(1) saturate(3) drop-shadow(0 -3px 4px #e87828); clip-path: polygon(0 0, 100% 0, 100% 79%, 82% 66%, 72% 88%, 52% 66%, 37% 80%, 18% 65%, 0 84%); }
+  65% { opacity: .55; transform: translateY(-5px); filter: brightness(1) sepia(1) saturate(3) blur(.5px); clip-path: polygon(0 0, 100% 0, 100% 42%, 82% 28%, 72% 50%, 52% 25%, 37% 43%, 18% 29%, 0 45%); }
+  80%, 100% { opacity: 0; transform: translateY(-11px); filter: brightness(1.5) sepia(1) blur(2px); clip-path: inset(0 0 100%); }
+}
+@keyframes battle-impact-sephosi-flash { 0%, 12% { opacity: 0; transform: scale(.3); } 21% { opacity: .75; transform: scale(1.15); } 35%, 100% { opacity: 0; transform: scale(1.4); } }
+@keyframes battle-impact-sephosi-rays { 0%, 14% { opacity: 0; transform: scale(.45) rotate(-20deg); } 23% { opacity: .85; transform: scale(1) rotate(0); } 48%, 100% { opacity: 0; transform: scale(1.5) rotate(8deg); } }
+@keyframes battle-impact-sephosi-ember { 0%, 15% { opacity: 0; transform: translate(calc(var(--dx) * .4), 10px) scale(.35); } 25% { opacity: 1; transform: translate(calc(var(--dx) * .7), calc(var(--dy) * .4)) scale(1); } 48% { opacity: .9; transform: translate(var(--dx), calc(var(--dy) - 9px)) scale(.8); } 70% { opacity: .5; transform: translate(calc(var(--dx) * .75), calc(var(--dy) - 19px)) scale(.65); } 93%, 100% { opacity: 0; transform: translate(calc(var(--dx) * .6), calc(var(--dy) - 27px)) scale(.2); } }
+@keyframes battle-impact-sephosi-slashes { 0%, 12% { opacity: 0; transform: translate(-15px, 15px) scaleX(.45); } 18% { opacity: 1; transform: translate(0) scaleX(1); } 24% { opacity: .9; transform: translate(3px, -3px) scaleX(1.03); } 35%, 100% { opacity: 0; transform: translate(12px, -12px) scaleX(1.13); } }
+@keyframes battle-impact-sephosi-flames { 0%, 32% { opacity: 0; transform: translateY(20px) scaleY(.3); } 48% { opacity: .75; transform: translateY(0) scaleY(1); } 64% { opacity: .55; transform: translateY(-18px) scaleY(.9); } 86%, 100% { opacity: 0; transform: translateY(-24px) scaleY(.35); } }
+@keyframes battle-impact-sephosi-mark { 0%, 18% { opacity: 0; transform: scale(.5) rotate(-20deg); } 30%, 53% { opacity: .9; transform: scale(1) rotate(0); } 72%, 100% { opacity: 0; transform: scale(1.2) rotate(15deg); } }
+
+@keyframes battle-impact-gaeli-wave {
+  0%, 12% { transform: translateY(0) scale(1); filter: brightness(1); }
+  26% { transform: translateY(-3px) scale(1.035); filter: brightness(1.35) drop-shadow(0 0 9px #55d7bb); }
+  47% { transform: translateY(1px) scale(.99); filter: brightness(1.12); }
+  70%, 100% { transform: translateY(0) scale(1); filter: brightness(1); }
+}
+@keyframes battle-impact-gaeli-evaporate {
+  0%, 12% { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); clip-path: inset(0); }
+  27% { opacity: 1; transform: translateY(-2px) scale(1.03); filter: brightness(1.45) drop-shadow(0 0 12px #67f0d7); }
+  45% { opacity: .85; transform: translateY(-7px) scale(1.015); filter: brightness(1.5) saturate(.6) blur(.6px); }
+  63% { opacity: .55; transform: translateY(-9px) scale(.98); filter: brightness(1.8) saturate(.4) blur(1.7px); }
+  80%, 100% { opacity: 0; transform: translateY(-17px) scale(.9); filter: brightness(2) saturate(.2) blur(5px); }
+}
+@keyframes battle-impact-gaeli-glow { 0%, 10% { opacity: 0; transform: scale(.65); } 29% { opacity: .75; transform: scale(1.05); } 54% { opacity: .2; transform: scale(1.2); } 81%, 100% { opacity: 0; transform: scale(1.35); } }
+@keyframes battle-impact-gaeli-ripple { 0%, 12% { opacity: 0; transform: scale(.45); } 25% { opacity: .85; transform: scale(.95); } 53% { opacity: .4; transform: scale(1.35); } 76%, 100% { opacity: 0; transform: scale(1.65); } }
+@keyframes battle-impact-gaeli-orbit-wheel { 0%, 12% { transform: rotate(-30deg); } 46% { transform: rotate(45deg); } 80%, 100% { transform: rotate(100deg); } }
+@keyframes battle-impact-gaeli-leaf { 0%, 12% { opacity: 0; transform: translate(calc(var(--dx) * .2), calc(var(--dy) * .2)) rotate(calc(var(--i, 0) * 35deg)) scale(.4); } 27% { opacity: 1; transform: translate(calc(var(--dx) * .85), calc(var(--dy) * .85)) rotate(calc(var(--i, 0) * 35deg)) scale(1); } 48% { opacity: .9; transform: translate(var(--dx), var(--dy)) rotate(calc(var(--i, 0) * 45deg)) scale(.9); } 74% { opacity: .5; transform: translate(calc(var(--dx) * 1.1), calc(var(--dy) * 1.1 - 10px)) rotate(calc(var(--i, 0) * 55deg)) scale(.7); } 95%, 100% { opacity: 0; transform: translate(calc(var(--dx) * 1.2), calc(var(--dy) * 1.15 - 20px)) rotate(calc(var(--i, 0) * 65deg)) scale(.25); } }
+@keyframes battle-impact-gaeli-spiral { 0%, 12% { opacity: 0; transform: scale(.4) rotate(-25deg); } 26% { opacity: .65; transform: scale(.9) rotate(0deg); } 52% { opacity: .3; transform: scale(1.3) rotate(35deg); } 77%, 100% { opacity: 0; transform: scale(1.65) rotate(60deg); } }
+@keyframes battle-impact-gaeli-mist { 0%, 32% { opacity: 0; transform: translateY(10px) scale(.7); } 52% { opacity: .7; transform: translateY(-4px) scale(1); } 73% { opacity: .4; transform: translateY(-23px) scale(1.2); } 95%, 100% { opacity: 0; transform: translateY(-24px) scale(1.3); } }
+@keyframes battle-impact-gaeli-mark { 0%, 20% { opacity: 0; transform: translateY(5px) scale(.7); } 36%, 53% { opacity: .9; transform: translateY(0) scale(1); } 78%, 100% { opacity: 0; transform: translateY(-9px) scale(1.1); } }
+
+
+@media (prefers-reduced-motion: reduce) {
+  .board-surface[data-resolving='true'] .board-unit[data-resolution-outcome],
+  .board-surface[data-resolving='true'] .battle-resolution-effect > *,
+  .board-surface[data-resolving='true'] .resolution-particles i { animation: none !important; }
+  .board-surface[data-resolving='true'] .board-unit[data-resolution-outcome='destroyed'] { opacity: .25; }
+  .board-surface[data-resolving='true'] .board-unit:is([data-resolution-outcome='wounded'], [data-resolution-outcome='held']) { opacity: 1; }
+  .board-surface[data-resolving='true'] .resolution-loss,
+  .board-surface[data-resolving='true'] .resolution-regiment,
+  .board-surface[data-resolving='true'] .resolution-result { opacity: 1; transform: translateX(-50%); }
+  .board-surface[data-resolving='true'] .resolution-emblem { opacity: .8; }
+  .board-surface[data-resolving='true'] .resolution-flash,
+  .board-surface[data-resolving='true'] .resolution-ring,
+  .board-surface[data-resolving='true'] .resolution-particles,
+  .board-surface[data-resolving='true'] .resolution-signature,
+  .board-surface[data-resolving='true'] .resolution-trail { opacity: 0; }
+}

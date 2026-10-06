@@ -27,7 +27,8 @@ export const catalogue2026: Unit[] = [
   // Djil is a Troll without Trollitude; artwork supplied by Nicolas on 2026-09-20.
   unit('gobelins', 'djil-meneur-de-trolls', 'Djil, meneur de Trolls', 4, 'unique', 3, 2, 'melee', 4, 5, 5, undefined, 'djil-meneur-de-trolls'),
   unit('gobelins', 'le-danzereu', 'Le Danzereu', 2, 'unique', 1, 2, 'ranged', 3, 1, 1, 'shamanicConcentration', 'le-danzereu'),
-  unit('gobelins', 'blop-le-meuteur', 'Blop, le Meuteur', 2, 'unique', 3, 2, 'melee', 3, 2, 1, 'packmaster'),
+  // Nicolas's October 6 correction: Blop is cavalry, retaining his reserve-only ability.
+  unit('gobelins', 'blop-le-meuteur', 'Blop, le Meuteur', 2, 'cavalry', 3, 2, 'melee', 3, 2, 1, 'packmaster'),
   unit('sephosi', 'lanciers-sephosiens', 'Lanciers Sephosiens', 3, 'troop', 3, 2, 'melee', 3, 4, 4, undefined, 'lanciers-sephosiens'),
   unit('sephosi', 'epeistes-sephosiens', 'Epéistes Sephosiens', 3, 'troop', 3, 3, 'melee', 4, 3, 3, undefined, 'epeistes'),
   unit('sephosi', 'arbaletriers-avec-pavois', 'Arbalétriers Sephosiens', 2, 'ranged', 2, 2, 'ranged', 3, 1, 2, undefined, 'arbaletriers-avec-pavois'),

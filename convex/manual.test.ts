@@ -4,6 +4,7 @@ import { liveGame } from '../src/test/liveGame'
 import { GOBLIN_BAND_CARD_ID, GOBLIN_REINFORCEMENTS_ORDER_ID, MANUAL_RULES_VERSION } from '../shared/manualBattle'
 import { catalogue2026 } from '../shared/catalogue2026'
 import { unitAbilities } from '../shared/unitAbilities'
+import { recruitmentPoints } from '../shared/battle'
 
 const error = (code: string) => ({ data: { code } })
 afterEach(() => vi.restoreAllMocks())
@@ -21,6 +22,67 @@ async function goblinTable() {
 }
 
 describe('shared manual battle', () => {
+  it('shares independent recruitment budgets, retains manual payment and renews them on any turn change', async () => {
+    const h = await table()
+    await h.manual('adjustTurn', 2, { delta: 1 })
+    const stocks = structuredClone((await h.read()).battle!.manual.stocks)
+    await h.manual('adjustStrategy', 1, { delta: 1 })
+    await h.manual('adjustStrategy', 2, { delta: 1 })
+    await h.manual('adjustRecruitment', 1, { delta: -1 })
+    await h.manual('adjustRecruitment', 1, { delta: -1 })
+    await h.manual('adjustRecruitment', 2, { delta: 1 })
+    await h.manual('recruit', 1, { cardStableId: 'archers', entered: 1, cell: 0 })
+    for (const user of [1, 2, 3]) {
+      const battle = (await h.read(user)).battle!
+      expect(battle.strategyPoints).toEqual([1, 1])
+      expect(battle.recruitmentOffsets).toEqual([-2, 1])
+      expect([0, 1].map((seat) => recruitmentPoints(battle, seat))).toEqual([2, 5])
+      expect(battle.manual.stocks).toEqual(stocks)
+    }
+    await h.manual('adjustStrategy', 1, { delta: 1 })
+    expect(recruitmentPoints((await h.read()).battle!, 0)).toBe(3)
+    await h.manual('adjustTurn', 2, { delta: 1 })
+    let battle = (await h.read()).battle!
+    expect(battle.recruitmentOffsets).toEqual([0, 0])
+    expect([0, 1].map((seat) => recruitmentPoints(battle, seat))).toEqual([5, 4])
+    await h.manual('adjustRecruitment', 2, { delta: -1 })
+    await h.manual('adjustTurn', 1, { delta: -1 })
+    battle = (await h.read()).battle!
+    expect(battle.recruitmentOffsets).toEqual([0, 0])
+    expect(battle.strategyPoints).toEqual([2, 1])
+    expect(battle.manual.stocks).toEqual(stocks)
+  })
+  it('supports legacy recruitment state and predictable corrections at zero without allowing a negative budget', async () => {
+    const h = await table()
+    await h.manual('adjustTurn', 2, { delta: 1 })
+    const battle = h.stored.battle as NonNullable<Awaited<ReturnType<typeof h.read>>['battle']>
+    delete battle.recruitmentOffsets
+    for (let index = 0; index < 3; index++) await h.manual('adjustRecruitment', 1, { delta: -1 })
+    expect((await h.read()).battle!.recruitmentOffsets).toEqual([-3, 0])
+    const before = structuredClone(h.tables)
+    await expect(h.manual('adjustRecruitment', 1, { delta: -1 })).rejects.toMatchObject(error('INVALID_MANUAL_COUNTER'))
+    expect(h.tables).toEqual(before)
+    await h.manual('adjustStrategy', 1, { delta: 1 })
+    await h.manual('adjustRecruitment', 1, { delta: -1 })
+    await h.manual('adjustStrategy', 1, { delta: -1 })
+    expect(recruitmentPoints((await h.read()).battle!, 0)).toBe(0)
+    await h.manual('adjustRecruitment', 1, { delta: 1 })
+    expect(recruitmentPoints((await h.read()).battle!, 0)).toBe(1)
+    expect((await h.read()).battle!.strategyPoints).toEqual([0, 0])
+  })
+  it('keeps recruitment corrections usable when strategy pushes the budget to its technical ceiling', async () => {
+    const h = await table()
+    await h.manual('adjustTurn', 2, { delta: 1 })
+    const battle = h.stored.battle as NonNullable<Awaited<ReturnType<typeof h.read>>['battle']>
+    battle.strategyPoints = [998, 0]
+    battle.recruitmentOffsets = [1, 0]
+    await h.manual('adjustStrategy', 1, { delta: 1 })
+    expect(recruitmentPoints((await h.read()).battle!, 0)).toBe(1002)
+    await expect(h.manual('adjustRecruitment', 1, { delta: 1 })).rejects.toMatchObject(error('INVALID_MANUAL_COUNTER'))
+    await h.manual('adjustRecruitment', 1, { delta: -1 })
+    expect(recruitmentPoints((await h.read()).battle!, 0)).toBe(1001)
+    expect((await h.read()).battle!.strategyPoints).toEqual([999, 0])
+  })
   it('creates goblin bands outside the deck and reserve, freezes their profile and shares them through discard and restore', async () => {
     const h = await goblinTable()
     const decks = structuredClone({ decks: h.tables.decks, cards: h.tables.deckCards })
@@ -110,7 +172,10 @@ describe('shared manual battle', () => {
   it('locks both recruitment counter corrections during turn one and unlocks them at turn two', async () => {
     const h = await table()
     const before = structuredClone(h.tables)
-    for (const user of [1, 2]) for (const delta of [-1, 1]) await expect(h.manual('adjustOrderStock', user, { orderId: 'recruitment', delta })).rejects.toMatchObject(error('RECRUITMENT_NOT_YET_AVAILABLE'))
+    for (const user of [1, 2]) for (const delta of [-1, 1]) {
+      await expect(h.manual('adjustOrderStock', user, { orderId: 'recruitment', delta })).rejects.toMatchObject(error('RECRUITMENT_NOT_YET_AVAILABLE'))
+      await expect(h.manual('adjustRecruitment', user, { delta })).rejects.toMatchObject(error('RECRUITMENT_NOT_YET_AVAILABLE'))
+    }
     expect(h.tables).toEqual(before)
     await h.manual('adjustTurn', 2, { delta: 1 })
     await h.manual('adjustOrderStock', 1, { orderId: 'recruitment', delta: -1 })
@@ -193,7 +258,7 @@ describe('shared manual battle', () => {
       ['moveUnit', { unitId: first.id, from: 40, to: 31 }], ['adjustRegiment', { unitId: first.id, delta: -1 }], ['discardUnit', { unitId: first.id }],
     ] as const) await expect(h.manual(name, 2, args)).rejects.toMatchObject(error('UNIT_NOT_OWNED'))
     for (const [name, args] of [
-      ['adjustTurn', { delta: 1 }], ['adjustStrategy', { delta: 1 }], ['rollDice', { count: 3 }], ['setDuel', {}], ['adjustOrderStock', { orderId: 'recruitment', delta: -1 }],
+      ['adjustTurn', { delta: 1 }], ['adjustStrategy', { delta: 1 }], ['adjustRecruitment', { delta: 1 }], ['rollDice', { count: 3 }], ['setDuel', {}], ['adjustOrderStock', { orderId: 'recruitment', delta: -1 }],
     ] as const) await expect(h.manual(name, 3, args)).rejects.toMatchObject(error('GAME_NOT_AVAILABLE'))
     await expect(h.manual('recruit', 2, { cardStableId: 'secret-card', entered: 0, cell: 0 })).rejects.toMatchObject(error('RESERVE_EMPTY'))
   })
